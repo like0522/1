@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>프로젝트 정밀 분석 시스템 V4.7 (트리맵 고도화/시계열 필터 탑재)</title>
+    <title>프로젝트 정밀 분석 시스템 V4.6 (트리맵 분석 안정화 픽스)</title>
     <!-- TailwindCSS & ECharts Data 시각화 라이브러리 탑재 유지 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
@@ -55,7 +55,7 @@
     <nav class="bg-slate-900 text-white py-4 px-6 sticky top-0 z-50 shadow-2xl">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
-                <div class="bg-emerald-500 p-2 rounded-xl text-slate-900 font-black">PRO-V4.7</div>
+                <div class="bg-emerald-500 p-2 rounded-xl text-slate-900 font-black">PRO-V4.6</div>
                 <h1 class="text-xl font-black tracking-tight">생산 공정 및 인력 투입 분석기</h1>
             </div>
             <div id="avgHintContainer" class="hidden flex items-center bg-amber-500/10 border border-amber-500/30 px-4 py-2 rounded-xl avg-badge">
@@ -217,49 +217,20 @@
         </main>
     </div>
 
-    <!-- 시각화 트리맵 패치 컨테이너 + [신규] 상단 필터 조회 바 -->
+    <!-- 시각화 트리맵 패치 컨테이너 공간 (오류 대응 완수 적용 본) -->
     <div id="mainTreemapContainer" class="hidden">
         <main class="max-w-7xl mx-auto px-6 mt-6 space-y-6 animate-in fade-in duration-500">
             <div class="dashboard-card min-h-[75vh] flex flex-col relative bg-white border-t-4 border-t-indigo-500 overflow-hidden shadow-md">
-                
-                <!-- 상단 타이틀 구역 -->
-                <div class="p-5 border-b border-slate-100 flex flex-col md:flex-row md:justify-between items-center bg-slate-50">
+                <div class="p-5 border-b border-slate-50 flex flex-col md:flex-row md:justify-between items-center bg-slate-50/50">
                     <h2 class="text-lg font-black text-slate-800 uppercase italic flex items-center gap-2 mb-2 md:mb-0">🔍 작업/인력 연동 트리맵 통계망</h2>
-                    <div class="text-xs text-slate-500 font-bold px-3 py-1.5 border border-slate-200 bg-white rounded flex flex-col md:flex-row md:items-center gap-2 shadow-sm">
-                        <span class="text-slate-800 tracking-wider">■ 블록(크기): 전체 총액금 비율지분 (Area)</span>
+                    <div class="text-xs text-slate-500 font-bold px-3 py-1.5 border border-slate-200 bg-white rounded flex flex-col md:flex-row md:items-center gap-2">
+                        <span class="text-slate-800 tracking-wider">■ 블록(크기): 지분율 면적 (전체 총금액 중 비율)</span>
                         <span class="hidden md:inline border-l border-slate-200 h-3"></span>
-                        <span class="text-indigo-600 font-black tracking-wider">■ 풀컬러(채색): 연장/야근 집중피로도 (다색 열화상)</span>
+                        <span class="text-red-500 font-black tracking-wider">■ 그라데이션(채색): 작업상 연장시간 / 잔업 강도 비례지표</span>
                     </div>
                 </div>
-
-                <!-- [외과 수술] 시계열 필터 조작기 부품 셋 -->
-                <div class="px-5 pb-5 pt-4 bg-slate-50/30 border-b border-slate-200 flex flex-wrap items-center gap-3">
-                    <span class="text-[11px] font-black text-indigo-500 bg-indigo-50 px-2 py-1 rounded shadow-sm border border-indigo-100">조회구간</span>
-                    <select id="tmSelYear" onchange="generateTreemapAnalytics()" class="h-10 px-3 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer">
-                        <option value="">전체 연도</option>
-                    </select>
-                    <select id="tmSelPeriod" onchange="generateTreemapAnalytics()" class="h-10 px-3 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer">
-                        <option value="">전체 단위기간 (상하/분기)</option>
-                        <option value="H1">■ 상반기 (1~6월)</option>
-                        <option value="H2">■ 하반기 (7~12월)</option>
-                        <option value="Q1">- 1분기 (1~3월)</option>
-                        <option value="Q2">- 2분기 (4~6월)</option>
-                        <option value="Q3">- 3분기 (7~9월)</option>
-                        <option value="Q4">- 4분기 (10~12월)</option>
-                    </select>
-                    <select id="tmSelMonth" onchange="generateTreemapAnalytics()" class="h-10 px-3 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer">
-                        <option value="">전체 월</option>
-                        <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option><option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option><option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
-                    </select>
-                    <select id="tmSelDay" onchange="generateTreemapAnalytics()" class="h-10 px-3 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer">
-                        <option value="">전체 일</option>
-                        <!-- 하단 로직으로 자동채워집니다 -->
-                    </select>
-                    <button onclick="resetTreemapFilters()" class="h-10 px-5 ml-auto bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg text-sm shadow-md transition-all">초기화 ↺</button>
-                </div>
-
                 <!-- 캔버스의 최소넓이를 CSS로 직접 제압해 숨어있어도 높이가 보장되어 NaN엔진 크러시 예방설정 -->
-                <div id="echartsTreemapDom" class="w-full flex-1 relative bg-white" style="min-height: 650px; display: block;"></div>
+                <div id="echartsTreemapDom" class="w-full flex-1 relative bg-white" style="min-height: 600px; display: block;"></div>
             </div>
         </main>
     </div>
@@ -334,46 +305,13 @@
                 document.getElementById('tabDashboard').classList.replace('font-black', 'font-bold');
 
                 // DOM이 보여지고 난 직후인 안정시간대 (0.1초 = 100ms) 대기 부여 -> 크롬 Canvas 0*0 사이즈 오계산 에러 물리차단  
-                requestAnimationFrame(() => {
-                    setTimeout(() => {
-                        generateTreemapAnalytics();
-                        let tmDomEngineChk = document.getElementById('echartsTreemapDom');
-                        let engineInstBase = echarts.getInstanceByDom(tmDomEngineChk);
-                        if(engineInstBase) engineInstBase.resize();
-                    }, 50); 
-                });
+                setTimeout(() => {
+                    generateTreemapAnalytics();
+                }, 100); 
             }
         }
 
-        // [신규 필터구축] - Data 초기 로딩 후 트리맵용 셀렉트 박스 구성을 진행합니다 
-        function populateTreemapFilters() {
-            const tmYearSel = document.getElementById('tmSelYear');
-            const tmDaySel = document.getElementById('tmSelDay');
-            
-            const uniqueYearsSetTMapListsExt = [...new Set(rawData.map(i => i.year))].filter(y => y !== 'Unknown').sort((a,b) => b-a);
-            const preSaveYearHoldValTMenuM = tmYearSel.value;
-            
-            tmYearSel.innerHTML = '<option value="">전체 연도</option>';
-            uniqueYearsSetTMapListsExt.forEach(yrNumbBVarData => tmYearSel.add(new Option(yrNumbBVarData + '년', yrNumbBVarData)));
-            if (uniqueYearsSetTMapListsExt.includes(preSaveYearHoldValTMenuM)) tmYearSel.value = preSaveYearHoldValTMenuM;
-
-            if (tmDaySel.options.length <= 1) {
-                for(let ddLoopCountBuildR1ArgIndex = 1; ddLoopCountBuildR1ArgIndex <= 31; ddLoopCountBuildR1ArgIndex++) {
-                    tmDaySel.add(new Option(ddLoopCountBuildR1ArgIndex + '일', ddLoopCountBuildR1ArgIndex));
-                }
-            }
-        }
-
-        // [필터 연산 조작부] 트리맵 조작 메뉴 올 리셋 스크립트 연결 
-        function resetTreemapFilters() {
-            document.getElementById('tmSelYear').value = '';
-            document.getElementById('tmSelPeriod').value = '';
-            document.getElementById('tmSelMonth').value = '';
-            document.getElementById('tmSelDay').value = '';
-            generateTreemapAnalytics(); // 클리어 후 화면 차트강제 전송 업데이트 트리거 발생 
-        }
-
-        // == 다중 필터 & 다채색 Echarts 옵션 빌더 업그레이드 마스터 본 == //
+        // == 고안전화 Treemap Chart Build Data Mapping Script 엔진 수정사항 ==
         function generateTreemapAnalytics() {
             const chartBoxWrapHtmlInstanceContainerNodeElementE_CHdomE = document.getElementById('echartsTreemapDom');
             if (!rawData || rawData.length === 0) {
@@ -381,6 +319,7 @@
                 return;
             }
 
+            // 구 인스턴스가 찌꺼기처럼 남아 안그려지는 오버랩핑 차단 dispose 패치 도입
             let inst = echarts.getInstanceByDom(chartBoxWrapHtmlInstanceContainerNodeElementE_CHdomE);
             if (inst) inst.dispose();
             const eChartContextMainObjectNode = echarts.init(chartBoxWrapHtmlInstanceContainerNodeElementE_CHdomE);
@@ -388,46 +327,14 @@
             let collectSummaryMapSetHash_PersonUserBasesNodeGrapListSetDict = {};
             let collectSummaryMapSetHash_PlaceProjectPlcBasesGrapNodeAreaSetDic = {};
             
-            // UI 필터 데이터 포섭 (트리맵 전용 드롭다운 객체 제어)
-            const selTargetArgNodeUIReqTYearStr = document.getElementById('tmSelYear').value;
-            const selTargetArgNodeUIReqTQuarterGroupPhaseIdTStrInfo = document.getElementById('tmSelPeriod').value;
-            const selTargetArgNodeUIReqTMnmMnStringVValDateNumStrBaseVarA = document.getElementById('tmSelMonth').value;
-            const selTargetArgNodeUIReqTDefDynmDtObjValCDefD1VarDDateStringDParamScoreInfoCNumberArrNTypeDayValDateRef = document.getElementById('tmSelDay').value;
-
-            // 전체 Data -> 설정한 Treemap UI 옵션에 부합하는 필터데이터 배열 새로 압출 (거르기 절차 추가 영역)
-            const runtimePreCachBaseListArrMapFileringTMethodValArgDataSetFilteredObjectsCollectionGroupVObjectDStructArrayObjGroupSets = rawData.filter(rawTargetLDataInfoValStructRObj => {
-                // 연도 필터 블로킹
-                if (selTargetArgNodeUIReqTYearStr && rawTargetLDataInfoValStructRObj.year !== selTargetArgNodeUIReqTYearStr) return false;
-                
-                const curEvalNumRawVMathDateStructMonthCDataFormatNumDRefOParamMonthScoreValOFormatValO= parseInt(rawTargetLDataInfoValStructRObj.month, 10);
-                if (!isNaN(curEvalNumRawVMathDateStructMonthCDataFormatNumDRefOParamMonthScoreValOFormatValO)) {
-                    if (selTargetArgNodeUIReqTMnmMnStringVValDateNumStrBaseVarA) {
-                         if (curEvalNumRawVMathDateStructMonthCDataFormatNumDRefOParamMonthScoreValOFormatValO !== parseInt(selTargetArgNodeUIReqTMnmMnStringVValDateNumStrBaseVarA, 10)) return false;
-                    } else if (selTargetArgNodeUIReqTQuarterGroupPhaseIdTStrInfo) {
-                         const filterScopeSwitchStateQuarterCondValueArg = selTargetArgNodeUIReqTQuarterGroupPhaseIdTStrInfo;
-                         if (filterScopeSwitchStateQuarterCondValueArg === 'H1' && (curEvalNumRawVMathDateStructMonthCDataFormatNumDRefOParamMonthScoreValOFormatValO < 1 || curEvalNumRawVMathDateStructMonthCDataFormatNumDRefOParamMonthScoreValOFormatValO > 6)) return false;
-                         if (filterScopeSwitchStateQuarterCondValueArg === 'H2' && (curEvalNumRawVMathDateStructMonthCDataFormatNumDRefOParamMonthScoreValOFormatValO < 7 || curEvalNumRawVMathDateStructMonthCDataFormatNumDRefOParamMonthScoreValOFormatValO > 12)) return false;
-                         if (filterScopeSwitchStateQuarterCondValueArg === 'Q1' && (curEvalNumRawVMathDateStructMonthCDataFormatNumDRefOParamMonthScoreValOFormatValO < 1 || curEvalNumRawVMathDateStructMonthCDataFormatNumDRefOParamMonthScoreValOFormatValO > 3)) return false;
-                         if (filterScopeSwitchStateQuarterCondValueArg === 'Q2' && (curEvalNumRawVMathDateStructMonthCDataFormatNumDRefOParamMonthScoreValOFormatValO < 4 || curEvalNumRawVMathDateStructMonthCDataFormatNumDRefOParamMonthScoreValOFormatValO > 6)) return false;
-                         if (filterScopeSwitchStateQuarterCondValueArg === 'Q3' && (curEvalNumRawVMathDateStructMonthCDataFormatNumDRefOParamMonthScoreValOFormatValO < 7 || curEvalNumRawVMathDateStructMonthCDataFormatNumDRefOParamMonthScoreValOFormatValO > 9)) return false;
-                         if (filterScopeSwitchStateQuarterCondValueArg === 'Q4' && (curEvalNumRawVMathDateStructMonthCDataFormatNumDRefOParamMonthScoreValOFormatValO < 10 || curEvalNumRawVMathDateStructMonthCDataFormatNumDRefOParamMonthScoreValOFormatValO > 12)) return false;
-                    }
-                }
-                
-                // 상세 일자별 세분 데이터 블로킹 차단 
-                if (selTargetArgNodeUIReqTDefDynmDtObjValCDefD1VarDDateStringDParamScoreInfoCNumberArrNTypeDayValDateRef && rawTargetLDataInfoValStructRObj.dateObj && !isNaN(rawTargetLDataInfoValStructRObj.dateObj.getTime())) {
-                     if (rawTargetLDataInfoValStructRObj.dateObj.getDate() !== parseInt(selTargetArgNodeUIReqTDefDynmDtObjValCDefD1VarDDateStringDParamScoreInfoCNumberArrNTypeDayValDateRef, 10)) return false;
-                }
-                return true; // 무사통과시 반환 (조작기 거침통과) 
-            });
-
-            // 걸러낸 필터값 기반 해싱 병합 전산 진행 로딩 (원본 전체 Raw 배열 대체제 탑재부)
-            runtimePreCachBaseListArrMapFileringTMethodValArgDataSetFilteredObjectsCollectionGroupVObjectDStructArrayObjGroupSets.forEach(baseLoopLineDataArrR => {
+            rawData.forEach(baseLoopLineDataArrR => {
                 const combinedWorkingHourAllDataRegNOverMathIntCalcValueNum_H = (baseLoopLineDataArrR.h_reg || 0) + (baseLoopLineDataArrR.h_over || 0);
                 const valueOfRawMonetCostLocalCostOfCostRawCalcRowAmtLine = (baseLoopLineDataArrR.cost || 0);
                 
+                // 시간이 발생했거나, 돈이 생겼거나 무엇이라도 흔적데이터 있으면 흡수루핑처리(조건 보수화)
                 if (combinedWorkingHourAllDataRegNOverMathIntCalcValueNum_H === 0 && valueOfRawMonetCostLocalCostOfCostRawCalcRowAmtLine === 0) return; 
 
+                // User 기반 통계 데이터 해싱축척 배열 집합정립 (Person level target map set base root Object setup config val insert list append method calc base tree structure loop logic data group add algorithm procedure string group target string var name list collection arr index name obj reference) 
                 const nKWorker_UserRTitleLText = (baseLoopLineDataArrR.worker && baseLoopLineDataArrR.worker.trim() !== '') ? baseLoopLineDataArrR.worker.trim() : '이름 미기입 작업이력';
                 if (!collectSummaryMapSetHash_PersonUserBasesNodeGrapListSetDict[nKWorker_UserRTitleLText]) collectSummaryMapSetHash_PersonUserBasesNodeGrapListSetDict[nKWorker_UserRTitleLText] = { tr_totCostCalcValueA: 0, bTime_NormValueRegularSumB: 0, extOverSumValueLimit_O: 0 };
                 collectSummaryMapSetHash_PersonUserBasesNodeGrapListSetDict[nKWorker_UserRTitleLText].tr_totCostCalcValueA += valueOfRawMonetCostLocalCostOfCostRawCalcRowAmtLine;
@@ -441,7 +348,7 @@
                 collectSummaryMapSetHash_PlaceProjectPlcBasesGrapNodeAreaSetDic[cGrpCPlaceGroup_KNodeT_AreaRef].extOverSumValueLimit_O += (baseLoopLineDataArrR.h_over || 0);
             });
 
-            // 변환 파서 : Node Builder
+            // 변환 파서 : Node Builder (오직 값이 0이라서 Echart를 패닉(하얀화면크러시) 상태에 빠뜨리던 주범을 예외픽스 5,1 로 제압합니다)
             const nodeBuildMakerRoutineCommonParserFactoryForGDataLineFormatMappingArraysFuctionCallTargetCStructureListReturnsT2CArrayVFuncM = (tRootRefOCollectionArgValStructDGroup) => {
                 return Object.keys(tRootRefOCollectionArgValStructDGroup).map(kVnameTextItemBNodeKey => {
                     const mRefObjR = tRootRefOCollectionArgValStructDGroup[kVnameTextItemBNodeKey];
@@ -449,9 +356,11 @@
                     let oVRScorePercenRtFloatResTypeAOutputVNodeListScoreVarT = 0;
                     if (fullTimeCountHrsSMathValRegPluOverGNumSetA > 0) oVRScorePercenRtFloatResTypeAOutputVNodeListScoreVarT = (mRefObjR.extOverSumValueLimit_O / fullTimeCountHrsSMathValRegPluOverGNumSetA) * 100;
                     
+                    // 크러쉬 주 원인 차단 핵심방어로직 적용 : Echart가 계산 불가능할 Cost 값이 "0원" 일지라도, 작업시간에 비례하여 무형적인 픽셀 임의가산값을 지정 강제로 표시
                     let displayAreaCostBoxCalcRawMathResTypeDNodeRScore1OAmountBoxWeightCDefArgsValueForRootMStrScoreLineArgOutputNodeArrV = mRefObjR.tr_totCostCalcValueA;
                     if(displayAreaCostBoxCalcRawMathResTypeDNodeRScore1OAmountBoxWeightCDefArgsValueForRootMStrScoreLineArgOutputNodeArrV <= 0) {
-                         displayAreaCostBoxCalcRawMathResTypeDNodeRScore1OAmountBoxWeightCDefArgsValueForRootMStrScoreLineArgOutputNodeArrV = (fullTimeCountHrsSMathValRegPluOverGNumSetA * 100) + 1; 
+                         // 만일 데이터 입력실수나 로딩 누락등으로 0원이 나오면 Echarts는 완전히 먹통이 됩니다. 이에 대한 가산 보험 로직
+                         displayAreaCostBoxCalcRawMathResTypeDNodeRScore1OAmountBoxWeightCDefArgsValueForRootMStrScoreLineArgOutputNodeArrV = (fullTimeCountHrsSMathValRegPluOverGNumSetA * 100) + 1; // 아무튼 공박스는 시각화 화면에서 그려놓아서 인지가 가능토록 구성.
                     }
 
                     return {
@@ -461,52 +370,49 @@
                 });
             };
 
-            let leafTargetPersonArrSet = nodeBuildMakerRoutineCommonParserFactoryForGDataLineFormatMappingArraysFuctionCallTargetCStructureListReturnsT2CArrayVFuncM(collectSummaryMapSetHash_PersonUserBasesNodeGrapListSetDict);
-            let leafTargetAreaWArrSet = nodeBuildMakerRoutineCommonParserFactoryForGDataLineFormatMappingArraysFuctionCallTargetCStructureListReturnsT2CArrayVFuncM(collectSummaryMapSetHash_PlaceProjectPlcBasesGrapNodeAreaSetDic);
+            let buildA_LevelPGroupResArraysRefLineCLeavesOfChildsA2NodesVStructGroupACollectionTreeTargetNItemPersonArrayObjListCLevelNodesValResVArgs = nodeBuildMakerRoutineCommonParserFactoryForGDataLineFormatMappingArraysFuctionCallTargetCStructureListReturnsT2CArrayVFuncM(collectSummaryMapSetHash_PersonUserBasesNodeGrapListSetDict);
+            let buildB_LevelCompanyCPlcsAreaGroupListArgBaseDArgsPTypeSetListLineDefVArgsArrCValueRGrpTypeTreeChildValResultStructDInfo = nodeBuildMakerRoutineCommonParserFactoryForGDataLineFormatMappingArraysFuctionCallTargetCStructureListReturnsT2CArrayVFuncM(collectSummaryMapSetHash_PlaceProjectPlcBasesGrapNodeAreaSetDic);
 
-            if(leafTargetPersonArrSet.length === 0 && leafTargetAreaWArrSet.length === 0) {
-                 chartBoxWrapHtmlInstanceContainerNodeElementE_CHdomE.innerHTML = '<div class="absolute inset-0 flex flex-col justify-center items-center text-slate-400 bg-slate-50 border border-slate-200 gap-4"><div class="text-4xl font-black italic tracking-widest text-slate-300 mb-2">ZERO DATA </div><p class="text-base font-bold">지정하신 "시계열 조건" (년/분기/달 등)을 충족하는 기록 및 내역비가 하나도 존재하지 않습니다.<br>필터를 재조정 혹은 초기화해주세요.</p></div>';
-                 return;
-            }
-
-            // Level Grouping Accumulate Generator Area Logic Block
-            const encapsulateMetricsParentLevel = (titCategoryTxtNamingTargetSetTitleNameHereVarDefArgLabelTxt_14_, arChildrenStructureTreePassedObjectArgumentValueTreeDef239103) => {
-                let summizedGlobalSizeForNodeAreaArea_24T31C2G = 0, summizeOver18A = 0, summizeNormalG = 0;
-                arChildrenStructureTreePassedObjectArgumentValueTreeDef239103.forEach(sLeafInsideFor => {
-                    summizedGlobalSizeForNodeAreaArea_24T31C2G += sLeafInsideFor.value[0]; 
-                    summizeNormalG += sLeafInsideFor.value[2]; 
-                    summizeOver18A += sLeafInsideFor.value[3];
+            const mapReduceRootTotalCStructsSubLevelAggregGroupLevelArg2ParentBuildLevelDataCVarVNodeMDataFunctionCalcObjResInfoGParamsStructureMMapV2DTypeArrLineDef1LevelLVarNTargetValForRSetVNodesDataTreeArrayStructInfoDefSetDataLFuncTResultCValRefFValueA = (lGroupNameStTargetTxtTitleStrDataNodeArrSetVRefTypeArgSNodeBaseStrStringNFormatArgLArrTextInfoTParamsNode, leavesChildArrayStructureTArrObjTypeChildLineValArgArrValuesDataNodeSetsListArrayArrGDefCChildInfoArrayObjArray) => {
+                let sizeAccumLTarget1R=0, otAgg_overHrm2ArgsRefLVarObjGTypePBaseArgs=0, ptRegAcBDataInfoNNumR=0;
+                leavesChildArrayStructureTArrObjTypeChildLineValArgArrValuesDataNodeSetsListArrayArrGDefCChildInfoArrayObjArray.forEach(kSubChildListArC => {
+                    sizeAccumLTarget1R += kSubChildListArC.value[0]; 
+                    ptRegAcBDataInfoNNumR += kSubChildListArC.value[2]; 
+                    otAgg_overHrm2ArgsRefLVarObjGTypePBaseArgs += kSubChildListArC.value[3];
                 });
-                let ratAvgReSumCalcForColorRatioDisplay182CScoreObj_G = (summizeNormalG + summizeOver18A) > 0 ? (summizeOver18A / (summizeNormalG + summizeOver18A)) * 100 : 0;
+                let retVCalcRatPCTOutputValArgResDataSetHDefNumFloatArgObjFloatPercHArgRatioResultScorePercentOVarScoreOutputV = 0;
+                if ((ptRegAcBDataInfoNNumR + otAgg_overHrm2ArgsRefLVarObjGTypePBaseArgs) > 0) {
+                     retVCalcRatPCTOutputValArgResDataSetHDefNumFloatArgObjFloatPercHArgRatioResultScorePercentOVarScoreOutputV = (otAgg_overHrm2ArgsRefLVarObjGTypePBaseArgs / (ptRegAcBDataInfoNNumR + otAgg_overHrm2ArgsRefLVarObjGTypePBaseArgs)) * 100;
+                }
                 return {
-                    name: titCategoryTxtNamingTargetSetTitleNameHereVarDefArgLabelTxt_14_,
-                    value:[summizedGlobalSizeForNodeAreaArea_24T31C2G, ratAvgReSumCalcForColorRatioDisplay182CScoreObj_G, summizeNormalG, summizeOver18A],
-                    children: arChildrenStructureTreePassedObjectArgumentValueTreeDef239103
+                    name: lGroupNameStTargetTxtTitleStrDataNodeArrSetVRefTypeArgSNodeBaseStrStringNFormatArgLArrTextInfoTParamsNode,
+                    value:[sizeAccumLTarget1R, retVCalcRatPCTOutputValArgResDataSetHDefNumFloatArgObjFloatPercHArgRatioResultScorePercentOVarScoreOutputV, ptRegAcBDataInfoNNumR, otAgg_overHrm2ArgsRefLVarObjGTypePBaseArgs],
+                    children: leavesChildArrayStructureTArrObjTypeChildLineValArgArrValuesDataNodeSetsListArrayArrGDefCChildInfoArrayObjArray
                 };
             };
 
-            const parentNodePers = encapsulateMetricsParentLevel('👤 사람 (투입작업자 분석)', leafTargetPersonArrSet);
-            const parentNodeAres = encapsulateMetricsParentLevel('🏗️ 작업장 (업체납품처 단위)', leafTargetAreaWArrSet);
+            const grp1A_PRootHObjArrTreeListDefGroupTypeNodeChildV = mapReduceRootTotalCStructsSubLevelAggregGroupLevelArg2ParentBuildLevelDataCVarVNodeMDataFunctionCalcObjResInfoGParamsStructureMMapV2DTypeArrLineDef1LevelLVarNTargetValForRSetVNodesDataTreeArrayStructInfoDefSetDataLFuncTResultCValRefFValueA('👤[구분 : 개인 단위 분배 분석 작업자 분포]', buildA_LevelPGroupResArraysRefLineCLeavesOfChildsA2NodesVStructGroupACollectionTreeTargetNItemPersonArrayObjListCLevelNodesValResVArgs);
+            const grp2B_PArLArrWObjectArrDGrOListChildAreaPlcLDataTreeArgsOListSetCGroupBaseSetChildA = mapReduceRootTotalCStructsSubLevelAggregGroupLevelArg2ParentBuildLevelDataCVarVNodeMDataFunctionCalcObjResInfoGParamsStructureMMapV2DTypeArrLineDef1LevelLVarNTargetValForRSetVNodesDataTreeArrayStructInfoDefSetDataLFuncTResultCValRefFValueA('🏭[구분 : 거래사 영역 배분 그룹 업체장 분포]', buildB_LevelCompanyCPlcsAreaGroupListArgBaseDArgsPTypeSetListLineDefVArgsArrCValueRGrpTypeTreeChildValResultStructDInfo);
             
-            const mainTotCostScoreAllSumsArrL_0AreaWidthSum = parentNodePers.value[0] + parentNodeAres.value[0];
-            const mainTotR_CDataLineDataNode2ArrTotalValuesT = parentNodePers.value[2] + parentNodeAres.value[2];
-            const mainTotOVRS = parentNodePers.value[3] + parentNodeAres.value[3];
+            const totalProjectRootLevelOverallMainAllObjMathAddCalcDataSums1ValueRootNodeArrRefDefCostT2RootGArrVarCNumObjOParamArgsValueResultBLineRResVNumberFloatArgFormatSet = grp1A_PRootHObjArrTreeListDefGroupTypeNodeChildV.value[0] + grp2B_PArLArrWObjectArrDGrOListChildAreaPlcLDataTreeArgsOListSetCGroupBaseSetChildA.value[0];
+            const sumAllRG1RootAllObjectDataAStructureInfoNodesRefMathRRegADataArgDNodeValuesLParamsDef2NodeNLineArgTargetOValue1BaseBTimeInfoCountNumSumMArgInfoTArrNumArgArgsA1ObjValuesFloatNumberLArrayCResultSMathScoreGResultScoreOutputVCalcLArgAInfo2TargetODataObjOArgsSumValueResFormatB = grp1A_PRootHObjArrTreeListDefGroupTypeNodeChildV.value[2] + grp2B_PArLArrWObjectArrDGrOListChildAreaPlcLDataTreeArgsOListSetCGroupBaseSetChildA.value[2];
+            const overTotalRInfoOutputValTotalNNodeSetAllPLevelHVarResultNodeDefLineArgOverObjScoreValMResultStructNumberCountTimeValueLineSumCalcNumScoreVRefArg2ArrayFormatTargetValueOutputScoreDataDResultNumArgOutputCalcStructFormatListDefLArgTargetValNumNumCalcSumTimeScoreResult = grp1A_PRootHObjArrTreeListDefGroupTypeNodeChildV.value[3] + grp2B_PArLArrWObjectArrDGrOListChildAreaPlcLDataTreeArgsOListSetCGroupBaseSetChildA.value[3];
             let topVGlobalAverageRootValRatePerGSumRatArgValueTotalPctTimeArrResultPercentObjectNodeSetMathLineGArgsResultStrCalcRArrayValPercentAFloatNumberFormatOutputInfoM = 0;
-            if(mainTotR_CDataLineDataNode2ArrTotalValuesT + mainTotOVRS > 0) {
-                 topVGlobalAverageRootValRatePerGSumRatArgValueTotalPctTimeArrResultPercentObjectNodeSetMathLineGArgsResultStrCalcRArrayValPercentAFloatNumberFormatOutputInfoM = (mainTotOVRS / (mainTotR_CDataLineDataNode2ArrTotalValuesT + mainTotOVRS)) * 100;
+            if(sumAllRG1RootAllObjectDataAStructureInfoNodesRefMathRRegADataArgDNodeValuesLParamsDef2NodeNLineArgTargetOValue1BaseBTimeInfoCountNumSumMArgInfoTArrNumArgArgsA1ObjValuesFloatNumberLArrayCResultSMathScoreGResultScoreOutputVCalcLArgAInfo2TargetODataObjOArgsSumValueResFormatB + overTotalRInfoOutputValTotalNNodeSetAllPLevelHVarResultNodeDefLineArgOverObjScoreValMResultStructNumberCountTimeValueLineSumCalcNumScoreVRefArg2ArrayFormatTargetValueOutputScoreDataDResultNumArgOutputCalcStructFormatListDefLArgTargetValNumNumCalcSumTimeScoreResult > 0) {
+                 topVGlobalAverageRootValRatePerGSumRatArgValueTotalPctTimeArrResultPercentObjectNodeSetMathLineGArgsResultStrCalcRArrayValPercentAFloatNumberFormatOutputInfoM = (overTotalRInfoOutputValTotalNNodeSetAllPLevelHVarResultNodeDefLineArgOverObjScoreValMResultStructNumberCountTimeValueLineSumCalcNumScoreVRefArg2ArrayFormatTargetValueOutputScoreDataDResultNumArgOutputCalcStructFormatListDefLArgTargetValNumNumCalcSumTimeScoreResult / (sumAllRG1RootAllObjectDataAStructureInfoNodesRefMathRRegADataArgDNodeValuesLParamsDef2NodeNLineArgTargetOValue1BaseBTimeInfoCountNumSumMArgInfoTArrNumArgArgsA1ObjValuesFloatNumberLArrayCResultSMathScoreGResultScoreOutputVCalcLArgAInfo2TargetODataObjOArgsSumValueResFormatB + overTotalRInfoOutputValTotalNNodeSetAllPLevelHVarResultNodeDefLineArgOverObjScoreValMResultStructNumberCountTimeValueLineSumCalcNumScoreVRefArg2ArrayFormatTargetValueOutputScoreDataDResultNumArgOutputCalcStructFormatListDefLArgTargetValNumNumCalcSumTimeScoreResult)) * 100;
             }
 
             const rawDataSetArgConfigArrayOptionConfigTreeBuildMappingReadyRootObjNodesAllDMapArgsVDefM =[{
-                name: '선택기간(지표/필터) 다차원 종합 분석망', 
-                value:[mainTotCostScoreAllSumsArrL_0AreaWidthSum, topVGlobalAverageRootValRatePerGSumRatArgValueTotalPctTimeArrResultPercentObjectNodeSetMathLineGArgsResultStrCalcRArrayValPercentAFloatNumberFormatOutputInfoM, mainTotR_CDataLineDataNode2ArrTotalValuesT, mainTotOVRS],
-                children:[parentNodePers, parentNodeAres]
+                name: '분석 대조 통합 시각판망', // 최상위 트리 뷰 표시 고유 식별 이름 
+                value:[totalProjectRootLevelOverallMainAllObjMathAddCalcDataSums1ValueRootNodeArrRefDefCostT2RootGArrVarCNumObjOParamArgsValueResultBLineRResVNumberFloatArgFormatSet, topVGlobalAverageRootValRatePerGSumRatArgValueTotalPctTimeArrResultPercentObjectNodeSetMathLineGArgsResultStrCalcRArrayValPercentAFloatNumberFormatOutputInfoM, sumAllRG1RootAllObjectDataAStructureInfoNodesRefMathRRegADataArgDNodeValuesLParamsDef2NodeNLineArgTargetOValue1BaseBTimeInfoCountNumSumMArgInfoTArrNumArgArgsA1ObjValuesFloatNumberLArrayCResultSMathScoreGResultScoreOutputVCalcLArgAInfo2TargetODataObjOArgsSumValueResFormatB, overTotalRInfoOutputValTotalNNodeSetAllPLevelHVarResultNodeDefLineArgOverObjScoreValMResultStructNumberCountTimeValueLineSumCalcNumScoreVRefArg2ArrayFormatTargetValueOutputScoreDataDResultNumArgOutputCalcStructFormatListDefLArgTargetValNumNumCalcSumTimeScoreResult],
+                children:[grp1A_PRootHObjArrTreeListDefGroupTypeNodeChildV, grp2B_PArLArrWObjectArrDGrOListChildAreaPlcLDataTreeArgsOListSetCGroupBaseSetChildA]
             }];
 
             const fetchListExtAllDValCGroupMArgsDataChildItemsPctPercentExtractFloatNumValColorRValLimitsBaseCNumScoreObjectMaxVNodeScoreResultMDefValValuesTargetRefArgsArraysNumberValsObjectItems =[...buildA_LevelPGroupResArraysRefLineCLeavesOfChildsA2NodesVStructGroupACollectionTreeTargetNItemPersonArrayObjListCLevelNodesValResVArgs, ...buildB_LevelCompanyCPlcsAreaGroupListArgBaseDArgsPTypeSetListLineDefVArgsArrCValueRGrpTypeTreeChildValResultStructDInfo].map(nDItemsAObjM1Value => nDItemsAObjM1Value.value[1]);
             const finalPScoreValUpperTLineTopCapLArgColorNumberVFloatMaxNDataListDefGNumberResLimitVarMathPParamRangeLimitArgVarRefValueResultOutputFormatDataNumFormatNum = fetchListExtAllDValCGroupMArgsDataChildItemsPctPercentExtractFloatNumValColorRValLimitsBaseCNumScoreObjectMaxVNodeScoreResultMDefValValuesTargetRefArgsArraysNumberValsObjectItems.length > 0 ? Math.max(...fetchListExtAllDValCGroupMArgsDataChildItemsPctPercentExtractFloatNumValColorRValLimitsBaseCNumScoreObjectMaxVNodeScoreResultMDefValValuesTargetRefArgsArraysNumberValsObjectItems) : 100;
             const safeCalculatedTopGLevelVisualMapLimColorRangeArgTargetNObjValSAmountPercentOArrPSetHCalcFloatDef = Math.max(1, Math.ceil(finalPScoreValUpperTLineTopCapLArgColorNumberVFloatMaxNDataListDefGNumberResLimitVarMathPParamRangeLimitArgVarRefValueResultOutputFormatDataNumFormatNum/10) * 10);
 
-            // [다중 스펙트럼 적용 포인트] 기존 4,5단계가 아닌 최상위 안전 블루톤~크림슨 적색 까지 확장시킨 대채널 배열 옵션 적용
+            // Chart Render Setting Injection Map Tree Node Core Builder Output (절대적 보증 옵션 결합 영역부 처리)
             eChartContextMainObjectNode.setOption({
                 tooltip: {
                     trigger: 'item', backgroundColor: 'rgba(255, 255, 255, 0.95)', borderColor: '#e2e8f0', borderWidth: 2, padding:[12, 16], textStyle: { color: '#0f172a' },
@@ -516,6 +422,7 @@
                         
                         const breadStrDTitleNTypeLineCInfoTxtMapHierarchicalDataSetListVNodeB1StructNodeLabelNameFormatNNameLVarTargetTreeTypePathStrOutputMNodeGLevelScoreTFormatNumTDefTypeBaseLabelResultObjectHStructDefNLabelTypeTreeV = paramsCallEventMouseOValHoverItemTooltipRendererBuilderNodeArgsDataEventRefMArrLParamsValuesObjectFormatObjDValueInfoTypeLineDataScoreNumVArgTypeScoreDStrNTypeVSetArgs.treePathInfo.map(path=>path.name).join(' > ');
                         
+                        // 예외픽스 5.1(비용이 0인데 공수작업으로 출력된 강제출력 데이터 알림 메시지 안전망 ToolTip 설정)
                         let rawActualRealWorldCorrectOriginalOriginCostScoreInfoVarValTextNumberFormatTParamSStringRefCDisplayOBaseTargetArgListSDataCostVResultObjL1VNum = Math.round(datHHoveredBoxTValSetListBTargetGInfoStructObjBaseValsGRefA[4]);
                         let displayBoxSizTMessageWarnDefValAmountStringTypeNodePArgDTextAlertGNumStructFormatMoneyValueCValueRefTargetVLabelStrMResultOVarDefNumBResultVFormatStringNumTargetDefObjValueN;
                         if (isNaN(rawActualRealWorldCorrectOriginalOriginCostScoreInfoVarValTextNumberFormatTParamSStringRefCDisplayOBaseTargetArgListSDataCostVResultObjL1VNum)) { 
@@ -538,34 +445,19 @@
                     }
                 },
                 visualMap: {
-                    type: 'continuous', dimension: 1, title:['🚨[적] 위험공정/피로 초과구간', '💠[청] 클린안전 표준마진대'], calculable: true,
+                    type: 'continuous', dimension: 1, title:['긴급 야근 위기 집중공정구역(과부하)', '비잔업 클린안전 구역(준수)'], calculable: true,
                     min: 0, max: safeCalculatedTopGLevelVisualMapLimColorRangeArgTargetNObjValSAmountPercentOArrPSetHCalcFloatDef,
-                    // [스펙트럼 필터 옵션 강화!] 더 다양한 9톤 채널을 도입했습니다. 심파랑 -> 노란초록 -> 완전붉음. 시각 변별력이 강해집니다.
-                    inRange: { color:['#3b82f6', '#06b6d4', '#10b981', '#a3e635', '#facc15', '#f97316', '#ef4444', '#b91c1c', '#4c0519'] }, 
-                    itemWidth: 15, itemHeight: 330, bottom: '2%', right: '5%', orient: 'horizontal', textStyle: { color: '#64748b', fontSize: 10, fontWeight: '900', letterSpacing: 0.1 }
+                    inRange: { color:['#059669', '#34d399', '#fbbf24', '#f97316', '#dc2626'] }, 
+                    itemWidth: 15, itemHeight: 250, bottom: '2%', right: '5%', orient: 'horizontal', textStyle: { color: '#64748b', fontSize: 10, fontWeight: '900', letterSpacing: 0.2 }
                 },
                 series:[{
-                    type: 'treemap', visualDimension: 1, roam: 'move', // move와 zoom을 모두 지원하기위해 String이나 Array허용 (자체로직이 'move' 만하면 안튐) 
+                    type: 'treemap', visualDimension: 1, roam: false,
                     width: '98%', height: '80%', top: '5%', bottom: '5%',
                     data: rawDataSetArgConfigArrayOptionConfigTreeBuildMappingReadyRootObjNodesAllDMapArgsVDefM,
-                    breadcrumb: { show: true, bottom: '2%', right:'8%', emptyItemWidth:20 },
+                    breadcrumb: { show: true, bottom: '3%', right:'10%' },
                     label: { show: true, fontSize: 15, fontWeight:'black', textShadowBlur: 4, textShadowColor: '#0f172a',
                              formatter: function(mEventMouseObjHoverPBoxStrCallHoverBStringTypeRendererEArgInfoVarLineRSetTitleNodesValObjectBase1Data) {
-                                  if (!mEventMouseObjHoverPBoxStrCallHoverBStringTypeRendererEArgInfoVarLineRSetTitleNodesValObjectBase1Data.value) return mEventMouseObjHoverPBoxStrCallHoverBStringTypeRendererEArgInfoVarLineRSetTitleNodesValObjectBase1Data.name;
-                                  let rawFormatNumDispAmoLArgTargetValAVal1AStr=mEventMouseObjHoverPBoxStrCallHoverBStringTypeRendererEArgInfoVarLineRSetTitleNodesValObjectBase1Data.value[0];
-                                  if(rawFormatNumDispAmoLArgTargetValAVal1AStr>=10000000) rawFormatNumDispAmoLArgTargetValAVal1AStr=(rawFormatNumDispAmoLArgTargetValAVal1AStr/10000000).toFixed(1)+'천만';
-                                  else if(rawFormatNumDispAmoLArgTargetValAVal1AStr>=10000) rawFormatNumDispAmoLArgTargetValAVal1AStr=Math.floor(rawFormatNumDispAmoLArgTargetValAVal1AStr/10000).toLocaleString()+'만';
-                                  else rawFormatNumDispAmoLArgTargetValAVal1AStr=Math.round(rawFormatNumDispAmoLArgTargetValAVal1AStr).toLocaleString();
-                                  
-                                  let ptValArgPercentO = mEventMouseObjHoverPBoxStrCallHoverBStringTypeRendererEArgInfoVarLineRSetTitleNodesValObjectBase1Data.value[1].toFixed(0)+'%';
-                                  return '{nmStrTTargetTitleFontNTargetMDefBaseValueInfoTitle1GStr|'+mEventMouseObjHoverPBoxStrCallHoverBStringTypeRendererEArgInfoVarLineRSetTitleNodesValObjectBase1Data.name+'}\n\n' +
-                                         '{bgStyPSetStrRTargetLFontGTypeAmountObjPriceLabelResultOFloatInfo2LBaseNumLineRSetAStr|₩ '+rawFormatNumDispAmoLArgTargetValAVal1AStr+'}\n' +
-                                         '{rskStLPercentDefTypeRiskTypeTargetFloatValStringValRefResultTypeStringPValueArgBaseFLineMTargetValueObjAStrLabelL|잔업비율 : '+ptValArgPercentO+'}';
-                             },
-                             rich: {
-                                  nmStrTTargetTitleFontNTargetMDefBaseValueInfoTitle1GStr: { fontSize:15, fontWeight:'900', color:'#f8fafc' },
-                                  bgStyPSetStrRTargetLFontGTypeAmountObjPriceLabelResultOFloatInfo2LBaseNumLineRSetAStr: { fontSize:13, fontWeight:'bold', color:'#f8fafc', padding:[4,6], backgroundColor:'rgba(0,0,0,0.5)', borderRadius:4 },
-                                  rskStLPercentDefTypeRiskTypeTargetFloatValStringValRefResultTypeStringPValueArgBaseFLineMTargetValueObjAStrLabelL: { fontSize:11, fontWeight:'900', color:'#e2e8f0', width:'100%', align:'right', marginTop:6 }
+                                  return mEventMouseObjHoverPBoxStrCallHoverBStringTypeRendererEArgInfoVarLineRSetTitleNodesValObjectBase1Data.name; 
                              }
                            },
                     itemStyle: { borderColor: '#ffffff', borderWidth: 2 },
@@ -632,7 +524,6 @@
                 };
             });
             populateFilters();
-            populateTreemapFilters(); // 최신 초기화 호출 바인드 삽입(규칙대로 스크립트는 삭제없이 기능병합합니다)
         }
 
         function populateFilters() {
@@ -772,6 +663,7 @@
                     profitLossElem.className = 'text-xl font-black text-slate-300';
                 }
 
+                // 회사명을 같이 넘겨서 한일너클프레스 조건을 검사하도록 반영 
                 renderMatrix(weightInput, company);
                 renderHistory();
                 document.getElementById('emptyState').classList.add('hidden');

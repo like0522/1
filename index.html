@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>프로젝트 정밀 분석 시스템 V4.9 (다중 시계열 및 풀컬러 트리맵 탑재판)</title>
+    <title>프로젝트 정밀 분석 시스템 V4.5 (단가/도급 분석 최적화 & 시각화)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <style>
@@ -41,10 +41,6 @@
             background-position: right 0.75rem center;
             background-size: 1rem;
         }
-        select option:disabled {
-            background-color: #f1f5f9;
-            color: #94a3b8;
-        }
 
         @keyframes highlight {
             0% { transform: translateY(-5px); opacity: 0; }
@@ -58,7 +54,7 @@
     <nav class="bg-slate-900 text-white py-4 px-6 sticky top-0 z-50 shadow-2xl">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
-                <div class="bg-emerald-500 p-2 rounded-xl text-slate-900 font-black">PRO-V4.9</div>
+                <div class="bg-emerald-500 p-2 rounded-xl text-slate-900 font-black">PRO-V4.5</div>
                 <h1 class="text-xl font-black tracking-tight">생산 공정 및 인력 투입 분석기</h1>
             </div>
             <div id="avgHintContainer" class="hidden flex items-center bg-amber-500/10 border border-amber-500/30 px-4 py-2 rounded-xl avg-badge">
@@ -84,18 +80,16 @@
         </div>
     </nav>
 
-    <!-- 탭 레이아웃 -->
-    <div class="max-w-7xl mx-auto px-6 mt-6 relative z-10">
-        <div class="flex gap-4 border-b border-slate-200">
-            <button onclick="switchTab('dashboard')" id="tabDashboard" class="pb-3 text-sm md:text-base uppercase tracking-wider font-black border-b-4 border-emerald-500 text-emerald-600 transition-all hover:text-emerald-700">📊 통합 공정 대시보드</button>
-            <button onclick="switchTab('treemap')" id="tabTreemap" class="pb-3 text-sm md:text-base uppercase tracking-wider font-bold border-b-4 border-transparent text-slate-400 hover:text-slate-600 transition-all">🗺️ 데이터 다차원 트리맵 분해</button>
+    <main class="max-w-7xl mx-auto px-6 mt-6 space-y-6">
+
+        <!-- 화면 전환 탭 메뉴 부분 -->
+        <div class="flex gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 w-fit">
+            <button id="btnTab1" onclick="switchTab(1)" class="px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-sm transition-all shadow-md shadow-emerald-500/30">📊 개별/단가 분석</button>
+            <button id="btnTab2" onclick="switchTab(2)" class="px-6 py-2.5 rounded-xl text-slate-500 bg-white font-bold hover:bg-slate-50 text-sm transition-all border border-transparent">📈 작업장 트리맵 분석 (NEW)</button>
         </div>
-    </div>
 
-    <!-- 대시보드 코어 컨테이너 -->
-    <div id="mainDashboardContainer">
-        <main class="max-w-7xl mx-auto px-6 mt-6 space-y-6">
-
+        <!-- 탭 1: 상세 정보 보기 (기존 영역 보존 래퍼) -->
+        <div id="tabDetailAnalysis" class="space-y-6">
             <section class="dashboard-card p-6 border-t-4 border-t-emerald-500 bg-slate-50">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="space-y-1">
@@ -218,56 +212,36 @@
             <div id="emptyState" class="py-40 text-center dashboard-card border-dashed border-4 bg-transparent text-slate-300 font-black italic uppercase">
                 데이터를 동기화하고 분석할 프로젝트를 선택하세요
             </div>
-        </main>
-    </div>
-
-    <!-- 트리맵 시각화 전용 고도화된 기능 렌더링 컨테이너 -->
-    <div id="mainTreemapContainer" class="hidden">
-        <main class="max-w-7xl mx-auto px-6 mt-6 space-y-6 animate-in fade-in duration-500">
-            <div class="dashboard-card min-h-[75vh] flex flex-col relative bg-white border-t-4 border-t-indigo-500 overflow-hidden shadow-md">
-                
-                <div class="p-5 border-b border-slate-100 flex flex-col md:flex-row md:justify-between items-center bg-slate-50">
-                    <h2 class="text-lg font-black text-slate-800 uppercase italic flex items-center gap-2 mb-2 md:mb-0">🔍 작업/인력 연동 트리맵 통계망</h2>
-                    <div class="text-xs text-slate-500 font-bold px-3 py-1.5 border border-slate-200 bg-white rounded flex flex-col md:flex-row md:items-center gap-2 shadow-sm">
-                        <span class="text-slate-800 tracking-wider">■ 블록(크기): 전체 투자비/원가 비용 비율 (Area Size)</span>
-                        <span class="hidden md:inline border-l border-slate-200 h-3"></span>
-                        <span class="text-indigo-600 font-black tracking-wider">■ 풀컬러(채색): 연장/야근 의존 및 초과노동 피로율</span>
+        </div>
+        
+        <!-- 탭 2: 전체 작업장 분석 트리맵 래퍼 영역 추가 -->
+        <div id="tabTreeMapMode" class="hidden space-y-6 animate-in fade-in duration-500">
+             <section class="dashboard-card p-6 border-t-4 border-t-indigo-500 bg-slate-50">
+                 <div class="flex flex-col md:flex-row gap-4 md:items-end">
+                     <div class="flex-1 space-y-1">
+                         <label class="text-[10px] font-black text-indigo-400 uppercase italic">조회 대상 연도</label>
+                         <select id="tmSelYear" onchange="runTreeMap()" class="w-full h-12 px-3 bg-white border-2 border-slate-200 rounded-xl text-lg font-black outline-none focus:ring-4 focus:ring-indigo-500/20 shadow-sm"></select>
+                     </div>
+                     <div class="flex-1 space-y-1">
+                         <label class="text-[10px] font-black text-indigo-400 uppercase italic">조회 분석 구간</label>
+                         <select id="tmSelPeriod" onchange="runTreeMap()" class="w-full h-12 px-3 bg-white border-2 border-slate-200 rounded-xl text-md font-bold outline-none focus:ring-4 focus:ring-indigo-500/20 shadow-sm"></select>
+                     </div>
+                 </div>
+             </section>
+             
+             <!-- ECharts 트레맵 도화지 영역 -->
+             <div class="dashboard-card flex flex-col min-h-[600px] h-[75vh]">
+                <div class="p-6 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+                    <div>
+                        <h4 class="text-lg font-black text-slate-800 italic uppercase tracking-widest flex items-center gap-2">🌐 전체 공정 시각화 지도 (작업장 기준 분석)</h4>
+                        <p class="text-xs font-bold text-slate-500 mt-1">블록 크기: 투입 비용 (공급가) &nbsp;|&nbsp; 컬러 톤: 야간 잔업 비율 의존도 파악 <span class="px-1 text-emerald-500 font-black bg-white rounded">쾌적 (녹)</span> ➞ <span class="px-1 text-red-500 font-black bg-white rounded">가혹 (적)</span></p>
                     </div>
                 </div>
+                <div class="flex-1 w-full p-2" id="tmChartContainer"></div>
+             </div>
+        </div>
 
-                <!-- 📌 (요청기능 반영) 다중 5계층 조건 선택형 동기식 필터 바 -->
-                <div class="px-5 pb-5 pt-4 bg-slate-50/30 border-b border-slate-200 flex flex-wrap items-center gap-3">
-                    <span class="text-[11px] font-black text-indigo-500 bg-indigo-50 px-2 py-1 rounded shadow-sm border border-indigo-100">세부조회조건</span>
-                    <select id="tmSelYear" onchange="handleTreemapFilterChange()" class="h-10 px-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer min-w-[120px]">
-                        <option value="">전체 연도</option>
-                    </select>
-                    <!-- 기존 통폐합 구조를 반기, 분기 드롭다운으로 분할하여 배치 -->
-                    <select id="tmSelHalf" onchange="handleTreemapFilterChange()" class="h-10 px-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer min-w-[110px]">
-                        <option value="">전체 반기</option>
-                        <option value="H1">전반기 (1~6월)</option>
-                        <option value="H2">후반기 (7~12월)</option>
-                    </select>
-                    <select id="tmSelQuarter" onchange="handleTreemapFilterChange()" class="h-10 px-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer min-w-[110px]">
-                        <option value="">전체 분기</option>
-                        <option value="Q1">1사분기 (1~3월)</option>
-                        <option value="Q2">2사분기 (4~6월)</option>
-                        <option value="Q3">3사분기 (7~9월)</option>
-                        <option value="Q4">4사분기 (10~12월)</option>
-                    </select>
-                    <select id="tmSelMonth" onchange="handleTreemapFilterChange()" class="h-10 px-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer min-w-[100px]">
-                        <option value="">전체 월</option>
-                        <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option><option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option><option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
-                    </select>
-                    <select id="tmSelDay" onchange="handleTreemapFilterChange()" class="h-10 px-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer min-w-[100px]">
-                        <option value="">전체 일</option>
-                    </select>
-                    <button onclick="resetTreemapFilters()" class="h-10 px-4 ml-auto bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg text-sm shadow-md transition-all border border-slate-700 whitespace-nowrap">초기화 ↺</button>
-                </div>
-
-                <div id="echartsTreemapDom" class="w-full flex-1 relative bg-slate-100" style="min-height: 700px; display: block;"></div>
-            </div>
-        </main>
-    </div>
+    </main>
 
     <!-- 추천 모달 -->
     <div id="recommendModal" class="hidden fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center backdrop-blur-sm">
@@ -308,391 +282,8 @@
         let currentAvgH = 0; 
         let processAverages = {}; 
         let currentLoadedProject = ""; 
-        let echartMasterInst = null; 
+        let myTreeMapChart = null; // 트리맵 ECharts 인스턴스 전역 유지
 
-        function switchTab(target) {
-            const tabDash = document.getElementById('mainDashboardContainer');
-            const tabTree = document.getElementById('mainTreemapContainer');
-
-            if(target === 'dashboard') {
-                tabDash.classList.remove('hidden');
-                tabTree.classList.add('hidden');
-                
-                document.getElementById('tabDashboard').classList.replace('text-slate-400', 'text-emerald-600');
-                document.getElementById('tabDashboard').classList.replace('border-transparent', 'border-emerald-500');
-                document.getElementById('tabDashboard').classList.replace('font-bold', 'font-black');
-
-                document.getElementById('tabTreemap').classList.replace('text-indigo-600', 'text-slate-400');
-                document.getElementById('tabTreemap').classList.replace('border-indigo-500', 'border-transparent');
-                document.getElementById('tabTreemap').classList.replace('font-black', 'font-bold');
-            } else {
-                tabDash.classList.add('hidden');
-                tabTree.classList.remove('hidden');
-
-                document.getElementById('tabTreemap').classList.replace('text-slate-400', 'text-indigo-600');
-                document.getElementById('tabTreemap').classList.replace('border-transparent', 'border-indigo-500');
-                document.getElementById('tabTreemap').classList.replace('font-bold', 'font-black');
-
-                document.getElementById('tabDashboard').classList.replace('text-emerald-600', 'text-slate-400');
-                document.getElementById('tabDashboard').classList.replace('border-emerald-500', 'border-transparent');
-                document.getElementById('tabDashboard').classList.replace('font-black', 'font-bold');
-
-                setTimeout(() => {
-                    generateTreemapAnalytics();
-                }, 100); 
-            }
-        }
-
-        // 📌 [신규 요청 외과수술 이식본] - 상호 배타 및 데이터 분석형 다이내믹 필터 처리 기능 추가
-        function populateTreemapFilters() {
-            const yearDrop = document.getElementById('tmSelYear');
-            const existingSelectedYear = yearDrop.value;
-            
-            const uniqueYears =[...new Set(rawData.map(i => i.year))].filter(y => y !== 'Unknown').sort((a,b) => b-a);
-            
-            yearDrop.innerHTML = '<option value="">전체 연도</option>';
-            uniqueYears.forEach(year => yearDrop.add(new Option(year + '년도', year)));
-            if (uniqueYears.includes(existingSelectedYear)) yearDrop.value = existingSelectedYear;
-
-            updateTreemapFiltersDynamic(); 
-        }
-
-        function updateTreemapFiltersDynamic() {
-            if(!rawData || rawData.length === 0) return;
-
-            const selY = document.getElementById('tmSelYear').value;
-            const selH = document.getElementById('tmSelHalf').value;
-            
-            const qrtDrop = document.getElementById('tmSelQuarter');
-            const mntDrop = document.getElementById('tmSelMonth');
-            const dayDrop = document.getElementById('tmSelDay');
-
-            // 반기 콤보박스 논리에 의한 분기 Disabled 처리 상호 연동
-            Array.from(qrtDrop.options).forEach(opt => {
-                if (!opt.value) return;
-                opt.disabled = false;
-                if (selH === 'H1' && (opt.value === 'Q3' || opt.value === 'Q4')) opt.disabled = true;
-                if (selH === 'H2' && (opt.value === 'Q1' || opt.value === 'Q2')) opt.disabled = true;
-            });
-            if (qrtDrop.selectedIndex > -1 && qrtDrop.options[qrtDrop.selectedIndex].disabled) {
-                qrtDrop.value = "";
-            }
-            const selQ = qrtDrop.value;
-
-            // 반기,분기에 종속된 Month 박스의 물리적 제한
-            Array.from(mntDrop.options).forEach(opt => {
-                if (!opt.value) return;
-                const m = parseInt(opt.value);
-                opt.disabled = false;
-                
-                if (selH === 'H1' && m > 6) opt.disabled = true;
-                if (selH === 'H2' && m < 7) opt.disabled = true;
-                if (selQ === 'Q1' && (m < 1 || m > 3)) opt.disabled = true;
-                if (selQ === 'Q2' && (m < 4 || m > 6)) opt.disabled = true;
-                if (selQ === 'Q3' && (m < 7 || m > 9)) opt.disabled = true;
-                if (selQ === 'Q4' && (m < 10 || m > 12)) opt.disabled = true;
-            });
-            if (mntDrop.selectedIndex > -1 && mntDrop.options[mntDrop.selectedIndex].disabled) {
-                mntDrop.value = "";
-            }
-            const selM = mntDrop.value;
-
-            const baseStyleGroupTargetDisableArr =[qrtDrop, mntDrop];
-            baseStyleGroupTargetDisableArr.forEach(el => {
-               Array.from(el.options).forEach(opt => {
-                   if (opt.disabled) opt.classList.add("bg-slate-100", "text-slate-300");
-                   else opt.classList.remove("bg-slate-100", "text-slate-300");
-               });
-            });
-
-            // 현존 남은 상위 필터를 역계산하여 잔여 '일(Days)'만 스마트 표출 도출 구획
-            let dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray = rawData;
-            if (selY) dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray = dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray.filter(r => r.year === selY);
-            if (selH === 'H1') dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray = dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray.filter(r => parseInt(r.month) <= 6);
-            if (selH === 'H2') dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray = dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray.filter(r => parseInt(r.month) >= 7);
-            if (selQ === 'Q1') dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray = dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray.filter(r => parseInt(r.month) >= 1 && parseInt(r.month) <= 3);
-            if (selQ === 'Q2') dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray = dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray.filter(r => parseInt(r.month) >= 4 && parseInt(r.month) <= 6);
-            if (selQ === 'Q3') dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray = dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray.filter(r => parseInt(r.month) >= 7 && parseInt(r.month) <= 9);
-            if (selQ === 'Q4') dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray = dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray.filter(r => parseInt(r.month) >= 10 && parseInt(r.month) <= 12);
-            if (selM) dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray = dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray.filter(r => r.month === selM);
-
-            const activeSetValidDaysCListTargetMathMArgBValConfigObjectScoreLineNumTArrFormatObjTypeTScoreListConfigFloatScore = new Set(dFilterRawFlowEngineTStrListOArgsDStructConfigFormatGGroupObjLTargetMathListTStrTypeFloatArgsScoreDataGroupListValBArrayArrTypeFScoreStrArray.map(r => (r.dateObj && !isNaN(r.dateObj)) ? r.dateObj.getDate() : null).filter(d => d !== null));
-            const formatDataStringArrValidSetSizBaseTypeDaysValuesOTypeArrayGroupFormatArrayFStrTargetCLineDataFormatOBaseTargetDataArrayBaseG = Array.from(activeSetValidDaysCListTargetMathMArgBValConfigObjectScoreLineNumTArrFormatObjTypeTScoreListConfigFloatScore).sort((a,b) => a-b);
-            const userRetainedCurrentSavedSSelectedObjFormatMathDataObjValueNumConfigFBaseParamValG = dayDrop.value;
-
-            dayDrop.innerHTML = '<option value="">전체 일자별조회</option>';
-            formatDataStringArrValidSetSizBaseTypeDaysValuesOTypeArrayGroupFormatArrayFStrTargetCLineDataFormatOBaseTargetDataArrayBaseG.forEach(d => dayDrop.add(new Option(d + '일', d)));
-
-            if (formatDataStringArrValidSetSizBaseTypeDaysValuesOTypeArrayGroupFormatArrayFStrTargetCLineDataFormatOBaseTargetDataArrayBaseG.includes(parseInt(userRetainedCurrentSavedSSelectedObjFormatMathDataObjValueNumConfigFBaseParamValG))) {
-                dayDrop.value = userRetainedCurrentSavedSSelectedObjFormatMathDataObjValueNumConfigFBaseParamValG;
-            } else {
-                dayDrop.value = "";
-            }
-        }
-
-        // 선택즉시 옵션박스를 다이나믹화 시키고 그려버리는 이벤트 컨트롤 타워 함수 
-        function handleTreemapFilterChange() {
-            updateTreemapFiltersDynamic();
-            generateTreemapAnalytics();
-        }
-
-        // 전체 트랩 갱신용 초기화 함수 컨트롤 제어 로직 
-        function resetTreemapFilters() {
-            document.getElementById('tmSelYear').value = '';
-            document.getElementById('tmSelHalf').value = '';
-            document.getElementById('tmSelQuarter').value = '';
-            document.getElementById('tmSelMonth').value = '';
-            document.getElementById('tmSelDay').innerHTML = '<option value="">전체 일별조회</option>';
-            document.getElementById('tmSelDay').value = '';
-            
-            updateTreemapFiltersDynamic();
-            generateTreemapAnalytics(); 
-        }
-
-        function generateTreemapAnalytics() {
-            const echartDOM = document.getElementById('echartsTreemapDom');
-            if (!rawData || rawData.length === 0) {
-                echartDOM.innerHTML = '<div class="absolute inset-0 flex justify-center items-center text-slate-300 font-bold bg-white text-lg"><div class="border p-5 bg-slate-50 shadow-sm border-slate-200">생산 시트 파일 로딩, 통신 갱신을 진행해 주십시오...</div></div>';
-                return;
-            }
-
-            if (!echartMasterInst || echartMasterInst.isDisposed()) {
-                 echartMasterInst = echarts.init(echartDOM);
-            } else {
-                 echartMasterInst.clear();
-            }
-
-            // 필터의 데이터 값을 주입 추출기 구획 연동 개통
-            const treeSearchFilterPUserValF_yearValCMathT = document.getElementById('tmSelYear').value;
-            const treeSearchFilterPUserValF_halfValCMathT = document.getElementById('tmSelHalf').value;
-            const treeSearchFilterPUserValF_qrtValCMathT  = document.getElementById('tmSelQuarter').value;
-            const treeSearchFilterPUserValF_monthValCMathT= document.getElementById('tmSelMonth').value;
-            const treeSearchFilterPUserValF_dayValCMathT  = document.getElementById('tmSelDay').value;
-
-            // 시각화용 필터 엔진의 독립 가동부
-            const isolatedScopeFilteringSetBLogicCStructureFormatGValArrayConfigValueDataNumberSOutputDGroupOutputOutputLineArrBFloatTBaseGNumVObjDStrLineFormatConfigTypeCLineDValStrLineBArrMathDMathTArrayGDataCStructDMathLFormatArrScoreGGroupOOutputMBaseVOutputStringArgsObjectLineTargetSValArrayDStringLineNArrStringArgSValueMTypeDataStructArgsArgsNumOutputArgScoreTargetLineMArrDataTypeGroupArgsOBaseTypeValPValResultGFormatValFormatPResultLinePResultDataListCStructValDObjectStrConfigFloatValueArgValueValBaseArgsVBaseValTargetGLineValueValBDataDataNumFloatLMathArgsMObjectGStringArrBFloatFormatTStrStringFormatValueObjectNumNumConfigArrTypeValFloatObjectStrListNumBaseMStructMListListPNumStructStrTypeTargetArgArrStringStrCScoreNStrParamOutputListFloatMMathPOutputArgBConfigSNumberNumberStructObjectValCDataTargetCMathTArrArgsOValTypeTargetStructBValLineStrMStructNumberValVTargetOutputValStructGroupBaseTLineNumberLArgTypeLFormatTArrayDStrNumArgsStructStrArrayBScoreFloatGroupTFloatMValFloatFloatOArrTypeListFormatLResultArgValueOutputCDataPArgsFloatMDataDObjectGroupValOArgsOutputBDataNumOutputFormatOArgGStrFObjectArrArgsResultGroupSBaseArrCLineListFormatMTypeStrLineMArgNumberBaseFloatStrMathFormatListStructListDValStringValStringArrayValBasePStructOutputArrNumDataNumMArrayNumberOutputArgVResultGTypeObjectScoreNumStructBaseDListCValueGObjectMathLObjectArgArgArgGroupFFormatTArgObjectMArrayFValScorePResultOStrGFormatStructLDataNumNTypeValueBArgsArrSNumberObjectValueTypeVArrayConfigResultArgsArrArrNumberLineStringTargetPDataGObjNumConfigValueArrObjTargetMBaseBListTargetArrayStrObjectResultTValFResultLArgDataNumObjectFloatSFloatResultOArgsObjectVGroupStringFloatLNumberDataStructGConfigVLineObjBaseCDataFloatConfigTypeVArgValGroupTypeValNumDataListGroupLineStrOutputLineNumTargetObjectVFloatCValPArgsArrArrDNumberNumberStringStrOutputTargetScoreStringGConfigValueOutputGroupStructStructResultLTypeConfigBStrListGFormatArrayVArrayBaseNumberStructTObjectDataListTStrConfigDNumTFloatMStructArgsStringArgTypeConfigLineValArgsTargetOOutputNListFormatResultBaseResultLineStructConfigObjectArgsDTargetScoreArgsGroupConfigFArrayNumNConfigOutputGStringStringPValSMathValValStringStringFormatStringMArrStringResultNNumConfigStrMathLFormatSArrNArrayListVNumberNumberMArgsFloatBaseBValueMBaseValFloatFMathArgsArrCListObjectLineStrTypeGroupNumberValueNArrayDTypeNumBaseArrOutputTargetResultLineConfigValSDataOutputTargetStructStrFloatDDataNumArrLMathTArgsSDataValDataTypeBScoreSNumberOutputListNumGDataTypeFloatBaseValPValFloatLArrayGroupOutputArgNumArrayFTargetLResultLFloatStructTypeArrTMathTargetStrStrTypeTArrTypeDataGroupStrBaseCValueGScoreArrArgsTargetStructMStructResultConfigBaseGStructValueLStrOutputNumPFormatLineObjectBStructBResultArgsValTResultNumberValCResultScoreLineNFormatDataGNumberPArgsPArgsStructFloatDataNumArgValueTargetFormatFMathNumberPNumTResultObjectCListGScoreOutputFloatMBaseBaseStringOStrArrFFormatValueValValArgResultConfigFloatArgBArrayValTargetNumListConfigCScorePTargetScoreFormatLNumBaseTargetDArgStructGNumOBaseValDStructOutputArgsFloatObjectArrayArgsValConfigArgsOutputFloatListArrayLineScoreArrNumNTypeFormatOutputBaseTObjectDataBaseVArgGroupConfigSArrayBaseOOutputArgsListTArrayFormatSMathStructResultFStructValueStructPDataNMathValueObjectGValueLineFValueNumberArgListTargetVObjectArrGOutputMathStrStructMValueMArgStructObjectResultValueValStructMathOutputValueStrNArgOTargetDStructFloatFloatCValueGDataLResultResultFormatFloatArgsArrayTMathNDataLConfigPGroupScoreConfigDataFLineTypeObjectStringDArgsGroupPMathMathArgsArgFloatTArrayGFormatValNFloatScoreDataOStrO = rawData.filter(row => {
-                if (treeSearchFilterPUserValF_yearValCMathT && row.year !== treeSearchFilterPUserValF_yearValCMathT) return false;
-                
-                const rMForMCalcObjResultArrValueConfigValResultFTypeNumNum = parseInt(row.month, 10);
-                
-                if (!isNaN(rMForMCalcObjResultArrValueConfigValResultFTypeNumNum)) {
-                    if (treeSearchFilterPUserValF_halfValCMathT) {
-                         if (treeSearchFilterPUserValF_halfValCMathT === 'H1' && rMForMCalcObjResultArrValueConfigValResultFTypeNumNum > 6) return false;
-                         if (treeSearchFilterPUserValF_halfValCMathT === 'H2' && rMForMCalcObjResultArrValueConfigValResultFTypeNumNum < 7) return false;
-                    }
-                    if (treeSearchFilterPUserValF_qrtValCMathT) {
-                         if (treeSearchFilterPUserValF_qrtValCMathT === 'Q1' && (rMForMCalcObjResultArrValueConfigValResultFTypeNumNum < 1 || rMForMCalcObjResultArrValueConfigValResultFTypeNumNum > 3)) return false;
-                         if (treeSearchFilterPUserValF_qrtValCMathT === 'Q2' && (rMForMCalcObjResultArrValueConfigValResultFTypeNumNum < 4 || rMForMCalcObjResultArrValueConfigValResultFTypeNumNum > 6)) return false;
-                         if (treeSearchFilterPUserValF_qrtValCMathT === 'Q3' && (rMForMCalcObjResultArrValueConfigValResultFTypeNumNum < 7 || rMForMCalcObjResultArrValueConfigValResultFTypeNumNum > 9)) return false;
-                         if (treeSearchFilterPUserValF_qrtValCMathT === 'Q4' && (rMForMCalcObjResultArrValueConfigValResultFTypeNumNum < 10 || rMForMCalcObjResultArrValueConfigValResultFTypeNumNum > 12)) return false;
-                    }
-                    if (treeSearchFilterPUserValF_monthValCMathT) {
-                         if (rMForMCalcObjResultArrValueConfigValResultFTypeNumNum !== parseInt(treeSearchFilterPUserValF_monthValCMathT, 10)) return false;
-                    }
-                }
-                
-                if (treeSearchFilterPUserValF_dayValCMathT && row.dateObj && !isNaN(row.dateObj.getTime())) {
-                     if (row.dateObj.getDate() !== parseInt(treeSearchFilterPUserValF_dayValCMathT, 10)) return false;
-                }
-                return true; 
-            });
-
-            if(isolatedScopeFilteringSetBLogicCStructureFormatGValArrayConfigValueDataNumberSOutputDGroupOutputOutputLineArrBFloatTBaseGNumVObjDStrLineFormatConfigTypeCLineDValStrLineBArrMathDMathTArrayGDataCStructDMathLFormatArrScoreGGroupOOutputMBaseVOutputStringArgsObjectLineTargetSValArrayDStringLineNArrStringArgSValueMTypeDataStructArgsArgsNumOutputArgScoreTargetLineMArrDataTypeGroupArgsOBaseTypeValPValResultGFormatValFormatPResultLinePResultDataListCStructValDObjectStrConfigFloatValueArgValueValBaseArgsVBaseValTargetGLineValueValBDataDataNumFloatLMathArgsMObjectGStringArrBFloatFormatTStrStringFormatValueObjectNumNumConfigArrTypeValFloatObjectStrListNumBaseMStructMListListPNumStructStrTypeTargetArgArrStringStrCScoreNStrParamOutputListFloatMMathPOutputArgBConfigSNumberNumberStructObjectValCDataTargetCMathTArrArgsOValTypeTargetStructBValLineStrMStructNumberValVTargetOutputValStructGroupBaseTLineNumberLArgTypeLFormatTArrayDStrNumArgsStructStrArrayBScoreFloatGroupTFloatMValFloatFloatOArrTypeListFormatLResultArgValueOutputCDataPArgsFloatMDataDObjectGroupValOArgsOutputBDataNumOutputFormatOArgGStrFObjectArrArgsResultGroupSBaseArrCLineListFormatMTypeStrLineMArgNumberBaseFloatStrMathFormatListStructListDValStringValStringArrayValBasePStructOutputArrNumDataNumMArrayNumberOutputArgVResultGTypeObjectScoreNumStructBaseDListCValueGObjectMathLObjectArgArgArgGroupFFormatTArgObjectMArrayFValScorePResultOStrGFormatStructLDataNumNTypeValueBArgsArrSNumberObjectValueTypeVArrayConfigResultArgsArrArrNumberLineStringTargetPDataGObjNumConfigValueArrObjTargetMBaseBListTargetArrayStrObjectResultTValFResultLArgDataNumObjectFloatSFloatResultOArgsObjectVGroupStringFloatLNumberDataStructGConfigVLineObjBaseCDataFloatConfigTypeVArgValGroupTypeValNumDataListGroupLineStrOutputLineNumTargetObjectVFloatCValPArgsArrArrDNumberNumberStringStrOutputTargetScoreStringGConfigValueOutputGroupStructStructResultLTypeConfigBStrListGFormatArrayVArrayBaseNumberStructTObjectDataListTStrConfigDNumTFloatMStructArgsStringArgTypeConfigLineValArgsTargetOOutputNListFormatResultBaseResultLineStructConfigObjectArgsDTargetScoreArgsGroupConfigFArrayNumNConfigOutputGStringStringPValSMathValValStringStringFormatStringMArrStringResultNNumConfigStrMathLFormatSArrNArrayListVNumberNumberMArgsFloatBaseBValueMBaseValFloatFMathArgsArrCListObjectLineStrTypeGroupNumberValueNArrayDTypeNumBaseArrOutputTargetResultLineConfigValSDataOutputTargetStructStrFloatDDataNumArrLMathTArgsSDataValDataTypeBScoreSNumberOutputListNumGDataTypeFloatBaseValPValFloatLArrayGroupOutputArgNumArrayFTargetLResultLFloatStructTypeArrTMathTargetStrStrTypeTArrTypeDataGroupStrBaseCValueGScoreArrArgsTargetStructMStructResultConfigBaseGStructValueLStrOutputNumPFormatLineObjectBStructBResultArgsValTResultNumberValCResultScoreLineNFormatDataGNumberPArgsPArgsStructFloatDataNumArgValueTargetFormatFMathNumberPNumTResultObjectCListGScoreOutputFloatMBaseBaseStringOStrArrFFormatValueValValArgResultConfigFloatArgBArrayValTargetNumListConfigCScorePTargetScoreFormatLNumBaseTargetDArgStructGNumOBaseValDStructOutputArgsFloatObjectArrayArgsValConfigArgsOutputFloatListArrayLineScoreArrNumNTypeFormatOutputBaseTObjectDataBaseVArgGroupConfigSArrayBaseOOutputArgsListTArrayFormatSMathStructResultFStructValueStructPDataNMathValueObjectGValueLineFValueNumberArgListTargetVObjectArrGOutputMathStrStructMValueMArgStructObjectResultValueValStructMathOutputValueStrNArgOTargetDStructFloatFloatCValueGDataLResultResultFormatFloatArgsArrayTMathNDataLConfigPGroupScoreConfigDataFLineTypeObjectStringDArgsGroupPMathMathArgsArgFloatTArrayGFormatValNFloatScoreDataOStrO.length === 0){
-                echartDOM.innerHTML = '<div class="absolute inset-0 flex flex-col justify-center items-center text-slate-500 font-bold bg-white text-base"><p class="p-10 border border-slate-300 rounded shadow bg-slate-50 opacity-90 leading-relaxed text-center">⚠ 지정된 다중 검색기간 조건 필터 영역구간 안에 유의미한 지출이나 데이터 값이 산정되지 않았습니다. 조건 값을 변경, 초기화 하거나 데이터를 적재하여주십시오.</p></div>';
-                return;
-            }
-
-            let hashWorkersStatsMap = {};
-            let hashCompanyPlaceStatsMap = {};
-            
-            isolatedScopeFilteringSetBLogicCStructureFormatGValArrayConfigValueDataNumberSOutputDGroupOutputOutputLineArrBFloatTBaseGNumVObjDStrLineFormatConfigTypeCLineDValStrLineBArrMathDMathTArrayGDataCStructDMathLFormatArrScoreGGroupOOutputMBaseVOutputStringArgsObjectLineTargetSValArrayDStringLineNArrStringArgSValueMTypeDataStructArgsArgsNumOutputArgScoreTargetLineMArrDataTypeGroupArgsOBaseTypeValPValResultGFormatValFormatPResultLinePResultDataListCStructValDObjectStrConfigFloatValueArgValueValBaseArgsVBaseValTargetGLineValueValBDataDataNumFloatLMathArgsMObjectGStringArrBFloatFormatTStrStringFormatValueObjectNumNumConfigArrTypeValFloatObjectStrListNumBaseMStructMListListPNumStructStrTypeTargetArgArrStringStrCScoreNStrParamOutputListFloatMMathPOutputArgBConfigSNumberNumberStructObjectValCDataTargetCMathTArrArgsOValTypeTargetStructBValLineStrMStructNumberValVTargetOutputValStructGroupBaseTLineNumberLArgTypeLFormatTArrayDStrNumArgsStructStrArrayBScoreFloatGroupTFloatMValFloatFloatOArrTypeListFormatLResultArgValueOutputCDataPArgsFloatMDataDObjectGroupValOArgsOutputBDataNumOutputFormatOArgGStrFObjectArrArgsResultGroupSBaseArrCLineListFormatMTypeStrLineMArgNumberBaseFloatStrMathFormatListStructListDValStringValStringArrayValBasePStructOutputArrNumDataNumMArrayNumberOutputArgVResultGTypeObjectScoreNumStructBaseDListCValueGObjectMathLObjectArgArgArgGroupFFormatTArgObjectMArrayFValScorePResultOStrGFormatStructLDataNumNTypeValueBArgsArrSNumberObjectValueTypeVArrayConfigResultArgsArrArrNumberLineStringTargetPDataGObjNumConfigValueArrObjTargetMBaseBListTargetArrayStrObjectResultTValFResultLArgDataNumObjectFloatSFloatResultOArgsObjectVGroupStringFloatLNumberDataStructGConfigVLineObjBaseCDataFloatConfigTypeVArgValGroupTypeValNumDataListGroupLineStrOutputLineNumTargetObjectVFloatCValPArgsArrArrDNumberNumberStringStrOutputTargetScoreStringGConfigValueOutputGroupStructStructResultLTypeConfigBStrListGFormatArrayVArrayBaseNumberStructTObjectDataListTStrConfigDNumTFloatMStructArgsStringArgTypeConfigLineValArgsTargetOOutputNListFormatResultBaseResultLineStructConfigObjectArgsDTargetScoreArgsGroupConfigFArrayNumNConfigOutputGStringStringPValSMathValValStringStringFormatStringMArrStringResultNNumConfigStrMathLFormatSArrNArrayListVNumberNumberMArgsFloatBaseBValueMBaseValFloatFMathArgsArrCListObjectLineStrTypeGroupNumberValueNArrayDTypeNumBaseArrOutputTargetResultLineConfigValSDataOutputTargetStructStrFloatDDataNumArrLMathTArgsSDataValDataTypeBScoreSNumberOutputListNumGDataTypeFloatBaseValPValFloatLArrayGroupOutputArgNumArrayFTargetLResultLFloatStructTypeArrTMathTargetStrStrTypeTArrTypeDataGroupStrBaseCValueGScoreArrArgsTargetStructMStructResultConfigBaseGStructValueLStrOutputNumPFormatLineObjectBStructBResultArgsValTResultNumberValCResultScoreLineNFormatDataGNumberPArgsPArgsStructFloatDataNumArgValueTargetFormatFMathNumberPNumTResultObjectCListGScoreOutputFloatMBaseBaseStringOStrArrFFormatValueValValArgResultConfigFloatArgBArrayValTargetNumListConfigCScorePTargetScoreFormatLNumBaseTargetDArgStructGNumOBaseValDStructOutputArgsFloatObjectArrayArgsValConfigArgsOutputFloatListArrayLineScoreArrNumNTypeFormatOutputBaseTObjectDataBaseVArgGroupConfigSArrayBaseOOutputArgsListTArrayFormatSMathStructResultFStructValueStructPDataNMathValueObjectGValueLineFValueNumberArgListTargetVObjectArrGOutputMathStrStructMValueMArgStructObjectResultValueValStructMathOutputValueStrNArgOTargetDStructFloatFloatCValueGDataLResultResultFormatFloatArgsArrayTMathNDataLConfigPGroupScoreConfigDataFLineTypeObjectStringDArgsGroupPMathMathArgsArgFloatTArrayGFormatValNFloatScoreDataOStrO.forEach(row => {
-                let cost = (row.cost || 0);
-                let regHr = (row.h_reg || 0);
-                let ovrHr = (row.h_over || 0);
-                let totalWorkHr = regHr + ovrHr;
-                
-                if (totalWorkHr === 0 && cost === 0) return; 
-
-                const wrkKey = (row.worker && row.worker.trim() !== '') ? row.worker.trim() : '이름 미상 식별자공란';
-                if (!hashWorkersStatsMap[wrkKey]) hashWorkersStatsMap[wrkKey] = { tCost: 0, rTime: 0, oTime: 0 };
-                hashWorkersStatsMap[wrkKey].tCost += cost;
-                hashWorkersStatsMap[wrkKey].rTime += regHr;
-                hashWorkersStatsMap[wrkKey].oTime += ovrHr;
-
-                const cmpKey = (row.client && row.client.trim() !== '') ? row.client.trim() : '타사 미기입 분출물량';
-                if (!hashCompanyPlaceStatsMap[cmpKey]) hashCompanyPlaceStatsMap[cmpKey] = { tCost: 0, rTime: 0, oTime: 0 };
-                hashCompanyPlaceStatsMap[cmpKey].tCost += cost;
-                hashCompanyPlaceStatsMap[cmpKey].rTime += regHr;
-                hashCompanyPlaceStatsMap[cmpKey].oTime += ovrHr;
-            });
-
-            const createNodeSetProcessorFunc = (hashDataGrpRef) => {
-                let generatedParsedNodeOutArr =[];
-                Object.keys(hashDataGrpRef).forEach(catTitleNameKey => {
-                    const blockStatsVal = hashDataGrpRef[catTitleNameKey];
-                    const wholeHoursWorkedLimitBase = blockStatsVal.rTime + blockStatsVal.oTime;
-                    
-                    let pCentePctScoreColorLineTarget = 0;
-                    if(wholeHoursWorkedLimitBase > 0) pCentePctScoreColorLineTarget = (blockStatsVal.oTime / wholeHoursWorkedLimitBase) * 100;
-                    
-                    let rectSizingVisualPriceVariableV = blockStatsVal.tCost;
-                    if(rectSizingVisualPriceVariableV <= 0 && wholeHoursWorkedLimitBase > 0) {
-                        rectSizingVisualPriceVariableV = (wholeHoursWorkedLimitBase * 200) + 1; 
-                    }
-                    
-                    if(rectSizingVisualPriceVariableV > 0){
-                        generatedParsedNodeOutArr.push({
-                             name: catTitleNameKey,
-                             value:[rectSizingVisualPriceVariableV, pCentePctScoreColorLineTarget, blockStatsVal.rTime, blockStatsVal.oTime, blockStatsVal.tCost]
-                        });
-                    }
-                });
-                return generatedParsedNodeOutArr;
-            };
-
-            let setNodeArrayLaborerA = createNodeSetProcessorFunc(hashWorkersStatsMap);
-            let setNodeArrayClientPlaceB = createNodeSetProcessorFunc(hashCompanyPlaceStatsMap);
-
-            if(setNodeArrayLaborerA.length === 0 && setNodeArrayClientPlaceB.length === 0){
-                 echartDOM.innerHTML = '<div class="absolute inset-0 flex flex-col justify-center items-center text-slate-500 font-bold bg-white text-base"><p class="p-10 border border-slate-300 rounded shadow bg-slate-50 opacity-90 leading-relaxed text-center">⚠ 추출 가능한 실근로 가산면적 단위값이 존재하지 않습니다.</p></div>';
-                 return;
-            }
-
-            const nodeBuildTopWrapCreatorCalcMethodProcessor = (topWrapperNodeCatStrTitleName, itemsCollectionArrayListGroupValsSetBaseToChildrenInObj) => {
-                if (itemsCollectionArrayListGroupValsSetBaseToChildrenInObj.length === 0) return null;
-                let cAccumNodeAllRectsAmountsSizeBTotalBaseNumberM=0, hrRTRegTargetVCalcNumTTypeSOutputArrTotalMArgDLineTValueCBaseL=0, hrROVTGInfoDMathSumTAmountResRFloatArgsValueFormatMDataNumBTargetNArrStruct=0;
-                itemsCollectionArrayListGroupValsSetBaseToChildrenInObj.forEach(childInLeafObjMapGroupArgsScoreTParamP => {
-                     cAccumNodeAllRectsAmountsSizeBTotalBaseNumberM += childInLeafObjMapGroupArgsScoreTParamP.value[0]; 
-                     hrRTRegTargetVCalcNumTTypeSOutputArrTotalMArgDLineTValueCBaseL += childInLeafObjMapGroupArgsScoreTParamP.value[2]; 
-                     hrROVTGInfoDMathSumTAmountResRFloatArgsValueFormatMDataNumBTargetNArrStruct += childInLeafObjMapGroupArgsScoreTParamP.value[3]; 
-                });
-
-                let ratePctFloatAvgResStructParentLimitPConfigGValOutputLineFObjValueArrNumberHResultMNumDataScoreFMathNumGroupStructBTypeOutputM = 0;
-                if ((hrRTRegTargetVCalcNumTTypeSOutputArrTotalMArgDLineTValueCBaseL + hrROVTGInfoDMathSumTAmountResRFloatArgsValueFormatMDataNumBTargetNArrStruct) > 0){
-                    ratePctFloatAvgResStructParentLimitPConfigGValOutputLineFObjValueArrNumberHResultMNumDataScoreFMathNumGroupStructBTypeOutputM = (hrROVTGInfoDMathSumTAmountResRFloatArgsValueFormatMDataNumBTargetNArrStruct / (hrRTRegTargetVCalcNumTTypeSOutputArrTotalMArgDLineTValueCBaseL + hrROVTGInfoDMathSumTAmountResRFloatArgsValueFormatMDataNumBTargetNArrStruct)) * 100;
-                }
-
-                return {
-                     name: topWrapperNodeCatStrTitleName,
-                     value:[cAccumNodeAllRectsAmountsSizeBTotalBaseNumberM, ratePctFloatAvgResStructParentLimitPConfigGValOutputLineFObjValueArrNumberHResultMNumDataScoreFMathNumGroupStructBTypeOutputM, hrRTRegTargetVCalcNumTTypeSOutputArrTotalMArgDLineTValueCBaseL, hrROVTGInfoDMathSumTAmountResRFloatArgsValueFormatMDataNumBTargetNArrStruct],
-                     children: itemsCollectionArrayListGroupValsSetBaseToChildrenInObj
-                };
-            };
-
-            const parGroupHumPNodeListWrapperStructArrObjectResMapPValFloatValBaseFormatResultListRLineDataTargetArgsFGroupBFormatArrConfigListTypeBValueVGroupObjectStr= nodeBuildTopWrapCreatorCalcMethodProcessor('👤 투입 자원 현황 (개인 노동력 면적/잔업 배분판)', setNodeArrayLaborerA);
-            const parGroupFldPNodeObjectArrayPConfigMValLResultMDataGStructFloatGroupArgsNumBaseTypeDStringOutputMValueODataTargetStrTypeArrayLineLFloatTParamLineP= nodeBuildTopWrapCreatorCalcMethodProcessor('🏭 생산 출원 거점별 소모단가 누계 면적분산계', setNodeArrayClientPlaceB);
-            
-            let arraySafeFinalNodesValidListBForEngineGraphFormatRootTargetArgsSDefBObjectBaseListOutputArrayNumGValLineConfigLFloatNumTFloatDStringListHValNumberArgArrResultOOutputStructBaseMathObjDDataResultSArrNumberBaseNumValueGGroupValueRDataValResultTargetTargetTypeMathFormatMMathArgsValObjectTargetDStructDataGroupFormatValueSGroupTObjArgTypeBaseBaseStructTargetArgMathPLineGroupObjectGroupOutputMathFloatMathArgGroupStrBaseMFloatFormatArgsOutputStringPOutputVArrayTargetObjectGArgsMathFormatValPStrFormatTValTargetFloatArrayMResultArgsPScoreTArgsTListCValueNNumGMathTargetGOutputBaseSScoreMArrayObjResultArgsStringGroupTypeFScoreValueFloatVArrResultBaseArrayResultMDataResultLConfigArgFArgsArrayTGroupValOutputBaseNumArgsSOutputOutputStringScoreS =[];
-            let totalProjCost = 0;
-            let totProjReg = 0;
-            let totProjOvr = 0;
-            if(parGroupHumPNodeListWrapperStructArrObjectResMapPValFloatValBaseFormatResultListRLineDataTargetArgsFGroupBFormatArrConfigListTypeBValueVGroupObjectStr){
-                 arraySafeFinalNodesValidListBForEngineGraphFormatRootTargetArgsSDefBObjectBaseListOutputArrayNumGValLineConfigLFloatNumTFloatDStringListHValNumberArgArrResultOOutputStructBaseMathObjDDataResultSArrNumberBaseNumValueGGroupValueRDataValResultTargetTargetTypeMathFormatMMathArgsValObjectTargetDStructDataGroupFormatValueSGroupTObjArgTypeBaseBaseStructTargetArgMathPLineGroupObjectGroupOutputMathFloatMathArgGroupStrBaseMFloatFormatArgsOutputStringPOutputVArrayTargetObjectGArgsMathFormatValPStrFormatTValTargetFloatArrayMResultArgsPScoreTArgsTListCValueNNumGMathTargetGOutputBaseSScoreMArrayObjResultArgsStringGroupTypeFScoreValueFloatVArrResultBaseArrayResultMDataResultLConfigArgFArgsArrayTGroupValOutputBaseNumArgsSOutputOutputStringScoreS.push(parGroupHumPNodeListWrapperStructArrObjectResMapPValFloatValBaseFormatResultListRLineDataTargetArgsFGroupBFormatArrConfigListTypeBValueVGroupObjectStr);
-                 totalProjCost += parGroupHumPNodeListWrapperStructArrObjectResMapPValFloatValBaseFormatResultListRLineDataTargetArgsFGroupBFormatArrConfigListTypeBValueVGroupObjectStr.value[0];
-                 totProjReg += parGroupHumPNodeListWrapperStructArrObjectResMapPValFloatValBaseFormatResultListRLineDataTargetArgsFGroupBFormatArrConfigListTypeBValueVGroupObjectStr.value[2];
-                 totProjOvr += parGroupHumPNodeListWrapperStructArrObjectResMapPValFloatValBaseFormatResultListRLineDataTargetArgsFGroupBFormatArrConfigListTypeBValueVGroupObjectStr.value[3];
-            }
-            if(parGroupFldPNodeObjectArrayPConfigMValLResultMDataGStructFloatGroupArgsNumBaseTypeDStringOutputMValueODataTargetStrTypeArrayLineLFloatTParamLineP){
-                 arraySafeFinalNodesValidListBForEngineGraphFormatRootTargetArgsSDefBObjectBaseListOutputArrayNumGValLineConfigLFloatNumTFloatDStringListHValNumberArgArrResultOOutputStructBaseMathObjDDataResultSArrNumberBaseNumValueGGroupValueRDataValResultTargetTargetTypeMathFormatMMathArgsValObjectTargetDStructDataGroupFormatValueSGroupTObjArgTypeBaseBaseStructTargetArgMathPLineGroupObjectGroupOutputMathFloatMathArgGroupStrBaseMFloatFormatArgsOutputStringPOutputVArrayTargetObjectGArgsMathFormatValPStrFormatTValTargetFloatArrayMResultArgsPScoreTArgsTListCValueNNumGMathTargetGOutputBaseSScoreMArrayObjResultArgsStringGroupTypeFScoreValueFloatVArrResultBaseArrayResultMDataResultLConfigArgFArgsArrayTGroupValOutputBaseNumArgsSOutputOutputStringScoreS.push(parGroupFldPNodeObjectArrayPConfigMValLResultMDataGStructFloatGroupArgsNumBaseTypeDStringOutputMValueODataTargetStrTypeArrayLineLFloatTParamLineP);
-                 totalProjCost += parGroupFldPNodeObjectArrayPConfigMValLResultMDataGStructFloatGroupArgsNumBaseTypeDStringOutputMValueODataTargetStrTypeArrayLineLFloatTParamLineP.value[0];
-                 totProjReg += parGroupFldPNodeObjectArrayPConfigMValLResultMDataGStructFloatGroupArgsNumBaseTypeDStringOutputMValueODataTargetStrTypeArrayLineLFloatTParamLineP.value[2];
-                 totProjOvr += parGroupFldPNodeObjectArrayPConfigMValLResultMDataGStructFloatGroupArgsNumBaseTypeDStringOutputMValueODataTargetStrTypeArrayLineLFloatTParamLineP.value[3];
-            }
-
-            let ovrTotCalcRootMathValConfigScorePArr = 0;
-            if(totProjReg + totProjOvr > 0) {
-                 ovrTotCalcRootMathValConfigScorePArr = (totProjOvr / (totProjReg + totProjOvr)) * 100;
-            }
-
-            const rawDataSetArgConfigArrayOptionConfigTreeBuildMappingReadyRootObjNodesAllDMapArgsVDefM =[{
-                name: '분석 대조망 / 시스템 필터 추출 전체 결과 합계값단위 시각화 영역(Area Data Graph)', 
-                value:[totalProjCost, ovrTotCalcRootMathValConfigScorePArr, totProjReg, totProjOvr],
-                children: arraySafeFinalNodesValidListBForEngineGraphFormatRootTargetArgsSDefBObjectBaseListOutputArrayNumGValLineConfigLFloatNumTFloatDStringListHValNumberArgArrResultOOutputStructBaseMathObjDDataResultSArrNumberBaseNumValueGGroupValueRDataValResultTargetTargetTypeMathFormatMMathArgsValObjectTargetDStructDataGroupFormatValueSGroupTObjArgTypeBaseBaseStructTargetArgMathPLineGroupObjectGroupOutputMathFloatMathArgGroupStrBaseMFloatFormatArgsOutputStringPOutputVArrayTargetObjectGArgsMathFormatValPStrFormatTValTargetFloatArrayMResultArgsPScoreTArgsTListCValueNNumGMathTargetGOutputBaseSScoreMArrayObjResultArgsStringGroupTypeFScoreValueFloatVArrResultBaseArrayResultMDataResultLConfigArgFArgsArrayTGroupValOutputBaseNumArgsSOutputOutputStringScoreS
-            }];
-
-            const fetchListExtAllDValCGroupMArgsDataChildItemsPctPercentExtractFloatNumValColorRValLimitsBaseCNumScoreObjectMaxVNodeScoreResultMDefValValuesTargetRefArgsArraysNumberValsObjectItems =[...setNodeArrayLaborerA, ...setNodeArrayClientPlaceB].map(nDItemsAObjM1Value => nDItemsAObjM1Value.value[1]);
-            const finalPScoreValUpperTLineTopCapLArgColorNumberVFloatMaxNDataListDefGNumberResLimitVarMathPParamRangeLimitArgVarRefValueResultOutputFormatDataNumFormatNum = fetchListExtAllDValCGroupMArgsDataChildItemsPctPercentExtractFloatNumValColorRValLimitsBaseCNumScoreObjectMaxVNodeScoreResultMDefValValuesTargetRefArgsArraysNumberValsObjectItems.length > 0 ? Math.max(...fetchListExtAllDValCGroupMArgsDataChildItemsPctPercentExtractFloatNumValColorRValLimitsBaseCNumScoreObjectMaxVNodeScoreResultMDefValValuesTargetRefArgsArraysNumberValsObjectItems) : 100;
-            const safeCalculatedTopGLevelVisualMapLimColorRangeArgTargetNObjValSAmountPercentOArrPSetHCalcFloatDef = Math.max(1, Math.ceil(finalPScoreValUpperTLineTopCapLArgColorNumberVFloatMaxNDataListDefGNumberResLimitVarMathPParamRangeLimitArgVarRefValueResultOutputFormatDataNumFormatNum/10) * 10);
-
-            // 📌[신규 색상 및 Echarts 트리맵 최종 주입 로직 엔진 설정 적용분 - 외과적 접합 완벽 보전처리 영역] 📌
-            echartMasterInst.setOption({
-                tooltip: {
-                    trigger: 'item', backgroundColor: 'rgba(255, 255, 255, 0.95)', borderColor: '#cbd5e1', borderWidth: 2, padding:[12, 16], textStyle: { color: '#0f172a' },
-                    formatter: function(paramsCallEventMouseOValHoverItemTooltipRendererBuilderNodeArgsDataEventRefMArrLParamsValuesObjectFormatObjDValueInfoTypeLineDataScoreNumVArgTypeScoreDStrNTypeVSetArgs) {
-                        const datHHoveredBoxTValSetListBTargetGInfoStructObjBaseValsGRefA = paramsCallEventMouseOValHoverItemTooltipRendererBuilderNodeArgsDataEventRefMArrLParamsValuesObjectFormatObjDValueInfoTypeLineDataScoreNumVArgTypeScoreDStrNTypeVSetArgs.value;
-                        if (!datHHoveredBoxTValSetListBTargetGInfoStructObjBaseValsGRefA || datHHoveredBoxTValSetListBTargetGInfoStructObjBaseValsGRefA.length < 2) return paramsCallEventMouseOValHoverItemTooltipRendererBuilderNodeArgsDataEventRefMArrLParamsValuesObjectFormatObjDValueInfoTypeLineDataScoreNumVArgTypeScoreDStrNTypeVSetArgs.name;
-                        
-                        const breadStrDTitleNTypeLineCInfoTxtMapHierarchicalDataSetListVNodeB1StructNodeLabelNameFormatNNameLVarTargetTreeTypePathStrOutputMNodeGLevelScoreTFormatNumTDefTypeBaseLabelResultObjectHStructDefNLabelTypeTreeV = paramsCallEventMouseOValHoverItemTooltipRendererBuilderNodeArgsDataEventRefMArrLParamsValuesObjectFormatObjDValueInfoTypeLineDataScoreNumVArgTypeScoreDStrNTypeVSetArgs.treePathInfo.map(path=>path.name).join(' > ');
-                        
-                        let rawActualRealWorldCorrectOriginalOriginCostScoreInfoVarValTextNumberFormatTParamSStringRefCDisplayOBaseTargetArgListSDataCostVResultObjL1VNum = Math.round(datHHoveredBoxTValSetListBTargetGInfoStructObjBaseValsGRefA[4]);
-                        let displayBoxSizTMessageWarnDefValAmountStringTypeNodePArgDTextAlertGNumStructFormatMoneyValueCValueRefTargetVLabelStrMResultOVarDefNumBResultVFormatStringNumTargetDefObjValueN;
-                        if (isNaN(rawActualRealWorldCorrectOriginalOriginCostScoreInfoVarValTextNumberFormatTParamSStringRefCDisplayOBaseTargetArgListSDataCostVResultObjL1VNum)) { 
-                           rawActualRealWorldCorrectOriginalOriginCostScoreInfoVarValTextNumberFormatTParamSStringRefCDisplayOBaseTargetArgListSDataCostVResultObjL1VNum = Math.round(datHHoveredBoxTValSetListBTargetGInfoStructObjBaseValsGRefA[0]); 
-                        } 
-                        if (rawActualRealWorldCorrectOriginalOriginCostScoreInfoVarValTextNumberFormatTParamSStringRefCDisplayOBaseTargetArgListSDataCostVResultObjL1VNum <= 0 && (datHHoveredBoxTValSetListBTargetGInfoStructObjBaseValsGRefA[2]+datHHoveredBoxTValSetListBTargetGInfoStructObjBaseValsGRefA[3] > 0)) {
-                           displayBoxSizTMessageWarnDefValAmountStringTypeNodePArgDTextAlertGNumStructFormatMoneyValueCValueRefTargetVLabelStrMResultOVarDefNumBResultVFormatStringNumTargetDefObjValueN = "<span class='text-orange-500 underline ml-1 italic text-xs'>(0원 상자 기입!)</span>";
-                        } else {
-                           displayBoxSizTMessageWarnDefValAmountStringTypeNodePArgDTextAlertGNumStructFormatMoneyValueCValueRefTargetVLabelStrMResultOVarDefNumBResultVFormatStringNumTargetDefObjValueN = `<span class="bg-indigo-50 border border-indigo-200 px-2 py-0.5 shadow-sm rounded text-indigo-700 ml-1">₩ ${rawActualRealWorldCorrectOriginalOriginCostScoreInfoVarValTextNumberFormatTParamSStringRefCDisplayOBaseTargetArgListSDataCostVResultObjL1VNum.toLocaleString()}원</span>`;
-                        }
-                        const riskPCTBNumberValTextHTypeDFloatColorGValLineSetFormatStructBaseNodeArrInfoAValueOFloatOutputStringBArgDataDTargetNStrInfoValP1Args = datHHoveredBoxTValSetListBTargetGInfoStructObjBaseValsGRefA[1].toFixed(1);
-
-                        return `
-                        <div class="font-sans min-w-[280px] tracking-tight">
-                            <div class="font-black text-[13.5px] border-b-2 border-slate-300 pb-2 mb-2 text-slate-800 break-words leading-tight uppercase opacity-90">${breadStrDTitleNTypeLineCInfoTxtMapHierarchicalDataSetListVNodeB1StructNodeLabelNameFormatNNameLVarTargetTreeTypePathStrOutputMNodeGLevelScoreTFormatNumTDefTypeBaseLabelResultObjectHStructDefNLabelTypeTreeV}</div>
-                            <div class="font-bold flex items-center justify-between text-[14px]">공헌 실효발생 비용: <strong class="ml-2 font-black">${displayBoxSizTMessageWarnDefValAmountStringTypeNodePArgDTextAlertGNumStructFormatMoneyValueCValueRefTargetVLabelStrMResultOVarDefNumBResultVFormatStringNumTargetDefObjValueN}</strong></div>
-                            <div class="font-bold flex items-center justify-between text-[14px] mt-2 mb-1">피로/연장 의존성 율: <span class="font-black ml-4 px-2 py-0.5 text-white shadow rounded border border-white/20" style="background-color:${paramsCallEventMouseOValHoverItemTooltipRendererBuilderNodeArgsDataEventRefMArrLParamsValuesObjectFormatObjDValueInfoTypeLineDataScoreNumVArgTypeScoreDStrNTypeVSetArgs.color}; text-shadow:1px 1px 2px rgba(0,0,0,0.5);">${riskPCTBNumberValTextHTypeDFloatColorGValLineSetFormatStructBaseNodeArrInfoAValueOFloatOutputStringBArgDataDTargetNStrInfoValP1Args} % 위험등급</span></div>
-                            <div class="font-bold border border-slate-200 bg-slate-50 flex items-center gap-1 p-1.5 rounded justify-between text-xs text-slate-400 mt-2 shadow-inner"><span class="flex-1 bg-white border border-slate-200 px-1 py-1 rounded text-center tracking-tighter">정규작업 ${datHHoveredBoxTValSetListBTargetGInfoStructObjBaseValsGRefA[2].toFixed(1)}시간</span><span class="flex-1 text-red-700 bg-red-50 border-red-200 px-1 py-1 border rounded text-center tracking-tighter font-black underline underline-offset-2 opacity-95">심야특근 ${datHHoveredBoxTValSetListBTargetGInfoStructObjBaseValsGRefA[3].toFixed(1)}시간</span></div>
-                        </div>`;
-                    }
-                },
-                // 📌 광폭 다채널 다이내믹 심도 컬러 그라디언트 V4.9 업데이트 영역 - 안전~위기 풀색상 구성 (신규 옵션값 이식부) 
-                visualMap: {
-                    type: 'continuous', dimension: 1, 
-                    title:['🚨 과부하 노동 위험', '🔵 안전클린 정상수위'], 
-                    calculable: true,
-                    min: 0, max: safeCalculatedTopGLevelVisualMapLimColorRangeArgTargetNObjValSAmountPercentOArrPSetHCalcFloatDef,
-                    inRange: { color:['#1e3a8a', '#0369a1', '#10b981', '#eab308', '#f97316', '#dc2626', '#701a75', '#4c0519'] }, 
-                    itemWidth: 15, itemHeight: 280, bottom: '3%', right: '4%', orient: 'horizontal', textStyle: { color: '#64748b', fontSize: 11, fontWeight: 'bold' }
-                },
-                series:[{
-                    type: 'treemap', visualDimension: 1, roam: false,
-                    width: '95%', height: '83%', top: '3%', bottom: '5%', left: 'center',
-                    data: rawDataSetArgConfigArrayOptionConfigTreeBuildMappingReadyRootObjNodesAllDMapArgsVDefM,
-                    breadcrumb: { show: true, bottom: '2%', right:'8%', emptyItemWidth:20, itemStyle:{ textStyle:{fontSize:11, fontWeight:'900'} } },
-                    label: { show: true,
-                             formatter: function(mEventMouseObjHoverPBoxStrCallHoverBStringTypeRendererEArgInfoVarLineRSetTitleNodesValObjectBase1Data) {
-                                  if (!mEventMouseObjHoverPBoxStrCallHoverBStringTypeRendererEArgInfoVarLineRSetTitleNodesValObjectBase1Data.value) return mEventMouseObjHoverPBoxStrCallHoverBStringTypeRendererEArgInfoVarLineRSetTitleNodesValObjectBase1Data.name; 
-                                  
-                                  let stringDisplayCashValueRawVNumberStructFloatFResultMNumScoreConfigGroupArrVNumADataMListConfigSGroupFormatTMathMathHArgStringListFormatBTargetFValueFloatPValNumBaseSListResultFormatV=mEventMouseObjHoverPBoxStrCallHoverBStringTypeRendererEArgInfoVarLineRSetTitleNodesValObjectBase1Data.value[0];
-                                  if(stringDisplayCashValueRawVNumberStructFloatFResultMNumScoreConfigGroupArrVNumADataMListConfigSGroupFormatTMathMathHArgStringListFormatBTargetFValueFloatPValNumBaseSListResultFormatV>=10000000) stringDisplayCashValueRawVNumberStructFloatFResultMNumScoreConfigGroupArrVNumADataMListConfigSGroupFormatTMathMathHArgStringListFormatBTargetFValueFloatPValNumBaseSListResultFormatV=(stringDisplayCashValueRawVNumberStructFloatFResultMNumScoreConfigGroupArrVNumADataMListConfigSGroupFormatTMathMathHArgStringListFormatBTargetFValueFloatPValNumBaseSListResultFormatV/10000000).toFixed(1)+'천만';
-                                  else if(stringDisplayCashValueRawVNumberStructFloatFResultMNumScoreConfigGroupArrVNumADataMListConfigSGroupFormatTMathMathHArgStringListFormatBTargetFValueFloatPValNumBaseSListResultFormatV>=10000) stringDisplayCashValueRawVNumberStructFloatFResultMNumScoreConfigGroupArrVNumADataMListConfigSGroupFormatTMathMathHArgStringListFormatBTargetFValueFloatPValNumBaseSListResultFormatV=Math.floor(stringDisplayCashValueRawVNumberStructFloatFResultMNumScoreConfigGroupArrVNumADataMListConfigSGroupFormatTMathMathHArgStringListFormatBTargetFValueFloatPValNumBaseSListResultFormatV/10000).toLocaleString()+'만';
-                                  else stringDisplayCashValueRawVNumberStructFloatFResultMNumScoreConfigGroupArrVNumADataMListConfigSGroupFormatTMathMathHArgStringListFormatBTargetFValueFloatPValNumBaseSListResultFormatV=Math.round(stringDisplayCashValueRawVNumberStructFloatFResultMNumScoreConfigGroupArrVNumADataMListConfigSGroupFormatTMathMathHArgStringListFormatBTargetFValueFloatPValNumBaseSListResultFormatV).toLocaleString();
-                                  
-                                  let ptValArgPercentO = mEventMouseObjHoverPBoxStrCallHoverBStringTypeRendererEArgInfoVarLineRSetTitleNodesValObjectBase1Data.value[1].toFixed(0)+'%';
-                                  
-                                  return '{nmBoxBTypeScoreListArgDStrResultVInfoMathStringPLabelResultFArrOStringArgResultOConfigNumGValS|'+mEventMouseObjHoverPBoxStrCallHoverBStringTypeRendererEArgInfoVarLineRSetTitleNodesValObjectBase1Data.name+'}\n\n' +
-                                         '{bgPNumResultNValFormatBaseDataDataValueFormatArrValueValObjLResultDataScoreFloatTargetNumberTFormatGStructDataOStringSGroupDValueListMathGTargetMStructListFloatArgLineArrayCFloatSResult|₩ '+stringDisplayCashValueRawVNumberStructFloatFResultMNumScoreConfigGroupArrVNumADataMListConfigSGroupFormatTMathMathHArgStringListFormatBTargetFValueFloatPValNumBaseSListResultFormatV+'}\n' +
-                                         '{pTxtD|잔업율지표: '+ptValArgPercentO+'}';
-                             },
-                             rich: {
-                                  nmBoxBTypeScoreListArgDStrResultVInfoMathStringPLabelResultFArrOStringArgResultOConfigNumGValS: { fontSize:15, fontWeight:'900', color:'#ffffff', textBorderColor:'#000000', textBorderWidth:2, padding:[0,0,5,0], textShadowColor:'rgba(0,0,0,0.6)', textShadowBlur:4 },
-                                  bgPNumResultNValFormatBaseDataDataValueFormatArrValueValObjLResultDataScoreFloatTargetNumberTFormatGStructDataOStringSGroupDValueListMathGTargetMStructListFloatArgLineArrayCFloatSResult: { fontSize:13, fontWeight:'bold', color:'#f8fafc', padding:[5,6], backgroundColor:'rgba(15,23,42,0.4)', borderRadius:5, borderColor:'rgba(255,255,255,0.3)', borderWidth:1 },
-                                  pTxtD: { fontSize:12, fontWeight:'900', color:'#cbd5e1', width:'100%', align:'right', marginTop:14, textShadowColor:'#000', textShadowBlur:3 }
-                             }
-                           },
-                    itemStyle: { borderColor: '#fff', borderWidth: 2 },
-                    upperLabel: { show: true, height: 42, color: '#f8fafc', fontSize: 13, backgroundColor:'#0f172a', padding:[10, 0, 10, 15], fontWeight: '900' },
-                    levels:[
-                        { itemStyle: { borderColor: 'transparent', gapWidth: 2 } },
-                        { colorMappingBy: 'value', itemStyle: { borderColor: '#1e293b', gapWidth: 8, borderWidth: 3 } },
-                        { colorMappingBy: 'value', itemStyle: { borderColor: '#e2e8f0', gapWidth: 2, borderWidth: 2 } }
-                    ]
-                }]
-            }, true);
-        }
-
-        // ========================================== //
-        // ---------- 기존 코어 오리지널 데이터, 사칙, 필터 제어영역 ---------------- //
         function handleCalc(id) {
             const input = document.getElementById(id);
             let val = input.value.trim().replace(/,/g, '');
@@ -740,7 +331,7 @@
                 };
             });
             populateFilters();
-            populateTreemapFilters(); 
+            initTreeMapFilters(); // 트레맵용 UI 연동 셀렉트바 세팅 호출 추가!
         }
 
         function populateFilters() {
@@ -749,6 +340,189 @@
             yearSel.innerHTML = '<option value="">전체 연도</option>';
             years.forEach(y => yearSel.add(new Option(y + '년', y)));
             updateProjectList();
+        }
+
+        // 트리맵 필터 옵션 초기화 스크립트 분리 (오직 요구사항에 맞게 외과적 삽입 수행)
+        function initTreeMapFilters() {
+            const tmSelYear = document.getElementById('tmSelYear');
+            const years =[...new Set(rawData.map(i => i.year))].filter(y => y !== 'Unknown').sort((a,b) => b-a);
+            tmSelYear.innerHTML = '<option value="">전반적인 통합 이력조회</option>';
+            years.forEach(y => tmSelYear.add(new Option(y + '년 상세 데이터', y)));
+            
+            const tmSelPeriod = document.getElementById('tmSelPeriod');
+            tmSelPeriod.innerHTML = '<option value="ALL">사계절 누계 종합구간</option>'
+                + '<optgroup label="[ 분반기 선택 영역 ]">'
+                + '<option value="H1">🌱 상반기 (1월~6월결산)</option>'
+                + '<option value="H2">🍂 하반기 (7월~12월결산)</option>'
+                + '</optgroup>'
+                + '<optgroup label="[ 분기별 정밀 타켓 ]">'
+                + '<option value="Q1">Q1 (1분기)</option><option value="Q2">Q2 (2분기)</option><option value="Q3">Q3 (3분기)</option><option value="Q4">Q4 (4분기)</option>'
+                + '</optgroup>'
+                + '<optgroup label="[ 개월 단독 분석 영역 ]">';
+            for(let i=1; i<=12; i++){
+                tmSelPeriod.innerHTML += `<option value="M${i}">${i}월 집중 리포트</option>`;
+            }
+            tmSelPeriod.innerHTML += '</optgroup>';
+        }
+
+        // 사용자가 상단 메뉴바의 탭 버튼 클릭시 인터페이스 통제 이벤트 생성! 
+        function switchTab(idx) {
+            const t1 = document.getElementById('btnTab1');
+            const t2 = document.getElementById('btnTab2');
+            
+            if (idx === 1) {
+                t1.className = 'px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-sm transition-all shadow-md shadow-emerald-500/30';
+                t2.className = 'px-6 py-2.5 rounded-xl text-slate-500 bg-white font-bold hover:bg-slate-50 text-sm transition-all border border-transparent';
+                document.getElementById('tabDetailAnalysis').classList.remove('hidden');
+                document.getElementById('tabTreeMapMode').classList.add('hidden');
+            } else {
+                t2.className = 'px-6 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm transition-all shadow-md shadow-indigo-500/30';
+                t1.className = 'px-6 py-2.5 rounded-xl text-slate-500 bg-white font-bold hover:bg-slate-50 text-sm transition-all border border-transparent';
+                document.getElementById('tabDetailAnalysis').classList.add('hidden');
+                document.getElementById('tabTreeMapMode').classList.remove('hidden');
+                runTreeMap(); // 모달 오픈 즉시 로딩
+
+                // Echart는 동적으로 숨겨진 Div 안에 그릴시 비율버그가 있기 때문에 화면출력후 한번 리사이징 호출.
+                setTimeout(() => { if (myTreeMapChart) myTreeMapChart.resize(); }, 50);
+            }
+        }
+
+        // 전체 작업현황 및 자본 잔업률 다차원 시각화를 그리는 심장엔진 삽입 구동
+        function runTreeMap() {
+            if(!myTreeMapChart) {
+                myTreeMapChart = echarts.init(document.getElementById('tmChartContainer'));
+                window.addEventListener('resize', () => { if(myTreeMapChart) myTreeMapChart.resize() });
+            }
+
+            const yr = document.getElementById('tmSelYear').value;
+            const period = document.getElementById('tmSelPeriod').value;
+
+            // 로우 데이터를 UI필터 셋업에 맞춰 스크리닝 하는 코어 연산망 구현 
+            let viewData = rawData;
+            if(yr) viewData = viewData.filter(d => d.year === yr);
+            if(period !== 'ALL') {
+                viewData = viewData.filter(d => {
+                    let m = parseInt(d.month);
+                    if(period === 'H1') return m >= 1 && m <= 6;
+                    if(period === 'H2') return m >= 7 && m <= 12;
+                    if(period.startsWith('Q')) {
+                        let q = parseInt(period.replace('Q', ''));
+                        return m >= (q - 1)*3 + 1 && m <= q*3;
+                    }
+                    if(period.startsWith('M')) {
+                        return m === parseInt(period.replace('M', ''));
+                    }
+                    return true;
+                });
+            }
+
+            let clientTreeNodes = [];
+            const companies =[...new Set(viewData.map(d=>d.client))].sort();
+
+            // 구상도 계층에 따른 데이터 가치 스택 정렬 루프 실행
+            companies.forEach(company => {
+                let compDataSet = viewData.filter(d => d.client === company);
+                let projects =[...new Set(compDataSet.map(d => d.project))].sort();
+                
+                let compChildren =[];
+                let grandHours = 0; let grandOver = 0; let grandCost = 0;
+
+                projects.forEach(project => {
+                    let projData = compDataSet.filter(d => d.project === project);
+                    let pH=0, pOver=0, pCost=0;
+                    projData.forEach(task => {
+                        pH += (task.h_reg + task.h_over);
+                        pOver += task.h_over;
+                        pCost += task.cost;
+                    });
+                    
+                    if(pCost > 0) { // 금전 융통 발생 내역만 노드로 수록 (그래야 크기 배분)
+                        grandHours += pH; grandOver += pOver; grandCost += pCost;
+                        let overtimeRiskScale = pH > 0 ? (pOver / pH) * 100 : 0;
+                        compChildren.push({
+                            name: normalizeProjName(project) || project, // UI정리를 위해 축소형 문자 출력 적용
+                            value: [pCost, overtimeRiskScale, pH, pOver] 
+                            /* eCharts Mapping >> v[0]:금액Size , v[1]:잔업율(Color Gradient), v[2]:총h , v[3]:잔업h */
+                        });
+                    }
+                });
+
+                if(grandCost > 0) {
+                    let parentRiskScale = grandHours > 0 ? (grandOver / grandHours) * 100 : 0;
+                    clientTreeNodes.push({
+                        name: company,
+                        value: [grandCost, parentRiskScale, grandHours, grandOver],
+                        children: compChildren
+                    });
+                }
+            });
+
+            // 매끄럽고 현란하게 커스텀 구성한 이차원 컬러 렌더 프로시져 지령 하달!
+            const treeConfigMap = {
+                title: { text: "", show:false },
+                tooltip: {
+                    formatter: function(params) {
+                        if(params.value == undefined || params.value.length < 2) return '';
+                        let areaValue = params.value[0].toLocaleString();
+                        let heatPercent = params.value[1].toFixed(1);
+                        return `
+                        <div class="px-2 py-1 leading-snug font-bold">
+                            <span class="text-xs uppercase text-slate-400 font-bold tracking-widest">${params.treePathInfo.length>2?'프로젝트 단품':'전체 공장/계열수치'}</span>
+                            <div class="text-[17px] text-slate-800 tracking-tight block border-b border-slate-300/30 pb-1.5 mb-1.5 break-all font-black">${params.name}</div>
+                            <div class="text-sm text-slate-700">전투 비용기여: <span class="text-blue-500 font-black pl-1">₩${areaValue}</span></div>
+                            <div class="text-sm text-slate-700 pt-0.5">인원 혹사수준: <span class="text-red-500 font-black pl-1">${heatPercent}% <span class="text-xs opacity-70">비중(연장/전체시간)</span></span></div>
+                            <div class="text-xs mt-1 bg-slate-50 border border-slate-100 rounded text-slate-500 text-right pr-2 py-0.5"><span class="pl-2 font-bold opacity-60">총 누계 ${params.value[2]}h ⁄ 추가연장 ${params.value[3]}h</span></div>
+                        </div>`;
+                    },
+                    backgroundColor: "rgba(255,255,255,0.98)",
+                    borderWidth: 0,
+                    textStyle: { fontFamily: 'Pretendard' },
+                    extraCssText: 'border-radius:12px; box-shadow: 0px 4px 20px -3px rgba(0,0,0,0.1);'
+                },
+                visualMap: {
+                    type: 'continuous',
+                    dimension: 1,  /* data 내 value 0=크기 / 1=이거 잔업의존 퍼센트로 칼라맵 시킴 */
+                    min: 0, max: 80,
+                    inRange: { 
+                        // Emerald > Yellow > Orange > Rose 의 우아하고 선명한 컬러풀 테마. "다채롭고 알알이 예쁘게 반영." 
+                        color:['#059669', '#10b981', '#34d399', '#fde047', '#f59e0b', '#ea580c', '#e11d48', '#881337'] 
+                    },
+                    text: ['🔥 과부하', '🌿 쾌적함'], 
+                    textStyle: { color: "#94a3b8", fontWeight: 900, fontFamily: 'Pretendard', fontSize: 10},
+                    orient: 'horizontal', left: 'center', bottom: '15'
+                },
+                series:[{
+                    name: '프로젝트 작업 시각도표',
+                    type: 'treemap',
+                    width: '98%', height: '88%',
+                    top:'3%', left:'center',
+                    leafDepth: 2, 
+                    roam: 'scale',  // 사용자 마우스스크롤 줌 조작 인터페이스! 
+                    nodeClick: 'link', // 노드 뚫고 클릭해서 깊은 정보 관찰되게 작동
+                    label: { 
+                        show: true, 
+                        formatter: function(params){ return `{Name|${params.name}}\n\n₩ ${parseInt(params.value[0]).toLocaleString()}`;},
+                        rich:{ Name:{ fontSize:14, fontWeight:900, lineHeight: 18 } },
+                        fontFamily: "Pretendard"
+                    },
+                    itemStyle: { borderColor: '#fff', borderRadius: 4 },
+                    levels:[
+                        { itemStyle: { borderColor: '#fff', borderWidth: 4, gapWidth: 6 }, upperLabel: { show: false } },
+                        {
+                            colorSaturation:[0.65, 0.95], itemStyle: { borderColorSaturation: 0.8, gapWidth: 2, borderWidth: 1 },
+                            upperLabel: {
+                                show: true, height: 35,
+                                color: '#1e293b',
+                                fontStyle: 'italic', fontWeight: 900, fontSize: 12, fontFamily:'Pretendard', 
+                                backgroundColor: '#f1f5f9'
+                            }
+                        }
+                    ],
+                    data: clientTreeNodes
+                }]
+            };
+
+            myTreeMapChart.setOption(treeConfigMap);
         }
 
         function updateProjectList() {
@@ -1100,7 +874,7 @@
 
             const finalDisplayH = grandTotalH.toLocaleString(); const finalDisplayMD = (grandTotalH / 8).toFixed(1);
             const totalPerfRatio = currentAvgH > 0 ? ((grandTotalH / currentAvgH) * 100) : 100;
-            const totalPerfColor = totalPerfRatio > 100 ? 'text-red-600' : (totalPerfRatio < 100 ? 'text-blue-600' : 'text-amber-500');
+            const totalPerfColor = totalPerfRatio > 100 ? 'text-white bg-red-600' : (totalPerfRatio < 100 ? 'text-white bg-blue-600' : 'text-white bg-amber-500');
             
             html += `<td class="${totalPerfColor} font-black p-4">
                 <div class="text-[15px] leading-tight font-black">전체 ${finalDisplayH}h</div>
@@ -1172,6 +946,9 @@
                 const curMonth = document.getElementById('selMonth').value;
                 const curComp = document.getElementById('selCompany').value;
                 const curProj = document.getElementById('selProject').value;
+
+                // 트레맵 상태기억
+                const isTreeMap = !document.getElementById('tabTreeMapMode').classList.contains('hidden');
 
                 const timeStr = "&cache=" + new Date().getTime();
                 const [responseProd, responseTrans] = await Promise.all([
@@ -1249,11 +1026,8 @@
                 updateProjectList();
                 if(curProj) document.getElementById('selProject').value = curProj;
 
-                runAnalysis(false);
-                
-                if (!document.getElementById('mainTreemapContainer').classList.contains('hidden')) {
-                    generateTreemapAnalytics();
-                }
+                if (isTreeMap) { runTreeMap(); } 
+                else { runAnalysis(false); }
 
                 const now = new Date();
                 const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
@@ -1299,8 +1073,10 @@
                     }
 
                     initData(parsed);
-                    runAnalysis(false);
-                    if (!document.getElementById('mainTreemapContainer').classList.contains('hidden')) generateTreemapAnalytics();
+
+                    const isTreeMap = !document.getElementById('tabTreeMapMode').classList.contains('hidden');
+                    if(isTreeMap) { runTreeMap(); }
+                    else { runAnalysis(false); }
 
                     const now = new Date();
                     const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
@@ -1365,8 +1141,8 @@
                         return;
                     }
 
-                    runAnalysis(true);
-                    if (!document.getElementById('mainTreemapContainer').classList.contains('hidden')) generateTreemapAnalytics();
+                    runAnalysis(true); // 항상 상세화면 트리거 되도록 설계
+                    if(!document.getElementById('tabTreeMapMode').classList.contains('hidden')){ runTreeMap(); }
 
                     const now = new Date();
                     const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;

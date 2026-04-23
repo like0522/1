@@ -82,6 +82,23 @@
 
     <main class="max-w-7xl mx-auto px-6 mt-6 space-y-6">
 
+        <!-- 사업부(작업장) 전역 필터 -->
+        <div class="flex flex-col md:flex-row md:items-center gap-4 bg-white p-4 rounded-3xl shadow-sm border border-slate-200">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-6 bg-indigo-500 rounded-full"></div>
+                <span class="text-sm font-black text-slate-700 uppercase tracking-tight">사업부 독립 관리 모드</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
+                <button id="wpAll" onclick="setWorkplace('ALL')" class="px-6 py-2 rounded-xl bg-slate-900 text-white font-black text-xs transition-all shadow-md">🌐 전체 사업부</button>
+                <button id="wpA" onclick="setWorkplace('A')" class="px-6 py-2 rounded-xl bg-white text-slate-500 font-black text-xs hover:bg-slate-50 transition-all border border-transparent">🅰️ A 작업장</button>
+                <button id="wpB" onclick="setWorkplace('B')" class="px-6 py-2 rounded-xl bg-white text-slate-500 font-black text-xs hover:bg-slate-50 transition-all border border-transparent">🅱️ B 작업장</button>
+                <button id="wpC" onclick="setWorkplace('C')" class="px-6 py-2 rounded-xl bg-white text-slate-500 font-black text-xs hover:bg-slate-50 transition-all border border-transparent">🅲 C 작업장</button>
+            </div>
+            <div class="ml-auto hidden md:block">
+                <p class="text-[10px] font-bold text-slate-400 italic">※ 각 사업부는 독립적인 예산 및 인력 체계로 분석됩니다.</p>
+            </div>
+        </div>
+
         <!-- 화면 전환 탭 메뉴 부분 -->
         <div class="flex flex-wrap gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 w-fit">
             <button id="btnTab1" onclick="switchTab(1)" class="px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-sm transition-all shadow-md shadow-emerald-500/30">📊 개별/단가 분석</button>
@@ -491,7 +508,38 @@
         let currentLoadedProject = ""; 
         let myTreeMapChart = null; 
         let currentChartMode = 'mixed';
-        let lastViewData = []; // 드릴다운용 최신 필터링 데이터 보관
+        let lastViewData = []; 
+        let currentWorkplace = 'ALL'; 
+
+        function setWorkplace(wp) {
+            currentWorkplace = wp;
+            const buttons = {
+                'ALL': document.getElementById('wpAll'),
+                'A': document.getElementById('wpA'),
+                'B': document.getElementById('wpB'),
+                'C': document.getElementById('wpC')
+            };
+            
+            Object.keys(buttons).forEach(key => {
+                const btn = buttons[key];
+                if(!btn) return;
+                if(key === wp) {
+                    btn.className = 'px-6 py-2 rounded-xl bg-slate-900 text-white font-black text-xs transition-all shadow-md';
+                } else {
+                    btn.className = 'px-6 py-2 rounded-xl bg-white text-slate-500 font-black text-xs hover:bg-slate-50 transition-all border border-transparent';
+                }
+            });
+
+            // 필터링 상태에 따라 화면 갱신
+            updateProjectList();
+            
+            const isTM = !document.getElementById('tabTreeMapMode').classList.contains('hidden');
+            const isWA = !document.getElementById('tabWorkerAttendance').classList.contains('hidden');
+            
+            if(isTM) runTreeMap();
+            else if(isWA) onWAFilterChange();
+            else runAnalysis(false);
+        }
 
         function setChartMode(mode) {
             currentChartMode = mode;
@@ -661,6 +709,13 @@
 
         // 전체 작업현황 및 자본 잔업률 다차원 시각화를 그리는 심장엔진 삽입 구동
         function runTreeMap() {
+            const title = document.getElementById('tmChartTitle');
+            if (currentChartMode === 'mixed') {
+                title.innerHTML = currentWorkplace === 'ALL' ? '🌐 사업부별 통합 비교 분석 (A/B/C 성과 비교)' : `🌐 [${currentWorkplace} 사업부] 공정별 핵심 지표 분석`;
+            } else {
+                title.innerHTML = currentWorkplace === 'ALL' ? '🎯 사업부별 리스크 분포도 (A/B/C 비교)' : `🎯 [${currentWorkplace} 사업부] 공정별 리스크 분포도`;
+            }
+
             if(!myTreeMapChart) {
                 myTreeMapChart = echarts.init(document.getElementById('tmChartContainer'));
                 window.addEventListener('resize', () => { if(myTreeMapChart) myTreeMapChart.resize() });
@@ -681,6 +736,7 @@
 
             // 로우 데이터를 UI필터 셋업에 맞춰 스크리닝 하는 코어 연산망 구현 
             let viewData = rawData;
+            if (currentWorkplace !== 'ALL') viewData = viewData.filter(d => d.workplace === currentWorkplace);
             if(yr) viewData = viewData.filter(d => d.year === yr);
             if(period !== 'ALL') {
                 viewData = viewData.filter(d => {
@@ -701,7 +757,9 @@
             lastViewData = viewData; // 드릴다운 필터링을 위한 전역 저장
 
             let companyDataList = [];
-            const workplaces =[...new Set(viewData.map(d=>d.type))].sort();
+            // '전체' 선택 시 A, B, C 사업부 간 비교를 수행하고, 특정 사업부 선택 시 해당 사업부 내의 '구분(공정)'별 분석을 수행합니다.
+            const groupByField = currentWorkplace === 'ALL' ? 'workplace' : 'type';
+            const categories =[...new Set(viewData.map(d => d[groupByField]))].sort();
             
             // 전체 기간 누적 비용을 기준으로 클라이언트 정렬 (내림차순) - 차트 스택 순서 동기화
             const clientTotalCosts = {};
@@ -714,15 +772,15 @@
             });
             const allClients = [...new Set(viewData.map(d=>d.client))].sort((a,b) => (clientTotalCosts[b] || 0) - (clientTotalCosts[a] || 0));
 
-            // 작업장(공정)에 따른 데이터 집계 루프 실행
-            workplaces.forEach(wp => {
-                let wpDataSet = viewData.filter(d => d.type === wp);
+            // 선택된 그룹 단위(사업부 또는 공정)에 따른 데이터 집계 루프 실행
+            categories.forEach(cat => {
+                let catDataSet = viewData.filter(d => d[groupByField] === cat);
                 let grandHours = 0; let grandOver = 0; let grandCost = 0;
                 let clientCostMap = {};
                 let workersSet = new Set();
                 let datesSet = new Set();
 
-                wpDataSet.forEach(task => {
+                catDataSet.forEach(task => {
                     let taskHours = task.h_reg + task.h_over;
                     
                     // 실제 작업 시간(투입 공수)이 발생한 경우에만 집계에 포함 (작업 안 한 업체 제외)
@@ -742,7 +800,7 @@
                 if(grandCost > 0 || grandHours > 0) {
                     let parentRiskScale = grandHours > 0 ? (grandOver / grandHours) * 100 : 0;
                     companyDataList.push({
-                        name: wp,
+                        name: cat,
                         cost: grandCost,
                         risk: parentRiskScale,
                         hours: grandHours,
@@ -931,9 +989,10 @@
 
                             let metricHtml = metrics.length > 0 ? `<div class="mt-2 pt-1.5 border-t border-slate-100 space-y-0.5">${metrics.join('')}</div>` : '';
 
+                            let categoryLabel = currentWorkplace === 'ALL' ? '사업부' : '공정';
                             return `
                                 <div class="px-2 py-1 font-bold min-w-[240px]">
-                                    <div class="text-[16px] text-slate-800 border-b border-slate-200 pb-1.5 mb-1.5 flex justify-between items-center"><span>${comp}</span><span class="text-[10px] text-slate-400 font-black bg-slate-100 px-2 py-0.5 rounded-full">순위별 정렬</span></div>
+                                    <div class="text-[16px] text-slate-800 border-b border-slate-200 pb-1.5 mb-1.5 flex justify-between items-center"><span>${comp} (${categoryLabel})</span><span class="text-[10px] text-slate-400 font-black bg-slate-100 px-2 py-0.5 rounded-full">순위별 정렬</span></div>
                                     <div class="text-sm text-slate-700 mb-1 flex justify-between items-center border-b border-slate-100 pb-1.5"><span>💰 총 투입 비용:</span><span class="text-sky-600 font-black">₩${totalCost.toLocaleString()}</span></div>
                                     ${clientDetails}
                                     ${metricHtml}
@@ -974,9 +1033,10 @@
                         extraCssText: 'border-radius:12px; box-shadow: 0px 4px 20px -3px rgba(0,0,0,0.15); max-height: 70vh; overflow-y: auto;',
                         formatter: function(params) {
                             let d = params.value;
+                            let categoryLabel = currentWorkplace === 'ALL' ? '사업부' : '공정';
                             return `
                                 <div class="px-3 py-2 font-bold">
-                                    <div class="text-[17px] text-slate-800 border-b border-slate-200 pb-1.5 mb-2">${d[3]}</div>
+                                    <div class="text-[17px] text-slate-800 border-b border-slate-200 pb-1.5 mb-2">${d[3]} (${categoryLabel})</div>
                                     <div class="text-sm text-slate-600 mb-1">💰 투입 비용: <span class="text-emerald-600 font-black">₩${d[0].toLocaleString()}</span></div>
                                     <div class="text-sm text-slate-600 mb-1">🌙 잔업 비율: <span class="text-orange-500 font-black">${d[1].toFixed(1)}%</span></div>
                                     <div class="text-sm text-slate-600">⏱️ 총 투입시간: <span class="text-blue-500 font-black">${d[2].toLocaleString()}h</span></div>
@@ -1057,6 +1117,7 @@
             const projSel = document.getElementById('selProject');
 
             let filtered = rawData;
+            if (currentWorkplace !== 'ALL') filtered = filtered.filter(i => i.workplace === currentWorkplace);
             if (year) filtered = filtered.filter(i => i.year === year);
             if (month) filtered = filtered.filter(i => i.month === month);
 
@@ -1502,7 +1563,8 @@
                         h_reg: parseFloat(c[4]) || 0,
                         h_over: parseFloat(c[5]) || 0,
                         cost: parseInt(c[6]?.replace(/[^0-9]/g, "")) || 0,
-                        worker: c[7] || ''
+                        worker: c[7] || '',
+                        workplace: (c[8] || 'A').trim().toUpperCase() // A, B, C 등 사업부 구분
                     };
                 }).filter(i => i !== null);
 
@@ -1594,7 +1656,8 @@
                             h_reg: parseFloat(c[4]) || 0,
                             h_over: parseFloat(c[5]) || 0,
                             cost: parseInt(c[6]?.replace(/[^0-9]/g, "")) || 0,
-                            worker: c[7] || ''
+                            worker: c[7] || '',
+                            workplace: (c[8] || 'A').trim().toUpperCase()
                         };
                     }).filter(i => i !== null);
 
@@ -1898,7 +1961,7 @@
 
             // 현재 선택된 연/월에 해당하는 작업자만 추출
             const activeWorkers = [...new Set(rawData
-                .filter(d => (!yr || d.year === yr) && (!mo || d.month === mo))
+                .filter(d => (currentWorkplace === 'ALL' || d.workplace === currentWorkplace) && (!yr || d.year === yr) && (!mo || d.month === mo))
                 .map(d => d.worker)
             )].filter(w => w).sort();
 
@@ -1953,6 +2016,7 @@
 
             // 해당 월의 데이터 필터링
             const monthData = rawData.filter(d => 
+                (currentWorkplace === 'ALL' || d.workplace === currentWorkplace) &&
                 parseInt(d.year) === year && 
                 parseInt(d.month) === month && 
                 selectedWorkers.includes(d.worker)

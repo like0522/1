@@ -314,7 +314,11 @@
                         <p class="text-[10px] font-black text-slate-400 uppercase italic">Monthly Summary</p>
                         <h4 class="text-sm font-bold text-slate-500 mb-2">월간 통계</h4>
                         <div class="space-y-4">
-                            <div class="grid grid-cols-2 gap-2">
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                    <p class="text-[10px] font-bold text-slate-400">투입 인원</p>
+                                    <p id="waWorkerCount" class="text-xl font-black text-indigo-600">0명</p>
+                                </div>
                                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
                                     <p class="text-[10px] font-bold text-slate-400">출근 일수</p>
                                     <p id="waAttendDays" class="text-xl font-black text-rose-600">0일</p>
@@ -2250,9 +2254,12 @@
             let totalCost = data.reduce((acc, curr) => acc + curr.cost, 0);
             document.getElementById('waTotalCost').innerText = `₩ ${totalCost.toLocaleString()}`;
 
-            // 출근/휴무 일수 계산
+            // 투입 인원 및 출근/휴무 일수 계산
+            const workerCount = [...new Set(data.map(d => d.worker))].length;
             const attendDates = [...new Set(data.map(d => d.date))];
             const attendCount = attendDates.length;
+
+            document.getElementById('waWorkerCount').innerText = workerCount + '명';
             
             // 해당 월의 평일 수 계산 (간이)
             const yr = parseInt(document.getElementById('waSelYear').value);

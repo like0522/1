@@ -1,45 +1,55 @@
 @echo off
-echo [Server] Checking Python...
+chcp 65001 >nul
+setlocal enabledelayedexpansion
+title [PRO-V4.5] Dashboard Server Manager
 
+echo ========================================================
+echo   PRO-V4.5 PRODUCTION ANALYSIS SYSTEM
+echo ========================================================
+echo.
+
+:: 1. Check Python
+echo [1/3] Checking Python environment...
 python --version >nul 2>&1
-if %errorlevel% equ 0 goto start_server
-
-echo.
-echo ========================================================
-echo [Notice] Python is not installed or not in PATH.
-echo [Notice] Starting automatic installation of Python 3.12...
-echo ========================================================
-echo.
-
-echo [1/3] Downloading Python installer...
-curl -L -o python_installer.exe "https://www.python.org/ftp/python/3.12.3/python-3.12.3-amd64.exe"
-
-if not exist python_installer.exe (
-    echo [ERROR] Failed to download Python installer.
-    echo Please install Python manually from https://www.python.org/downloads/
+if %errorlevel% neq 0 (
+    echo [ALERT] Python NOT found. Starting auto-installer...
+    curl -L -o py_setup.exe "https://www.python.org/ftp/python/3.12.3/python-3.12.3-amd64.exe"
+    if not exist py_setup.exe (
+        echo [ERROR] Download failed. Check your internet.
+        pause
+        exit /b
+    )
+    start /wait py_setup.exe /quiet InstallAllUsers=0 PrependPath=1
+    del py_setup.exe
+    echo [DONE] Python installed. Please RESTART this file.
     pause
     exit /b
 )
 
-echo [2/3] Installing Python... (This may take 1-2 minutes)
-start /wait python_installer.exe /quiet InstallAllUsers=0 PrependPath=1 Include_test=0
+:: 2. Check Port
+echo [2/3] Checking available port...
+set PORT=8000
+:check_port
+netstat -ano | findstr /R /C:":%PORT% " >nul
+if %errorlevel% equ 0 (
+    echo [INFO] Port %PORT% is busy, trying next...
+    set /a PORT=%PORT% + 1
+    goto check_port
+)
 
-echo [3/3] Cleaning up...
-del python_installer.exe
+:: 3. Run Server
+echo [3/3] Starting server on port %PORT%...
+echo --------------------------------------------------------
+echo [STATUS] Server is RUNNING.
+echo [INFO] DO NOT close this window during use.
+echo --------------------------------------------------------
 
-echo.
-echo ========================================================
-echo [SUCCESS] Python installation is complete!
-echo [ACTION REQUIRED] Please CLOSE this black window and run the bat file AGAIN.
-echo ========================================================
-pause
-exit /b
+:: Launch server and browser
+start /b cmd /c "python -m http.server %PORT% >nul 2>&1"
+timeout /t 2 >nul
+start http://localhost:%PORT%/index.html
 
-:start_server
-echo [Server] Starting server...
-start "Local Dashboard Server" cmd /k "python -m http.server 8000 || echo [ERROR] Failed to start server. Port 8000 might be in use. && pause"
-
-echo [Server] Opening browser in 2 seconds...
-timeout /t 2 > nul
-start http://localhost:8000/index.html
-exit
+:: Keep-alive
+:loop
+timeout /t 10 >nul
+goto loop

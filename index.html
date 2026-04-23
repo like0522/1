@@ -459,7 +459,7 @@
 
     <!-- 작업자 개인별 참여 프로젝트 상세 모달 -->
     <div id="workerDetailModal" class="hidden fixed inset-0 bg-slate-900/60 z-[110] flex items-center justify-center backdrop-blur-md">
-        <div class="bg-white rounded-3xl shadow-2xl w-[600px] max-w-[90%] max-h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-white/20">
+        <div class="bg-white rounded-3xl shadow-2xl w-[1000px] max-w-[95%] max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-white/20">
             <div class="bg-slate-900 p-6 flex justify-between items-center border-b border-slate-800">
                 <div>
                     <h3 id="wdModalTitle" class="text-xl font-black text-white italic uppercase tracking-tighter">작업자 상세 분석</h3>
@@ -2145,65 +2145,120 @@
             
             title.innerText = `${worker}님 상세 현황`;
             
+            const year = parseInt(yr);
+            const month = parseInt(mo);
+
             // 데이터 필터링 (해당 월 전체 데이터)
             const wData = rawData.filter(d => d.worker === worker && d.year === yr && d.month === mo);
             
             if (wData.length === 0) {
                 content.innerHTML = '<div class="py-10 text-center text-slate-400 font-bold">해당 기간의 데이터가 없습니다.</div>';
             } else {
-                let projectMap = {};
-                wData.forEach(d => {
-                    if(!projectMap[d.project]) projectMap[d.project] = { count: 0, hours: 0, cost: 0 };
-                    projectMap[d.project].count++;
-                    projectMap[d.project].hours += (d.h_reg + d.h_over);
-                    projectMap[d.project].cost += d.cost;
-                });
+                // 상단 요약 바
+                const totalDays = [...new Set(wData.map(d=>d.date))].length;
+                const totalHours = wData.reduce((s, d)=>s+(d.h_reg+d.h_over), 0);
+                const totalCost = wData.reduce((s,d)=>s+d.cost, 0);
 
-                let tableRows = Object.entries(projectMap).map(([proj, stats]) => `
-                    <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors group">
-                        <td class="py-3 px-1">
-                            <button onclick="jumpToProjectAnalysis('${proj.replace(/'/g, "\\'")}')" class="font-bold text-slate-800 text-sm hover:text-emerald-600 hover:underline text-left transition-all flex items-center gap-1">
-                                <span>${proj}</span>
-                                <svg class="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
-                            </button>
-                        </td>
-                        <td class="py-3 px-1 text-center font-black text-rose-500">${stats.count}일</td>
-                        <td class="py-3 px-1 text-center font-black text-slate-700">${stats.hours}h</td>
-                        <td class="py-3 px-1 text-right font-bold text-emerald-600">₩${stats.cost.toLocaleString()}</td>
-                    </tr>
-                `).join('');
+                // 캘린더 생성 로직
+                const firstDay = new Date(year, month - 1, 1);
+                const lastDay = new Date(year, month, 0);
+                const prevLastDay = new Date(year, month - 1, 0);
+                const startDayOfWeek = firstDay.getDay();
+                const daysInMonth = lastDay.getDate();
 
-                content.innerHTML = `
+                let calendarHTML = `
                     <div class="grid grid-cols-3 gap-3 mb-6">
                         <div class="bg-rose-50 p-4 rounded-2xl border border-rose-100">
                             <p class="text-[10px] font-black text-rose-400 uppercase">출근</p>
-                            <p class="text-2xl font-black text-rose-600">${[...new Set(wData.map(d=>d.date))].length}일</p>
+                            <p class="text-2xl font-black text-rose-600">${totalDays}일</p>
                         </div>
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
                             <p class="text-[10px] font-black text-slate-400 uppercase">총 시간</p>
-                            <p class="text-2xl font-black text-slate-800">${wData.reduce((s, d)=>s+(d.h_reg+d.h_over), 0)}h</p>
+                            <p class="text-2xl font-black text-slate-800">${totalHours}h</p>
                         </div>
                         <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
                             <p class="text-[10px] font-black text-emerald-400 uppercase">추정급여</p>
-                            <p class="text-2xl font-black text-emerald-600">₩${wData.reduce((s,d)=>s+d.cost, 0).toLocaleString()}</p>
+                            <p class="text-2xl font-black text-emerald-600">₩${totalCost.toLocaleString()}</p>
                         </div>
                     </div>
-                    <div class="overflow-hidden rounded-2xl border border-slate-100 shadow-sm">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase italic">
-                                <tr>
-                                    <th class="py-3 px-2">프로젝트명</th>
-                                    <th class="py-3 px-2 text-center">투입일수</th>
-                                    <th class="py-3 px-2 text-center">총시간</th>
-                                    <th class="py-3 px-2 text-right">금액</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                ${tableRows}
-                            </tbody>
-                        </table>
+                    
+                    <div class="bg-slate-900 p-4 rounded-t-3xl flex justify-between items-center">
+                        <span class="text-white font-black text-sm uppercase tracking-widest italic">📅 ${year}년 ${month}월 상세 투입 캘린더</span>
+                        <div class="flex gap-1.5">
+                             <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                             <div class="w-2.5 h-2.5 bg-rose-500 rounded-full"></div>
+                        </div>
+                    </div>
+                    <div class="border-x border-b border-slate-200 rounded-b-3xl overflow-hidden bg-slate-50">
+                        <div class="grid grid-cols-7 gap-px">
+                            <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-red-500 tracking-tighter">SUN</div>
+                            <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-slate-400 tracking-tighter">MON</div>
+                            <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-slate-400 tracking-tighter">TUE</div>
+                            <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-slate-400 tracking-tighter">WED</div>
+                            <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-slate-400 tracking-tighter">THU</div>
+                            <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-slate-400 tracking-tighter">FRI</div>
+                            <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-blue-500 tracking-tighter">SAT</div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-px bg-slate-200">
+                `;
+
+                // 이전 달 빈 칸
+                for (let i = startDayOfWeek - 1; i >= 0; i--) {
+                    calendarHTML += `<div class="bg-white/40 min-h-[140px] p-2 flex flex-col opacity-25">
+                        <span class="text-[10px] font-bold text-slate-300">${prevLastDay.getDate() - i}</span>
+                    </div>`;
+                }
+
+                // 이번 달 날짜
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dateStr = `${year}-${month.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+                    const dayTasks = wData.filter(t => t.date === dateStr);
+                    
+                    calendarHTML += `
+                        <div class="bg-white min-h-[140px] p-2 flex flex-col gap-1.5 hover:bg-slate-50 transition-all border-b border-r border-slate-50">
+                            <span class="text-[10px] font-black text-slate-400/80">${d}</span>
+                            <div class="flex flex-col gap-1.5 mt-0.5">
+                                ${dayTasks.map(t => {
+                                    const hue = [...t.project].reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360;
+                                    return `
+                                        <button onclick="jumpToProjectAnalysis('${t.project.replace(/'/g, "\\'")}')" 
+                                                class="text-left p-2 rounded-xl border border-transparent transition-all hover:scale-[1.03] active:scale-95 group relative overflow-hidden shadow-sm hover:shadow-md"
+                                                style="background-color: hsla(${hue}, 75%, 96%, 1); border-color: hsla(${hue}, 70%, 85%, 1);">
+                                            <div class="flex justify-between items-start mb-1">
+                                                <span class="text-[9px] font-black truncate max-w-[75%] leading-tight" style="color: hsla(${hue}, 80%, 25%, 1)">${t.project}</span>
+                                                <span class="text-[8px] font-black text-slate-600 bg-white/70 px-1.5 py-0.5 rounded-lg border border-white/50">${t.h_reg + t.h_over}h</span>
+                                            </div>
+                                            <div class="flex items-center justify-between mt-1">
+                                                <div class="flex items-center gap-1">
+                                                    <div class="w-1.5 h-1.5 rounded-full" style="background-color: hsla(${hue}, 80%, 40%, 1)"></div>
+                                                    <span class="text-[8px] font-bold text-slate-400 italic">${t.type}</span>
+                                                </div>
+                                                <span class="text-[9px] font-black text-emerald-600">₩${t.cost.toLocaleString()}</span>
+                                            </div>
+                                            <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 다음 달 빈 칸
+                const totalCellsSoFar = startDayOfWeek + daysInMonth;
+                const remainingCells = 42 - totalCellsSoFar;
+                for (let i = 1; i <= remainingCells; i++) {
+                    calendarHTML += `<div class="bg-white/40 min-h-[140px] p-2 flex flex-col opacity-25">
+                        <span class="text-[10px] font-bold text-slate-300">${i}</span>
+                    </div>`;
+                }
+
+                calendarHTML += `
+                        </div>
                     </div>
                 `;
+
+                content.innerHTML = calendarHTML;
             }
 
             modal.classList.remove('hidden');

@@ -2313,7 +2313,8 @@
             const hasWorkerUnchecked = document.querySelectorAll('input[name="waWorker"]:not(:checked)').length > 0;
             const hasClientUnchecked = document.querySelectorAll('input[name="waClient"]:not(:checked)').length > 0;
             const hasProjUnchecked = document.querySelectorAll('input[name="waProj"]:not(:checked)').length > 0;
-            const showAllSelected = !hasWPUnchecked && !hasWorkerUnchecked && !hasClientUnchecked && !hasProjUnchecked;
+            const hasProcessUnchecked = document.querySelectorAll('input[name="waProcessType"]:not(:checked)').length > 0;
+            const showAllSelected = !hasWPUnchecked && !hasWorkerUnchecked && !hasClientUnchecked && !hasProjUnchecked && !hasProcessUnchecked;
             container.innerHTML = '';
 
             if (selectedYears.length === 0 || selectedMonths.length === 0) {
@@ -2342,12 +2343,15 @@
             let grandTotalH = 0, grandRegH = 0, grandOverH = 0;
             let grandProjects = new Set();
             let grandClients = new Set();
+            let grandProcessTypes = new Set();
             
             const waWPs = Array.from(document.querySelectorAll('input[name="waWP"]:checked')).map(cb => cb.value);
             const waClientChecks = Array.from(document.querySelectorAll('input[name="waClient"]:checked')).map(cb => cb.value);
             const hasClientFilters = document.querySelectorAll('input[name="waClient"]').length > 0;
             const waProjChecks = Array.from(document.querySelectorAll('input[name="waProj"]:checked')).map(cb => cb.value);
             const hasProjFilters = document.querySelectorAll('input[name="waProj"]').length > 0;
+            const waProcessChecks = Array.from(document.querySelectorAll('input[name="waProcessType"]:checked')).map(cb => cb.value);
+            const hasProcessFilters = document.querySelectorAll('input[name="waProcessType"]').length > 0;
 
             for (let y of selectedYears) {
                 for (let m of selectedMonths) {
@@ -2364,6 +2368,8 @@
                     allProjectsInMonth.forEach(p => grandProjects.add(p));
                     const allClientsInMonth = [...new Set(rawMonthData.map(d => d.client))].sort();
                     allClientsInMonth.forEach(c => grandClients.add(c));
+                    const allProcessesInMonth = [...new Set(rawMonthData.map(d => d.type))].sort();
+                    allProcessesInMonth.forEach(pt => grandProcessTypes.add(pt));
 
                     let monthData = rawMonthData;
                     if (hasClientFilters) {
@@ -2371,6 +2377,9 @@
                     }
                     if (hasProjFilters) {
                         monthData = monthData.filter(d => waProjChecks.includes(d.project));
+                    }
+                    if (hasProcessFilters) {
+                        monthData = monthData.filter(d => waProcessChecks.includes(d.type));
                     }
                     
                     grandData.push(...monthData);
@@ -2489,7 +2498,7 @@
                     </div>`;
             }
 
-            updateWASummary(grandData, grandTotalH, grandRegH, grandOverH, Array.from(grandProjects).sort(), Array.from(grandClients).sort());
+            updateWASummary(grandData, grandTotalH, grandRegH, grandOverH, Array.from(grandProjects).sort(), Array.from(grandClients).sort(), Array.from(grandProcessTypes).sort());
         }
 
         function generateCalendarCellHTML(day, isCurrentMonth, tasks, allSelectedWorkers, showAllSelected) {
@@ -2767,7 +2776,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function updateWASummary(data, totalH, regH, overH, projectList, clientList) {
+        function updateWASummary(data, totalH, regH, overH, projectList, clientList, processList) {
             document.getElementById('waTotalHours').innerText = totalH.toLocaleString();
             document.getElementById('waRegHours').innerText = regH.toLocaleString() + 'h';
             document.getElementById('waOverHours').innerText = overH.toLocaleString() + 'h';
@@ -2777,7 +2786,7 @@
 
             // 월간 공정 비용 계산 (waMonthlyProcessCost 렌더링)
             const mpContainer = document.getElementById('waMonthlyProcessCost');
-            if (totalCost === 0) {
+            if (!processList || processList.length === 0) {
                 mpContainer.innerHTML = '<p class="text-[10px] font-bold text-slate-300 italic">-</p>';
             } else {
                 let pCosts = {};
@@ -2785,17 +2794,25 @@
                     if (!pCosts[d.type]) pCosts[d.type] = 0;
                     pCosts[d.type] += d.cost;
                 });
-                let pArr = Object.keys(pCosts).map(k => ({type: k, cost: pCosts[k]})).sort((a,b) => b.cost - a.cost);
+                
+                const currentProcessChecked = Array.from(document.querySelectorAll('input[name="waProcessType"]:checked')).map(cb => cb.value);
+                const hasProcessFiltersBefore = document.querySelectorAll('input[name="waProcessType"]').length > 0;
+
                 mpContainer.innerHTML = `
                     <p class="text-[10px] font-black text-rose-400 uppercase italic">공정별 월간 비용 비중</p>
                     <div class="flex flex-col gap-2 mt-1">
-                        ${pArr.map(p => {
-                            let pct = ((p.cost / totalCost) * 100).toFixed(0);
+                        ${processList.map(pt => {
+                            let cost = pCosts[pt] || 0;
+                            let pct = totalCost > 0 ? ((cost / totalCost) * 100).toFixed(0) : 0;
+                            const isChecked = !hasProcessFiltersBefore || currentProcessChecked.includes(pt);
                             return `
                                 <div class="w-full">
                                     <div class="flex justify-between items-center text-[10px] mb-1">
-                                        <span class="font-bold text-slate-600 truncate max-w-[50%]">${p.type}</span>
-                                        <span class="font-black text-slate-800">₩${p.cost.toLocaleString()}</span>
+                                        <label class="flex items-center gap-1.5 cursor-pointer group">
+                                            <input type="checkbox" name="waProcessType" value="${pt}" onchange="renderWorkerCalendar()" class="w-3 h-3 text-rose-500 rounded focus:ring-rose-500" ${isChecked ? 'checked' : ''}>
+                                            <span class="font-bold text-slate-600 truncate max-w-[80px] group-hover:text-rose-600 transition-colors">${pt}</span>
+                                        </label>
+                                        <span class="font-black text-slate-800">₩${cost.toLocaleString()}</span>
                                     </div>
                                     <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden shadow-inner">
                                         <div class="bg-rose-500 h-1.5 rounded-full transition-all duration-1000" style="width: ${pct}%"></div>

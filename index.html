@@ -792,7 +792,6 @@
 
             let companyDataList = [];
             // '전체' 선택 시 A, B, C 사업부 간 비교를 수행하고, 특정 사업부 선택 시 해당 사업부 내의 '구분(공정)'별 분석을 수행합니다.
-            const isAllSelected = currentWorkplace.includes('ALL') || currentWorkplace.length >= 3;
             const groupByField = isAllSelected ? 'workplace' : 'type';
             const categories =[...new Set(viewData.map(d => d[groupByField]))].sort();
             
@@ -1024,7 +1023,6 @@
 
                             let metricHtml = metrics.length > 0 ? `<div class="mt-2 pt-1.5 border-t border-slate-100 space-y-0.5">${metrics.join('')}</div>` : '';
 
-                            const isAllSelected = currentWorkplace.includes('ALL') || currentWorkplace.length >= 3;
                             let categoryLabel = isAllSelected ? '사업부' : '공정';
                             return `
                                 <div class="px-2 py-1 font-bold min-w-[240px]">
@@ -1069,7 +1067,6 @@
                         extraCssText: 'border-radius:12px; box-shadow: 0px 4px 20px -3px rgba(0,0,0,0.15); max-height: 70vh; overflow-y: auto;',
                         formatter: function(params) {
                             let d = params.value;
-                            const isAllSelected = currentWorkplace.includes('ALL') || currentWorkplace.length >= 3;
                             let categoryLabel = isAllSelected ? '사업부' : '공정';
                             return `
                                 <div class="px-3 py-2 font-bold">

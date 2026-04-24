@@ -2430,12 +2430,19 @@
             const waProcessChecks = Array.from(document.querySelectorAll('input[name="waProcessType"]:checked')).map(cb => cb.value);
             const hasProcessFilters = document.querySelectorAll('input[name="waProcessType"]').length > 0;
 
-            // 전체 데이터 필터링 (통계용)
+            // 전체 데이터 필터링 (통계용 및 목록 생성용)
             const baseFilteredData = rawData.filter(d => 
                 waWPs.includes(d.workplace) &&
                 yearMonthPairs.some(p => parseInt(d.year) === p.y && parseInt(d.month) === p.m) &&
                 selectedWorkers.includes(d.worker)
             );
+
+            // 목록 생성을 위해 하위 필터 적용 전 데이터에서 추출
+            baseFilteredData.forEach(d => {
+                grandProjects.add(d.project);
+                grandClients.add(d.client);
+                grandProcessTypes.add(d.type);
+            });
 
             const filteredStatsData = baseFilteredData.filter(d => {
                 let ok = true;
@@ -2446,9 +2453,6 @@
             });
 
             filteredStatsData.forEach(d => {
-                grandProjects.add(d.project);
-                grandClients.add(d.client);
-                grandProcessTypes.add(d.type);
                 grandTotalH += (d.h_reg + d.h_over);
                 grandRegH += d.h_reg;
                 grandOverH += d.h_over;

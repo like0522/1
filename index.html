@@ -548,13 +548,24 @@
                         </div>
                     </div>
 
+                    <div class="dashboard-card p-5 border-l-8 border-l-purple-500">
+                        <div class="flex justify-between items-center mb-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase italic">Client Selection</p>
+                            <button onclick="resetWAClients()" class="text-[10px] font-black text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 px-2 py-1 rounded">초기화</button>
+                        </div>
+                        <h4 class="text-sm font-bold text-slate-500 mb-2">업체명 선택</h4>
+                        <div id="waClientList" class="space-y-1.5 max-h-[200px] overflow-auto custom-scroll pr-1">
+                            <p class="text-xs text-slate-400 italic">데이터가 없습니다.</p>
+                        </div>
+                    </div>
+
                     <div class="dashboard-card p-5">
                         <div class="flex justify-between items-center mb-1">
                             <p class="text-[10px] font-black text-slate-400 uppercase italic">Project List</p>
                             <button onclick="resetWAProjects()" class="text-[10px] font-black text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 px-2 py-1 rounded">초기화</button>
                         </div>
                         <h4 class="text-sm font-bold text-slate-500 mb-2">참여 프로젝트</h4>
-                        <div id="waProjectList" class="space-y-2 max-h-[400px] overflow-auto custom-scroll pr-1">
+                        <div id="waProjectList" class="space-y-2 max-h-[300px] overflow-auto custom-scroll pr-1">
                             <p class="text-xs text-slate-400 italic">데이터가 없습니다.</p>
                         </div>
                     </div>
@@ -2251,6 +2262,7 @@
 
             if (selectedYears.length === 0 || selectedMonths.length === 0) {
                 waWorkerList.innerHTML = '<p class="text-xs text-slate-400 italic">연/월을 선택하세요.</p>';
+                document.getElementById('waClientList').innerHTML = '<p class="text-xs text-slate-400 italic">연/월을 선택하세요.</p>';
                 document.getElementById('waProjectList').innerHTML = '<p class="text-xs text-slate-400 italic">연/월을 선택하세요.</p>';
                 return;
             }
@@ -2322,8 +2334,11 @@
             let grandData = [];
             let grandTotalH = 0, grandRegH = 0, grandOverH = 0;
             let grandProjects = new Set();
+            let grandClients = new Set();
             
             const waWPs = Array.from(document.querySelectorAll('input[name="waWP"]:checked')).map(cb => cb.value);
+            const waClientChecks = Array.from(document.querySelectorAll('input[name="waClient"]:checked')).map(cb => cb.value);
+            const hasClientFilters = document.querySelectorAll('input[name="waClient"]').length > 0;
             const waProjChecks = Array.from(document.querySelectorAll('input[name="waProj"]:checked')).map(cb => cb.value);
             const hasProjFilters = document.querySelectorAll('input[name="waProj"]').length > 0;
 
@@ -2340,10 +2355,15 @@
                     
                     const allProjectsInMonth = [...new Set(rawMonthData.map(d => d.project))].sort();
                     allProjectsInMonth.forEach(p => grandProjects.add(p));
+                    const allClientsInMonth = [...new Set(rawMonthData.map(d => d.client))].sort();
+                    allClientsInMonth.forEach(c => grandClients.add(c));
 
                     let monthData = rawMonthData;
+                    if (hasClientFilters) {
+                        monthData = monthData.filter(d => waClientChecks.includes(d.client));
+                    }
                     if (hasProjFilters) {
-                        monthData = rawMonthData.filter(d => waProjChecks.includes(d.project));
+                        monthData = monthData.filter(d => waProjChecks.includes(d.project));
                     }
                     
                     grandData.push(...monthData);
@@ -2430,17 +2450,17 @@
                                     <div class="flex flex-col gap-1.5 w-full mt-1">
                                         ${sortedProcesses.map(p => {
                                             const percent = ((p.cost / weekCostSum) * 100).toFixed(0);
-                                            return \`
+                                            return `
                                                 <div>
                                                     <div class="flex justify-between items-center text-[9px] mb-0.5">
-                                                        <span class="font-bold text-slate-600 truncate max-w-[50%]">\${p.type}</span>
-                                                        <span class="font-black text-slate-800">₩\${p.cost.toLocaleString()}</span>
+                                                        <span class="font-bold text-slate-600 truncate max-w-[50%]">${p.type}</span>
+                                                        <span class="font-black text-slate-800">₩${p.cost.toLocaleString()}</span>
                                                     </div>
                                                     <div class="w-full bg-slate-200/70 rounded-full h-1 overflow-hidden shadow-inner">
-                                                        <div class="bg-rose-500 h-1 rounded-full transition-all duration-1000" style="width: \${percent}%"></div>
+                                                        <div class="bg-rose-500 h-1 rounded-full transition-all duration-1000" style="width: ${percent}%"></div>
                                                     </div>
                                                 </div>
-                                            \`;
+                                            `;
                                         }).join('')}
                                     </div>
                                 </div>
@@ -2462,7 +2482,7 @@
                     </div>`;
             }
 
-            updateWASummary(grandData, grandTotalH, grandRegH, grandOverH, Array.from(grandProjects).sort());
+            updateWASummary(grandData, grandTotalH, grandRegH, grandOverH, Array.from(grandProjects).sort(), Array.from(grandClients).sort());
         }
 
         function generateCalendarCellHTML(day, isCurrentMonth, tasks, allSelectedWorkers) {
@@ -2693,7 +2713,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function updateWASummary(data, totalH, regH, overH, projectList) {
+        function updateWASummary(data, totalH, regH, overH, projectList, clientList) {
             document.getElementById('waTotalHours').innerText = totalH.toLocaleString();
             document.getElementById('waRegHours').innerText = regH.toLocaleString() + 'h';
             document.getElementById('waOverHours').innerText = overH.toLocaleString() + 'h';
@@ -2764,16 +2784,32 @@
             document.getElementById('waAttendDays').innerText = attendCount + '일';
             document.getElementById('waOffDays').innerText = offCount + '일';
 
+            // 업체명 리스트 렌더링
+            const clientContainer = document.getElementById('waClientList');
+            if (!clientList || clientList.length === 0) {
+                clientContainer.innerHTML = '<p class="text-xs text-slate-400 italic">데이터가 없습니다.</p>';
+            } else {
+                const currentChecked = Array.from(document.querySelectorAll('input[name="waClient"]:checked')).map(cb => cb.value);
+                const hasFiltersBefore = document.querySelectorAll('input[name="waClient"]').length > 0;
+                clientContainer.innerHTML = clientList.map(c => {
+                    const isChecked = !hasFiltersBefore || currentChecked.includes(c);
+                    return `
+                    <label class="flex items-center gap-2 p-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors group">
+                        <input type="checkbox" name="waClient" value="${c}" onchange="renderWorkerCalendar()" class="w-3.5 h-3.5 text-purple-500 rounded focus:ring-purple-500" ${isChecked ? 'checked' : ''}>
+                        <span class="text-[11px] font-bold text-slate-600 group-hover:text-slate-900">${c}</span>
+                    </label>
+                `}).join('');
+            }
+
+            // 프로젝트 리스트 렌더링
             const listContainer = document.getElementById('waProjectList');
-            if (projectList.length === 0) {
+            if (!projectList || projectList.length === 0) {
                 listContainer.innerHTML = '<p class="text-xs text-slate-400 italic">데이터가 없습니다.</p>';
             } else {
-                // 현재 체크 상태 유지 (새로 렌더링될 때)
                 const currentChecked = Array.from(document.querySelectorAll('input[name="waProj"]:checked')).map(cb => cb.value);
                 const hasFiltersBefore = document.querySelectorAll('input[name="waProj"]').length > 0;
 
                 listContainer.innerHTML = projectList.map(p => {
-                    // 필터가 아예 없었으면(최초) 전부 체크, 있었으면 기존 상태 유지
                     const isChecked = !hasFiltersBefore || currentChecked.includes(p);
                     return `
                     <label class="flex items-center gap-2 p-2.5 bg-white border border-slate-100 rounded-xl shadow-sm cursor-pointer hover:bg-slate-50 transition-all group">
@@ -2784,6 +2820,18 @@
                     </label>
                 `}).join('');
             }
+        }
+
+        function resetWAClients() {
+            const checkboxes = document.querySelectorAll('input[name="waClient"]');
+            checkboxes.forEach(cb => cb.checked = true);
+            renderWorkerCalendar();
+        }
+
+        function resetWAProjects() {
+            const checkboxes = document.querySelectorAll('input[name="waProj"]');
+            checkboxes.forEach(cb => cb.checked = true);
+            renderWorkerCalendar();
         }
 
         function openProjectCalendarModal() {

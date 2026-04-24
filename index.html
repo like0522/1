@@ -2410,9 +2410,9 @@
                         for (let d = 0; d < 7; d++) {
                             if (w === 0 && d < startDayOfWeek) {
                                 const day = prevLastDay.getDate() - (startDayOfWeek - 1 - d);
-                                monthHTML += generateCalendarCellHTML(day, false, [], selectedWorkers);
+                                monthHTML += generateCalendarCellHTML(day, false, [], selectedWorkers, showAllSelected);
                             } else if (currentDay > totalDays) {
-                                monthHTML += generateCalendarCellHTML(currentDay - totalDays, false, [], selectedWorkers);
+                                monthHTML += generateCalendarCellHTML(currentDay - totalDays, false, [], selectedWorkers, showAllSelected);
                                 currentDay++;
                             } else {
                                 const dateStr = `${y}-${m.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
@@ -2424,7 +2424,7 @@
                                 });
                                 
                                 weekDaysData.push(...dayTasks);
-                                monthHTML += generateCalendarCellHTML(currentDay, true, dayTasks, selectedWorkers);
+                                monthHTML += generateCalendarCellHTML(currentDay, true, dayTasks, selectedWorkers, showAllSelected);
                                 currentDay++;
                             }
                         }
@@ -2485,7 +2485,7 @@
             updateWASummary(grandData, grandTotalH, grandRegH, grandOverH, Array.from(grandProjects).sort(), Array.from(grandClients).sort());
         }
 
-        function generateCalendarCellHTML(day, isCurrentMonth, tasks, allSelectedWorkers) {
+        function generateCalendarCellHTML(day, isCurrentMonth, tasks, allSelectedWorkers, showAllSelected) {
             let html = `<div class="min-h-[160px] p-1.5 bg-white flex flex-col gap-1 transition-all border-r border-b border-slate-100 ${isCurrentMonth ? 'hover:bg-slate-50' : 'bg-slate-50/20 opacity-30'}">`;
             
             let badgeHTML = '';
@@ -2518,7 +2518,7 @@
                                 <div class="text-[8px] font-bold opacity-80 truncate mt-0.5" style="color: hsla(${hue}, 85%, 35%, 1)">${task.project}</div>
                             </div>
                         `;
-                    } else if (isCurrentMonth) {
+                    } else if (isCurrentMonth && showAllSelected) {
                         html += `
                             <div class="h-10 flex flex-col justify-center px-2 rounded border border-slate-100/50 bg-slate-50/50 cursor-pointer hover:bg-slate-100/50 transition-all overflow-hidden"
                                  onclick="openWorkerDetailModal('${worker}')">
@@ -2598,7 +2598,7 @@
                                     </div>
                                 </div>
                                 <div class="border-x border-b border-slate-200 bg-slate-50">
-                                    <div class="grid grid-cols-7 gap-px">
+                                    <div class="grid grid-cols-8 gap-px">
                                         <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-red-500 tracking-tighter">SUN</div>
                                         <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-slate-400 tracking-tighter">MON</div>
                                         <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-slate-400 tracking-tighter">TUE</div>
@@ -2606,8 +2606,11 @@
                                         <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-slate-400 tracking-tighter">THU</div>
                                         <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-slate-400 tracking-tighter">FRI</div>
                                         <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-blue-500 tracking-tighter">SAT</div>
+                                        <div class="bg-rose-100 p-3 text-center text-[10px] font-black text-rose-700 tracking-tighter flex items-center justify-center gap-1 border-l border-rose-200">
+                                            요약
+                                        </div>
                                     </div>
-                                    <div class="grid grid-cols-7 gap-px bg-slate-200">
+                                    <div class="grid grid-cols-8 gap-px bg-slate-200">
                         `;
 
                         // 이전 달 빈 칸
@@ -2617,48 +2620,92 @@
                             </div>`;
                         }
 
-                        // 이번 달 날짜
-                        for (let d = 1; d <= daysInMonth; d++) {
-                            const dateStr = `${y}-${m.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
-                            const dayTasks = mData.filter(t => t.date === dateStr);
+                        // 이번 달 날짜 + 주간 요약
+                        let currentDay = 1;
+                        let totalWeeks = Math.ceil((daysInMonth + startDayOfWeek) / 7);
 
-                            calendarHTML += `
-                                <div class="bg-white min-h-[140px] p-2 flex flex-col gap-1.5 hover:bg-slate-50 transition-all border-b border-r border-slate-50">
-                                    <span class="text-[10px] font-black text-slate-400/80">${d}</span>
-                                    <div class="flex flex-col gap-1.5 mt-0.5">
-                                        ${dayTasks.map(t => {
-                                const hue = [...t.project].reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360;
-                                return `
-                                                <button onclick="jumpToProjectAnalysis('${t.project.replace(/'/g, "\\'")}')" 
-                                                        class="text-left p-2 rounded-xl border border-transparent transition-all hover:scale-[1.03] active:scale-95 group relative overflow-hidden shadow-sm hover:shadow-md"
-                                                        style="background-color: hsla(${hue}, 75%, 96%, 1); border-color: hsla(${hue}, 70%, 85%, 1);">
-                                                    <div class="flex justify-between items-start mb-1">
-                                                        <span class="text-[9px] font-black truncate max-w-[75%] leading-tight" style="color: hsla(${hue}, 80%, 25%, 1)">${t.project}</span>
-                                                        <span class="text-[8px] font-black text-slate-600 bg-white/70 px-1.5 py-0.5 rounded-lg border border-white/50">${t.h_reg + t.h_over}h</span>
-                                                    </div>
-                                                    <div class="flex items-center justify-between mt-1">
-                                                        <div class="flex items-center gap-1">
-                                                            <div class="w-1.5 h-1.5 rounded-full" style="background-color: hsla(${hue}, 80%, 40%, 1)"></div>
-                                                            <span class="text-[8px] font-bold text-slate-400 italic">${t.type}</span>
+                        for (let w = 0; w < totalWeeks; w++) {
+                            let weekCosts = 0;
+                            let weekProcessCosts = {};
+
+                            for (let d = 0; d < 7; d++) {
+                                if (w === 0 && d < startDayOfWeek) {
+                                    // 이미 출력됨
+                                } else if (currentDay > daysInMonth) {
+                                    calendarHTML += `<div class="bg-white/40 min-h-[140px] p-2 flex flex-col opacity-25">
+                                        <span class="text-[10px] font-bold text-slate-300">${currentDay - daysInMonth}</span>
+                                    </div>`;
+                                    currentDay++;
+                                } else {
+                                    const dateStr = `${y}-${m.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
+                                    const dayTasks = mData.filter(t => t.date === dateStr);
+                                    
+                                    dayTasks.forEach(t => {
+                                        weekCosts += t.cost;
+                                        if (!weekProcessCosts[t.type]) weekProcessCosts[t.type] = 0;
+                                        weekProcessCosts[t.type] += t.cost;
+                                    });
+
+                                    calendarHTML += `
+                                        <div class="bg-white min-h-[140px] p-2 flex flex-col gap-1.5 hover:bg-slate-50 transition-all border-b border-r border-slate-50">
+                                            <span class="text-[10px] font-black text-slate-400/80">${currentDay}</span>
+                                            <div class="flex flex-col gap-1.5 mt-0.5">
+                                                ${dayTasks.map(t => {
+                                                    const hue = [...t.project].reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360;
+                                                    return `
+                                                        <button onclick="jumpToProjectAnalysis('${t.project.replace(/'/g, "\\'")}')" 
+                                                                class="text-left p-2 rounded-xl border border-transparent transition-all hover:scale-[1.03] active:scale-95 group relative overflow-hidden shadow-sm hover:shadow-md"
+                                                                style="background-color: hsla(${hue}, 75%, 96%, 1); border-color: hsla(${hue}, 70%, 85%, 1);">
+                                                            <div class="flex justify-between items-start mb-1">
+                                                                <span class="text-[9px] font-black truncate max-w-[75%] leading-tight" style="color: hsla(${hue}, 80%, 25%, 1)">${t.project}</span>
+                                                                <span class="text-[8px] font-black text-slate-600 bg-white/70 px-1.5 py-0.5 rounded-lg border border-white/50">${t.h_reg + t.h_over}h</span>
+                                                            </div>
+                                                            <div class="flex items-center justify-between mt-1">
+                                                                <div class="flex items-center gap-1">
+                                                                    <div class="w-1.5 h-1.5 rounded-full" style="background-color: hsla(${hue}, 80%, 40%, 1)"></div>
+                                                                    <span class="text-[8px] font-bold text-slate-400 italic">${t.type}</span>
+                                                                </div>
+                                                                <span class="text-[9px] font-black text-emerald-600">₩${t.cost.toLocaleString()}</span>
+                                                            </div>
+                                                            <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                        </button>
+                                                    `;
+                                                }).join('')}
+                                            </div>
+                                        </div>
+                                    `;
+                                    currentDay++;
+                                }
+                            }
+
+                            // 주간 요약 셀 (8번째 칸)
+                            if (weekCosts === 0) {
+                                calendarHTML += `<div class="bg-rose-50/30 p-2 min-h-[140px] border-l border-rose-100 flex items-center justify-center text-slate-300 font-bold text-[10px] italic">-</div>`;
+                            } else {
+                                let sorted = Object.keys(weekProcessCosts).map(k => ({ type: k, cost: weekProcessCosts[k] })).sort((a,b) => b.cost - a.cost);
+                                calendarHTML += `
+                                    <div class="bg-rose-50/50 p-2 min-h-[140px] border-l border-rose-100 flex flex-col justify-center gap-1">
+                                        <div class="text-[8px] font-black text-rose-400 uppercase tracking-tighter mb-0.5">Weekly Cost</div>
+                                        <div class="text-[11px] font-black text-rose-700 mb-1">₩${weekCosts.toLocaleString()}</div>
+                                        <div class="flex flex-col gap-1 w-full">
+                                            ${sorted.map(p => {
+                                                const pct = ((p.cost / weekCosts) * 100).toFixed(0);
+                                                return `
+                                                    <div>
+                                                        <div class="flex justify-between items-center text-[8px] mb-0.5">
+                                                            <span class="font-bold text-slate-500 truncate max-w-[60%]">${p.type}</span>
+                                                            <span class="font-black text-slate-700">${pct}%</span>
                                                         </div>
-                                                        <span class="text-[9px] font-black text-emerald-600">₩${t.cost.toLocaleString()}</span>
+                                                        <div class="w-full bg-slate-200 rounded-full h-1 overflow-hidden">
+                                                            <div class="bg-rose-500 h-1 rounded-full" style="width: ${pct}%"></div>
+                                                        </div>
                                                     </div>
-                                                    <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                                </button>
-                                            `;
-                            }).join('')}
+                                                `;
+                                            }).join('')}
+                                        </div>
                                     </div>
-                                </div>
-                            `;
-                        }
-
-                        // 다음 달 빈 칸
-                        const totalCellsSoFar = startDayOfWeek + daysInMonth;
-                        const remainingCells = 42 - totalCellsSoFar;
-                        for (let i = 1; i <= remainingCells; i++) {
-                            calendarHTML += `<div class="bg-white/40 min-h-[140px] p-2 flex flex-col opacity-25">
-                                <span class="text-[10px] font-bold text-slate-300">${i}</span>
-                            </div>`;
+                                `;
+                            }
                         }
 
                         calendarHTML += `

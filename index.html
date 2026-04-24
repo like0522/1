@@ -2507,11 +2507,28 @@
                         monthText = (current.getMonth() + 1) + '-' + (weekEnd.getMonth() + 1) + '월';
                     }
 
+                    // 주차 계산 (ISO 주차 방식과 유사하게 해당 연도 기준 계산)
+                    const getYearWeek = (d) => {
+                        const target = new Date(d.valueOf());
+                        const dayNr = (d.getDay() + 6) % 7;
+                        target.setDate(target.getDate() - dayNr + 3);
+                        const firstThursday = target.valueOf();
+                        target.setMonth(0, 1);
+                        if (target.getDay() !== 4) {
+                            target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+                        }
+                        return 1 + Math.ceil((firstThursday - target) / 604800000);
+                    };
+                    const yearWeek = getYearWeek(weekStart);
+
                     blockHTML += `
                         <div class="bg-slate-50/80 p-2 flex flex-col justify-center items-center border-r border-slate-200">
                             <div class="text-[10px] font-black text-slate-400 italic mb-0.5 leading-none">${current.getFullYear()}</div>
                             <div class="text-[14px] font-black text-slate-900 leading-none">${monthText}</div>
-                            <div class="mt-1.5 px-2 py-0.5 bg-slate-900 rounded text-[9px] font-black text-white uppercase tracking-tighter">${weekCount} WEEK</div>
+                            <div class="flex flex-col gap-1 mt-1.5 w-full items-center">
+                                <div class="px-2 py-0.5 bg-slate-900 rounded text-[9px] font-black text-white uppercase tracking-tighter w-fit">${weekCount} WEEK</div>
+                                <div class="px-2 py-0.5 bg-rose-600 rounded text-[9px] font-black text-white uppercase tracking-tighter w-fit">W${yearWeek}</div>
+                            </div>
                         </div>
                     `;
 

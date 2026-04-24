@@ -126,8 +126,13 @@
     <nav class="bg-slate-900 text-white py-4 px-6 sticky top-0 z-50 shadow-2xl">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
-                <button onclick="goBack()" class="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded-xl transition-all shadow-md flex items-center justify-center" title="이전 화면으로 돌아가기">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                <button onclick="goBack()"
+                    class="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded-xl transition-all shadow-md flex items-center justify-center"
+                    title="이전 화면으로 돌아가기">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
                 </button>
                 <div class="bg-emerald-500 p-2 rounded-xl text-slate-900 font-black">PRO-V4.5</div>
                 <h1 class="text-xl font-black tracking-tight">생산 공정 및 인력 투입 분석기</h1>
@@ -285,16 +290,25 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                    <div class="dashboard-card border-t-4 border-t-purple-500 overflow-hidden cursor-pointer hover:bg-purple-50 transition-colors group relative" onclick="openProjectCalendarModal()">
+                    <div class="dashboard-card border-t-4 border-t-purple-500 overflow-hidden cursor-pointer hover:bg-purple-50 transition-colors group relative"
+                        onclick="openProjectCalendarModal()">
                         <div class="p-5">
                             <div class="flex justify-between items-center">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic group-hover:text-purple-500 transition-colors">작업 기간</p>
-                                <span class="bg-purple-100 text-purple-600 px-2 py-0.5 rounded text-[10px] font-black shadow-sm group-hover:bg-purple-600 group-hover:text-white transition-all flex items-center gap-1">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <p
+                                    class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic group-hover:text-purple-500 transition-colors">
+                                    작업 기간</p>
+                                <span
+                                    class="bg-purple-100 text-purple-600 px-2 py-0.5 rounded text-[10px] font-black shadow-sm group-hover:bg-purple-600 group-hover:text-white transition-all flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                        </path>
+                                    </svg>
                                     상세 달력
                                 </span>
                             </div>
-                            <div id="viewPeriod" class="text-xl font-black text-slate-900 mt-2">0000.00.00 ~ 0000.00.00</div>
+                            <div id="viewPeriod" class="text-xl font-black text-slate-900 mt-2">0000.00.00 ~ 0000.00.00
+                            </div>
                             <div id="viewWorkDays" class="text-sm font-bold text-purple-600 mt-0.5">실제 작업: 0일</div>
                         </div>
                     </div>
@@ -505,7 +519,8 @@
                                 <p class="text-[10px] font-bold text-slate-400">추정 인건비</p>
                                 <p id="waTotalCost" class="text-xl font-black text-rose-600">₩ 0</p>
                             </div>
-                            <div id="waMonthlyProcessCost" class="pt-3 border-t border-slate-100 mt-2 flex flex-col gap-2">
+                            <div id="waMonthlyProcessCost"
+                                class="pt-3 border-t border-slate-100 mt-2 flex flex-col gap-2">
                                 <!-- JS로 렌더링 (월간 공정비용) -->
                             </div>
                         </div>
@@ -515,7 +530,8 @@
                         <div class="flex justify-between items-center mb-1">
                             <p class="text-[10px] font-black text-slate-400 uppercase italic">Worker Selection</p>
                             <div class="flex gap-2">
-                                <button onclick="toggleAllWorkers(true)" class="text-[10px] font-black text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 px-2 py-1 rounded">초기화</button>
+                                <button onclick="toggleAllWorkers(true)"
+                                    class="text-[10px] font-black text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 px-2 py-1 rounded">초기화</button>
                             </div>
                         </div>
                         <h4 class="text-sm font-bold text-slate-500 mb-2">작업자 선택</h4>
@@ -547,7 +563,8 @@
                     <div class="dashboard-card p-5 border-l-8 border-l-purple-500">
                         <div class="flex justify-between items-center mb-1">
                             <p class="text-[10px] font-black text-slate-400 uppercase italic">Client Selection</p>
-                            <button onclick="resetWAClients()" class="text-[10px] font-black text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 px-2 py-1 rounded">초기화</button>
+                            <button onclick="resetWAClients()"
+                                class="text-[10px] font-black text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 px-2 py-1 rounded">초기화</button>
                         </div>
                         <h4 class="text-sm font-bold text-slate-500 mb-2">업체명 선택</h4>
                         <div id="waClientList" class="space-y-1.5 max-h-[200px] overflow-auto custom-scroll pr-1">
@@ -558,7 +575,8 @@
                     <div class="dashboard-card p-5">
                         <div class="flex justify-between items-center mb-1">
                             <p class="text-[10px] font-black text-slate-400 uppercase italic">Project List</p>
-                            <button onclick="resetWAProjects()" class="text-[10px] font-black text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 px-2 py-1 rounded">초기화</button>
+                            <button onclick="resetWAProjects()"
+                                class="text-[10px] font-black text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 px-2 py-1 rounded">초기화</button>
                         </div>
                         <h4 class="text-sm font-bold text-slate-500 mb-2">참여 프로젝트</h4>
                         <div id="waProjectList" class="space-y-2 max-h-[300px] overflow-auto custom-scroll pr-1">
@@ -571,7 +589,8 @@
                 <div class="lg:col-span-3 flex flex-col gap-6" id="waMultiCalendarContainer">
                     <div class="dashboard-card overflow-hidden">
                         <div class="bg-slate-800 p-8 flex justify-center items-center">
-                            <h4 class="text-white font-black italic uppercase tracking-widest text-sm">연도와 월을 선택해주세요</h4>
+                            <h4 class="text-white font-black italic uppercase tracking-widest text-sm">연도와 월을 선택해주세요
+                            </h4>
                         </div>
                     </div>
                 </div>
@@ -617,31 +636,51 @@
     </div>
 
     <!-- 프로젝트 상세 멀티-월력 모달 -->
-    <div id="projectCalendarModal" class="hidden fixed inset-0 bg-slate-900/60 z-[120] flex items-center justify-center backdrop-blur-md">
-        <div class="bg-white rounded-3xl shadow-2xl w-[1400px] max-w-[98%] h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-white/20">
-            <div class="bg-gradient-to-r from-purple-900 to-indigo-900 p-6 flex justify-between items-center border-b border-purple-800">
+    <div id="projectCalendarModal"
+        class="hidden fixed inset-0 bg-slate-900/60 z-[120] flex items-center justify-center backdrop-blur-md">
+        <div
+            class="bg-white rounded-3xl shadow-2xl w-[1400px] max-w-[98%] h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-white/20">
+            <div
+                class="bg-gradient-to-r from-purple-900 to-indigo-900 p-6 flex justify-between items-center border-b border-purple-800">
                 <div>
                     <h3 id="pcModalTitle" class="text-2xl font-black text-white italic tracking-tighter">프로젝트 상세 달력</h3>
-                    <p id="pcModalSubtitle" class="text-purple-300 text-[11px] font-black uppercase mt-1 tracking-widest flex items-center gap-3">
+                    <p id="pcModalSubtitle"
+                        class="text-purple-300 text-[11px] font-black uppercase mt-1 tracking-widest flex items-center gap-3">
                         <span>Loading...</span>
                     </p>
                 </div>
-                <button onclick="closeProjectCalendarModal()" class="w-10 h-10 flex items-center justify-center bg-purple-800/50 text-purple-200 hover:bg-white hover:text-purple-900 rounded-full transition-all hover:rotate-90 shadow-lg">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <button onclick="closeProjectCalendarModal()"
+                    class="w-10 h-10 flex items-center justify-center bg-purple-800/50 text-purple-200 hover:bg-white hover:text-purple-900 rounded-full transition-all hover:rotate-90 shadow-lg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
                 </button>
             </div>
-            
+
             <!-- Sticky 요일 헤더 (8열 구조) -->
             <div class="grid grid-cols-8 gap-px bg-slate-200 border-b border-slate-300 shadow-sm z-10 relative">
-                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-rose-500 uppercase tracking-wider">SUN (일)</div>
-                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">MON (월)</div>
-                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">TUE (화)</div>
-                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">WED (수)</div>
-                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">THU (목)</div>
-                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">FRI (금)</div>
-                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-blue-500 uppercase tracking-wider">SAT (토)</div>
-                <div class="bg-purple-50 p-3 text-center text-[12px] font-black text-purple-700 uppercase tracking-wider shadow-inner border-l-2 border-purple-200 flex items-center justify-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-rose-500 uppercase tracking-wider">
+                    SUN (일)</div>
+                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">
+                    MON (월)</div>
+                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">
+                    TUE (화)</div>
+                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">
+                    WED (수)</div>
+                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">
+                    THU (목)</div>
+                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">
+                    FRI (금)</div>
+                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-blue-500 uppercase tracking-wider">
+                    SAT (토)</div>
+                <div
+                    class="bg-purple-50 p-3 text-center text-[12px] font-black text-purple-700 uppercase tracking-wider shadow-inner border-l-2 border-purple-200 flex items-center justify-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                        </path>
+                    </svg>
                     주간 요약 (비용/공정)
                 </div>
             </div>
@@ -894,13 +933,13 @@
         function initWACheckboxes() {
             const yrWAContainer = document.getElementById('waSelYearContainer');
             const moWAContainer = document.getElementById('waSelMonthContainer');
-            
+
             // 한 번만 렌더링
             if (yrWAContainer.innerHTML.trim() !== '') return;
-            
+
             const years = [...new Set(rawData.map(i => i.year))].filter(y => y !== 'Unknown').sort((a, b) => b - a);
             let maxYear = "0";
-            
+
             yrWAContainer.innerHTML = '';
             years.forEach(y => {
                 if (parseInt(y) > parseInt(maxYear)) maxYear = y;
@@ -911,7 +950,7 @@
                     </label>
                 `;
             });
-            
+
             moWAContainer.innerHTML = '';
             for (let m = 1; m <= 12; m++) {
                 moWAContainer.innerHTML += `
@@ -923,7 +962,7 @@
                     </label>
                 `;
             }
-            
+
             // 초기 선택
             if (maxYear !== "0") {
                 const yChk = document.querySelector(`input[name="waYearChk"][value="${maxYear}"]`);
@@ -2267,9 +2306,9 @@
             const waWPs = Array.from(document.querySelectorAll('input[name="waWP"]:checked')).map(cb => cb.value);
 
             const activeWorkers = [...new Set(rawData
-                .filter(d => (waWPs.includes(d.workplace)) && 
-                             (selectedYears.includes(d.year)) && 
-                             (selectedMonths.includes(d.month)))
+                .filter(d => (waWPs.includes(d.workplace)) &&
+                    (selectedYears.includes(d.year)) &&
+                    (selectedMonths.includes(d.month)))
                 .map(d => d.worker)
             )].filter(w => w).sort();
 
@@ -2294,23 +2333,22 @@
 
         // 작업자 캘린더 렌더링 엔진
         function renderWorkerCalendar() {
-            const selectedYears = Array.from(document.querySelectorAll('input[name="waYearChk"]:checked')).map(cb => parseInt(cb.value)).sort((a,b)=>a-b);
-            const selectedMonths = Array.from(document.querySelectorAll('input[name="waMonthChk"]:checked')).map(cb => parseInt(cb.value)).sort((a,b)=>a-b);
+            const selectedYears = Array.from(document.querySelectorAll('input[name="waYearChk"]:checked')).map(cb => parseInt(cb.value)).sort((a, b) => a - b);
+            const selectedMonths = Array.from(document.querySelectorAll('input[name="waMonthChk"]:checked')).map(cb => parseInt(cb.value)).sort((a, b) => a - b);
 
-            // 선택된 작업자들 가져오기 (이름순 정렬하여 고정 위치 보장)
             const selectedWorkers = Array.from(document.querySelectorAll('input[name="waWorker"]:checked'))
                 .map(cb => cb.value)
                 .sort();
 
             const container = document.getElementById('waMultiCalendarContainer');
-            
-            // 모든 필터가 풀(Full)로 체크되어 있는지 확인
+
             const hasWPUnchecked = document.querySelectorAll('input[name="waWP"]:not(:checked)').length > 0;
             const hasWorkerUnchecked = document.querySelectorAll('input[name="waWorker"]:not(:checked)').length > 0;
             const hasClientUnchecked = document.querySelectorAll('input[name="waClient"]:not(:checked)').length > 0;
             const hasProjUnchecked = document.querySelectorAll('input[name="waProj"]:not(:checked)').length > 0;
             const hasProcessUnchecked = document.querySelectorAll('input[name="waProcessType"]:not(:checked)').length > 0;
             const showAllSelected = !hasWPUnchecked && !hasWorkerUnchecked && !hasClientUnchecked && !hasProjUnchecked && !hasProcessUnchecked;
+            
             container.innerHTML = '';
 
             if (selectedYears.length === 0 || selectedMonths.length === 0) {
@@ -2335,12 +2373,49 @@
                 return;
             }
 
+            // 1. 선택된 연도/월 쌍 수집 및 정렬
+            const yearMonthPairs = [];
+            selectedYears.forEach(y => {
+                selectedMonths.forEach(m => {
+                    // 해당 연/월에 데이터가 있는지 확인
+                    const hasData = rawData.some(d => parseInt(d.year) === y && parseInt(d.month) === m);
+                    if (hasData) yearMonthPairs.push({ y, m });
+                });
+            });
+            yearMonthPairs.sort((a, b) => (a.y * 12 + a.m) - (b.y * 12 + b.m));
+
+            if (yearMonthPairs.length === 0) {
+                container.innerHTML = `
+                    <div class="dashboard-card overflow-hidden">
+                        <div class="bg-slate-800 p-8 flex justify-center items-center">
+                            <h4 class="text-white font-black italic uppercase tracking-widest text-sm">해당 기간에 대한 데이터가 없습니다.</h4>
+                        </div>
+                    </div>`;
+                updateWASummary([], 0, 0, 0, []);
+                return;
+            }
+
+            // 2. 연속된 월들을 블록으로 그룹화
+            const blocks = [];
+            let currentBlock = [yearMonthPairs[0]];
+            for (let i = 1; i < yearMonthPairs.length; i++) {
+                const prev = yearMonthPairs[i - 1];
+                const curr = yearMonthPairs[i];
+                if ((curr.y * 12 + curr.m) - (prev.y * 12 + prev.m) === 1) {
+                    currentBlock.push(curr);
+                } else {
+                    blocks.push(currentBlock);
+                    currentBlock = [curr];
+                }
+            }
+            blocks.push(currentBlock);
+
             let grandData = [];
             let grandTotalH = 0, grandRegH = 0, grandOverH = 0;
             let grandProjects = new Set();
             let grandClients = new Set();
             let grandProcessTypes = new Set();
-            
+
             const waWPs = Array.from(document.querySelectorAll('input[name="waWP"]:checked')).map(cb => cb.value);
             const waClientChecks = Array.from(document.querySelectorAll('input[name="waClient"]:checked')).map(cb => cb.value);
             const hasClientFilters = document.querySelectorAll('input[name="waClient"]').length > 0;
@@ -2349,50 +2424,47 @@
             const waProcessChecks = Array.from(document.querySelectorAll('input[name="waProcessType"]:checked')).map(cb => cb.value);
             const hasProcessFilters = document.querySelectorAll('input[name="waProcessType"]').length > 0;
 
-            for (let y of selectedYears) {
-                for (let m of selectedMonths) {
-                    const rawMonthData = rawData.filter(d =>
-                        waWPs.includes(d.workplace) &&
-                        parseInt(d.year) === y &&
-                        parseInt(d.month) === m &&
-                        selectedWorkers.includes(d.worker)
-                    );
-                    
-                    if (rawMonthData.length === 0) continue;
-                    
-                    const allProjectsInMonth = [...new Set(rawMonthData.map(d => d.project))].sort();
-                    allProjectsInMonth.forEach(p => grandProjects.add(p));
-                    const allClientsInMonth = [...new Set(rawMonthData.map(d => d.client))].sort();
-                    allClientsInMonth.forEach(c => grandClients.add(c));
-                    const allProcessesInMonth = [...new Set(rawMonthData.map(d => d.type))].sort();
-                    allProcessesInMonth.forEach(pt => grandProcessTypes.add(pt));
+            // 전체 데이터 필터링 (통계용)
+            const baseFilteredData = rawData.filter(d => 
+                waWPs.includes(d.workplace) &&
+                yearMonthPairs.some(p => parseInt(d.year) === p.y && parseInt(d.month) === p.m) &&
+                selectedWorkers.includes(d.worker)
+            );
 
-                    let monthData = rawMonthData;
-                    if (hasClientFilters) {
-                        monthData = monthData.filter(d => waClientChecks.includes(d.client));
-                    }
-                    if (hasProjFilters) {
-                        monthData = monthData.filter(d => waProjChecks.includes(d.project));
-                    }
-                    if (hasProcessFilters) {
-                        monthData = monthData.filter(d => waProcessChecks.includes(d.type));
-                    }
-                    
-                    grandData.push(...monthData);
+            const filteredStatsData = baseFilteredData.filter(d => {
+                let ok = true;
+                if (hasClientFilters && !waClientChecks.includes(d.client)) ok = false;
+                if (hasProjFilters && !waProjChecks.includes(d.project)) ok = false;
+                if (hasProcessFilters && !waProcessChecks.includes(d.type)) ok = false;
+                return ok;
+            });
 
-                    const firstDay = new Date(y, m - 1, 1);
-                    const lastDay = new Date(y, m, 0);
-                    const prevLastDay = new Date(y, m - 1, 0);
-                    const startDayOfWeek = firstDay.getDay(); 
-                    const totalDays = lastDay.getDate();
+            filteredStatsData.forEach(d => {
+                grandProjects.add(d.project);
+                grandClients.add(d.client);
+                grandProcessTypes.add(d.type);
+                grandTotalH += (d.h_reg + d.h_over);
+                grandRegH += d.h_reg;
+                grandOverH += d.h_over;
+            });
 
-            const multiMonthMode = selectedMonths.length > 1;
+            // 3. 블록별 렌더링
+            blocks.forEach((block, bIdx) => {
+                const isMultiMonthBlock = block.length > 1;
+                const first = block[0];
+                const last = block[block.length - 1];
+                
+                let titleText = `${first.y}년 ${first.m}월`;
+                if (isMultiMonthBlock) {
+                    titleText += ` ~ ${last.y === first.y ? '' : last.y + '년 '}${last.m}월 통합 근태 현황`;
+                } else {
+                    titleText += ` 근태 현황`;
+                }
 
-            if (multiMonthMode) {
-                let multiHTML = `
-                    <div class="dashboard-card overflow-hidden">
+                let blockHTML = `
+                    <div class="dashboard-card overflow-hidden mb-6">
                         <div class="bg-slate-800 p-4 flex justify-between items-center">
-                            <h4 class="text-white font-black italic uppercase tracking-widest text-lg">복수 월 통합 근태 현황</h4>
+                            <h4 class="text-white font-black italic uppercase tracking-widest text-lg">${titleText}</h4>
                             <div class="flex gap-1">
                                 <div class="w-3 h-3 bg-rose-500 rounded-full"></div>
                                 <div class="w-3 h-3 bg-rose-400 rounded-full"></div>
@@ -2416,168 +2488,60 @@
                             <div class="grid grid-cols-9 gap-px bg-slate-200 border-x border-b border-slate-200 rounded-b-lg overflow-hidden">
                 `;
 
-                for (let y of selectedYears) {
-                    for (let m of selectedMonths) {
-                        const rawMonthData = rawData.filter(d =>
-                            waWPs.includes(d.workplace) &&
-                            parseInt(d.year) === y &&
-                            parseInt(d.month) === m &&
-                            selectedWorkers.includes(d.worker)
-                        );
-                        if (rawMonthData.length === 0) continue;
+                const blockStartDate = new Date(first.y, first.m - 1, 1);
+                const blockEndDate = new Date(last.y, last.m, 0);
+                
+                // 해당 블록의 첫 주의 일요일부터 시작
+                let current = new Date(blockStartDate);
+                current.setDate(current.getDate() - current.getDay());
 
-                        let monthData = rawMonthData;
-                        if (hasClientFilters) monthData = monthData.filter(d => waClientChecks.includes(d.client));
-                        if (hasProjFilters) monthData = monthData.filter(d => waProjChecks.includes(d.project));
-                        if (hasProcessFilters) monthData = monthData.filter(d => waProcessChecks.includes(d.type));
-                        grandData.push(...monthData);
+                let weekCount = 1;
+                while (current <= blockEndDate) {
+                    const weekStart = new Date(current);
+                    const weekEnd = new Date(current);
+                    weekEnd.setDate(weekEnd.getDate() + 6);
 
-                        const firstDay = new Date(y, m - 1, 1);
-                        const lastDay = new Date(y, m, 0);
-                        const prevLastDay = new Date(y, m - 1, 0);
-                        const startDayOfWeek = firstDay.getDay(); 
-                        const totalDays = lastDay.getDate();
-
-                        let currentDay = 1;
-                        let totalWeeks = Math.ceil((totalDays + startDayOfWeek) / 7);
-                        
-                        for (let w = 0; w < totalWeeks; w++) {
-                            // 1. 월/주 표시 컬럼
-                            multiHTML += `
-                                <div class="bg-slate-50/80 p-2 flex flex-col justify-center items-center border-r border-slate-200">
-                                    <div class="text-[10px] font-black text-slate-400 italic mb-0.5 leading-none">${y}</div>
-                                    <div class="text-[14px] font-black text-slate-900 leading-none">${m}월</div>
-                                    <div class="mt-1.5 px-2 py-0.5 bg-slate-900 rounded text-[9px] font-black text-white uppercase tracking-tighter">${w+1} WEEK</div>
-                                </div>
-                            `;
-
-                            let weekDaysData = [];
-                            for (let d = 0; d < 7; d++) {
-                                if (w === 0 && d < startDayOfWeek) {
-                                    const day = prevLastDay.getDate() - (startDayOfWeek - 1 - d);
-                                    multiHTML += generateCalendarCellHTML(day, false, [], selectedWorkers, showAllSelected);
-                                } else if (currentDay > totalDays) {
-                                    multiHTML += generateCalendarCellHTML(currentDay - totalDays, false, [], selectedWorkers, showAllSelected);
-                                    currentDay++;
-                                } else {
-                                    const dateStr = `${y}-${m.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
-                                    const dayTasks = monthData.filter(t => t.date === dateStr);
-                                    dayTasks.forEach(t => {
-                                        grandTotalH += (t.h_reg + t.h_over);
-                                        grandRegH += t.h_reg; grandOverH += t.h_over;
-                                    });
-                                    weekDaysData.push(...dayTasks);
-                                    multiHTML += generateCalendarCellHTML(currentDay, true, dayTasks, selectedWorkers, showAllSelected);
-                                    currentDay++;
-                                }
-                            }
-                            
-                            // 주간 요약 셀
-                            multiHTML += generateWeeklySummaryCellHTML(weekDaysData);
-                        }
+                    // Month/Week 컬럼 생성
+                    let monthText = (current.getMonth() + 1) + '월';
+                    if (current.getMonth() !== weekEnd.getMonth()) {
+                        monthText = (current.getMonth() + 1) + '-' + (weekEnd.getMonth() + 1) + '월';
                     }
-                }
-                multiHTML += `</div></div></div>`;
-                container.innerHTML = multiHTML;
-            } else {
-                for (let y of selectedYears) {
-                    for (let m of selectedMonths) {
-                        const rawMonthData = rawData.filter(d =>
-                            waWPs.includes(d.workplace) &&
-                            parseInt(d.year) === y &&
-                            parseInt(d.month) === m &&
-                            selectedWorkers.includes(d.worker)
-                        );
-                        
-                        if (rawMonthData.length === 0) continue;
-                        
-                        const allProjectsInMonth = [...new Set(rawMonthData.map(d => d.project))].sort();
-                        allProjectsInMonth.forEach(p => grandProjects.add(p));
-                        const allClientsInMonth = [...new Set(rawMonthData.map(d => d.client))].sort();
-                        allClientsInMonth.forEach(c => grandClients.add(c));
-                        const allProcessesInMonth = [...new Set(rawMonthData.map(d => d.type))].sort();
-                        allProcessesInMonth.forEach(pt => grandProcessTypes.add(pt));
 
-                        let monthData = rawMonthData;
-                        if (hasClientFilters) monthData = monthData.filter(d => waClientChecks.includes(d.client));
-                        if (hasProjFilters) monthData = monthData.filter(d => waProjChecks.includes(d.project));
-                        if (hasProcessFilters) monthData = monthData.filter(d => waProcessChecks.includes(d.type));
-                        grandData.push(...monthData);
-
-                        const firstDay = new Date(y, m - 1, 1);
-                        const lastDay = new Date(y, m, 0);
-                        const prevLastDay = new Date(y, m - 1, 0);
-                        const startDayOfWeek = firstDay.getDay(); 
-                        const totalDays = lastDay.getDate();
-
-                        let monthHTML = `
-                            <div class="dashboard-card overflow-hidden">
-                                <div class="bg-slate-800 p-4 flex justify-between items-center">
-                                    <h4 class="text-white font-black italic uppercase tracking-widest text-lg">${y}년 ${m}월 근태 현황</h4>
-                                    <div class="flex gap-1">
-                                        <div class="w-3 h-3 bg-rose-500 rounded-full"></div>
-                                        <div class="w-3 h-3 bg-rose-400 rounded-full"></div>
-                                        <div class="w-3 h-3 bg-rose-300 rounded-full"></div>
-                                    </div>
-                                </div>
-                                <div class="p-4 bg-white">
-                                    <div class="grid grid-cols-8 gap-px mb-px bg-slate-200 border border-slate-200 rounded-t-lg overflow-hidden">
-                                        <div class="bg-slate-50 p-3 text-center text-[11px] font-black text-red-500 uppercase">SUN</div>
-                                        <div class="bg-slate-50 p-3 text-center text-[11px] font-black text-slate-400 uppercase">MON</div>
-                                        <div class="bg-slate-50 p-3 text-center text-[11px] font-black text-slate-400 uppercase">TUE</div>
-                                        <div class="bg-slate-50 p-3 text-center text-[11px] font-black text-slate-400 uppercase">WED</div>
-                                        <div class="bg-slate-50 p-3 text-center text-[11px] font-black text-slate-400 uppercase">THU</div>
-                                        <div class="bg-slate-50 p-3 text-center text-[11px] font-black text-slate-400 uppercase">FRI</div>
-                                        <div class="bg-slate-50 p-3 text-center text-[11px] font-black text-blue-500 uppercase">SAT</div>
-                                        <div class="bg-rose-50 p-3 text-center text-[11px] font-black text-rose-700 uppercase flex justify-center items-center gap-1 border-l border-rose-200">
-                                            주간 요약
-                                        </div>
-                                    </div>
-                                    <div class="grid grid-cols-8 gap-px bg-slate-200 border-x border-b border-slate-200 rounded-b-lg overflow-hidden">
-                        `;
-
-                        let currentDay = 1;
-                        let totalWeeks = Math.ceil((totalDays + startDayOfWeek) / 7);
-                        for (let w = 0; w < totalWeeks; w++) {
-                            let weekDaysData = [];
-                            for (let d = 0; d < 7; d++) {
-                                if (w === 0 && d < startDayOfWeek) {
-                                    const day = prevLastDay.getDate() - (startDayOfWeek - 1 - d);
-                                    monthHTML += generateCalendarCellHTML(day, false, [], selectedWorkers, showAllSelected);
-                                } else if (currentDay > totalDays) {
-                                    monthHTML += generateCalendarCellHTML(currentDay - totalDays, false, [], selectedWorkers, showAllSelected);
-                                    currentDay++;
-                                } else {
-                                    const dateStr = `${y}-${m.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
-                                    const dayTasks = monthData.filter(t => t.date === dateStr);
-                                    dayTasks.forEach(t => {
-                                        grandTotalH += (t.h_reg + t.h_over);
-                                        grandRegH += t.h_reg; grandOverH += t.h_over;
-                                    });
-                                    weekDaysData.push(...dayTasks);
-                                    monthHTML += generateCalendarCellHTML(currentDay, true, dayTasks, selectedWorkers, showAllSelected);
-                                    currentDay++;
-                                }
-                            }
-                            monthHTML += generateWeeklySummaryCellHTML(weekDaysData);
-                        }
-                        monthHTML += `</div></div></div>`;
-                        container.innerHTML += monthHTML;
-                    }
-                }
-            }
-
-            if (grandData.length === 0) {
-                container.innerHTML = `
-                    <div class="dashboard-card overflow-hidden">
-                        <div class="bg-slate-800 p-8 flex justify-center items-center">
-                            <h4 class="text-white font-black italic uppercase tracking-widest text-sm">해당 기간/작업자에 대한 데이터가 없습니다.</h4>
+                    blockHTML += `
+                        <div class="bg-slate-50/80 p-2 flex flex-col justify-center items-center border-r border-slate-200">
+                            <div class="text-[10px] font-black text-slate-400 italic mb-0.5 leading-none">${current.getFullYear()}</div>
+                            <div class="text-[14px] font-black text-slate-900 leading-none">${monthText}</div>
+                            <div class="mt-1.5 px-2 py-0.5 bg-slate-900 rounded text-[9px] font-black text-white uppercase tracking-tighter">${weekCount} WEEK</div>
                         </div>
-                    </div>`;
-            }
+                    `;
 
-            updateWASummary(grandData, grandTotalH, grandRegH, grandOverH, Array.from(grandProjects).sort(), Array.from(grandClients).sort(), Array.from(grandProcessTypes).sort());
+                    let weekDaysData = [];
+                    for (let i = 0; i < 7; i++) {
+                        const curY = current.getFullYear();
+                        const curM = current.getMonth() + 1;
+                        const curD = current.getDate();
+                        const dateStr = `${curY}-${curM.toString().padStart(2, '0')}-${curD.toString().padStart(2, '0')}`;
+                        
+                        const isDayInBlock = block.some(p => p.y === curY && p.m === curM);
+                        const dayTasks = isDayInBlock ? filteredStatsData.filter(t => t.date === dateStr) : [];
+                        
+                        weekDaysData.push(...dayTasks);
+                        blockHTML += generateCalendarCellHTML(curD, isDayInBlock, dayTasks, selectedWorkers, showAllSelected);
+                        
+                        current.setDate(current.getDate() + 1);
+                    }
+                    
+                    blockHTML += generateWeeklySummaryCellHTML(weekDaysData);
+                    weekCount++;
+                }
+
+                blockHTML += `</div></div></div>`;
+                container.innerHTML += blockHTML;
+            });
+
+            updateWASummary(filteredStatsData, grandTotalH, grandRegH, grandOverH, Array.from(grandProjects).sort(), Array.from(grandClients).sort(), Array.from(grandProcessTypes).sort());
         }
+
 
         function generateWeeklySummaryCellHTML(weekDaysData) {
             let weekCostSum = 0;
@@ -2591,7 +2555,7 @@
             if (weekCostSum === 0) {
                 return `<div class="bg-rose-50/50 p-3 min-h-[160px] border-l border-rose-100 flex items-center justify-center text-slate-300 font-bold text-xs italic">-</div>`;
             } else {
-                let sortedProcesses = Object.keys(processCosts).map(k => ({ type: k, cost: processCosts[k] })).sort((a,b) => b.cost - a.cost);
+                let sortedProcesses = Object.keys(processCosts).map(k => ({ type: k, cost: processCosts[k] })).sort((a, b) => b.cost - a.cost);
                 return `
                     <div class="bg-rose-50/50 p-3 min-h-[160px] flex flex-col justify-center gap-1.5 border-l border-rose-100 transition-colors hover:bg-rose-50">
                         <div>
@@ -2600,8 +2564,8 @@
                         </div>
                         <div class="flex flex-col gap-1.5 w-full mt-1">
                             ${sortedProcesses.map(p => {
-                                const percent = ((p.cost / weekCostSum) * 100).toFixed(0);
-                                return `
+                    const percent = ((p.cost / weekCostSum) * 100).toFixed(0);
+                    return `
                                     <div>
                                         <div class="flex justify-between items-center text-[9px] mb-0.5">
                                             <span class="font-bold text-slate-600 truncate max-w-[50%]">${p.type}</span>
@@ -2612,7 +2576,7 @@
                                         </div>
                                     </div>
                                 `;
-                            }).join('')}
+                }).join('')}
                         </div>
                     </div>
                 `;
@@ -2621,20 +2585,20 @@
 
         function generateCalendarCellHTML(day, isCurrentMonth, tasks, allSelectedWorkers, showAllSelected) {
             let html = `<div class="min-h-[160px] p-1.5 bg-white flex flex-col gap-1 transition-all border-r border-b border-slate-100 ${isCurrentMonth ? 'hover:bg-slate-50' : 'bg-slate-50/20 opacity-30'}">`;
-            
+
             let badgeHTML = '';
             if (tasks.length > 0) {
                 const dayTotalH = tasks.reduce((sum, t) => sum + (t.h_reg + t.h_over), 0);
                 badgeHTML = `<div class="text-[8px] font-black text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100 scale-90 origin-right">${dayTotalH}h</div>`;
             }
-            
+
             html += `
                 <div class="flex justify-between items-start mb-0.5 px-0.5">
                     <div class="text-[10px] font-black ${isCurrentMonth ? 'text-slate-800' : 'text-slate-200'}">${day}</div>
                     ${badgeHTML}
                 </div>
             `;
-            
+
             if (allSelectedWorkers && allSelectedWorkers.length > 0) {
                 allSelectedWorkers.forEach(worker => {
                     const task = tasks.find(t => t.worker === worker);
@@ -2675,14 +2639,14 @@
             const title = document.getElementById('wdModalTitle');
             const content = document.getElementById('wdModalContent');
 
-            const selectedYears = Array.from(document.querySelectorAll('input[name="waYearChk"]:checked')).map(cb => parseInt(cb.value)).sort((a,b)=>a-b);
-            const selectedMonths = Array.from(document.querySelectorAll('input[name="waMonthChk"]:checked')).map(cb => parseInt(cb.value)).sort((a,b)=>a-b);
+            const selectedYears = Array.from(document.querySelectorAll('input[name="waYearChk"]:checked')).map(cb => parseInt(cb.value)).sort((a, b) => a - b);
+            const selectedMonths = Array.from(document.querySelectorAll('input[name="waMonthChk"]:checked')).map(cb => parseInt(cb.value)).sort((a, b) => a - b);
 
             title.innerText = `${worker}님 상세 현황`;
 
-            const wData = rawData.filter(d => 
-                d.worker === worker && 
-                selectedYears.includes(parseInt(d.year)) && 
+            const wData = rawData.filter(d =>
+                d.worker === worker &&
+                selectedYears.includes(parseInt(d.year)) &&
                 selectedMonths.includes(parseInt(d.month))
             );
 
@@ -2773,7 +2737,7 @@
                                 } else {
                                     const dateStr = `${y}-${m.toString().padStart(2, '0')}-${currentDay.toString().padStart(2, '0')}`;
                                     const dayTasks = mData.filter(t => t.date === dateStr);
-                                    
+
                                     dayTasks.forEach(t => {
                                         weekCosts += t.cost;
                                         if (!weekProcessCosts[t.type]) weekProcessCosts[t.type] = 0;
@@ -2785,8 +2749,8 @@
                                             <span class="text-[10px] font-black text-slate-400/80">${currentDay}</span>
                                             <div class="flex flex-col gap-1.5 mt-0.5">
                                                 ${dayTasks.map(t => {
-                                                    const hue = [...t.project].reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360;
-                                                    return `
+                                        const hue = [...t.project].reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360;
+                                        return `
                                                         <button onclick="jumpToProjectAnalysis('${t.project.replace(/'/g, "\\'")}')" 
                                                                 class="text-left p-2 rounded-xl border border-transparent transition-all hover:scale-[1.03] active:scale-95 group relative overflow-hidden shadow-sm hover:shadow-md"
                                                                 style="background-color: hsla(${hue}, 75%, 96%, 1); border-color: hsla(${hue}, 70%, 85%, 1);">
@@ -2804,7 +2768,7 @@
                                                             <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                                         </button>
                                                     `;
-                                                }).join('')}
+                                    }).join('')}
                                             </div>
                                         </div>
                                     `;
@@ -2816,15 +2780,15 @@
                             if (weekCosts === 0) {
                                 calendarHTML += `<div class="bg-rose-50/30 p-2 min-h-[140px] border-l border-rose-100 flex items-center justify-center text-slate-300 font-bold text-[10px] italic">-</div>`;
                             } else {
-                                let sorted = Object.keys(weekProcessCosts).map(k => ({ type: k, cost: weekProcessCosts[k] })).sort((a,b) => b.cost - a.cost);
+                                let sorted = Object.keys(weekProcessCosts).map(k => ({ type: k, cost: weekProcessCosts[k] })).sort((a, b) => b.cost - a.cost);
                                 calendarHTML += `
                                     <div class="bg-rose-50/50 p-2 min-h-[140px] border-l border-rose-100 flex flex-col justify-center gap-1">
                                         <div class="text-[8px] font-black text-rose-400 uppercase tracking-tighter mb-0.5">Weekly Cost</div>
                                         <div class="text-[11px] font-black text-rose-700 mb-1">₩${weekCosts.toLocaleString()}</div>
                                         <div class="flex flex-col gap-1 w-full">
                                             ${sorted.map(p => {
-                                                const pct = ((p.cost / weekCosts) * 100).toFixed(0);
-                                                return `
+                                    const pct = ((p.cost / weekCosts) * 100).toFixed(0);
+                                    return `
                                                     <div>
                                                         <div class="flex justify-between items-center text-[8px] mb-0.5">
                                                             <span class="font-bold text-slate-500 truncate max-w-[60%]">${p.type}</span>
@@ -2835,7 +2799,7 @@
                                                         </div>
                                                     </div>
                                                 `;
-                                            }).join('')}
+                                }).join('')}
                                         </div>
                                     </div>
                                 `;
@@ -2912,7 +2876,7 @@
                     if (!pCosts[d.type]) pCosts[d.type] = 0;
                     pCosts[d.type] += d.cost;
                 });
-                
+
                 const currentProcessChecked = Array.from(document.querySelectorAll('input[name="waProcessType"]:checked')).map(cb => cb.value);
                 const hasProcessFiltersBefore = document.querySelectorAll('input[name="waProcessType"]').length > 0;
 
@@ -2926,10 +2890,10 @@
                     </div>
                     <div class="flex flex-col gap-2 mt-1">
                         ${sortedProcessList.map(pt => {
-                            let cost = pCosts[pt] || 0;
-                            let pct = totalCost > 0 ? ((cost / totalCost) * 100).toFixed(0) : 0;
-                            const isChecked = !hasProcessFiltersBefore || currentProcessChecked.includes(pt);
-                            return `
+                    let cost = pCosts[pt] || 0;
+                    let pct = totalCost > 0 ? ((cost / totalCost) * 100).toFixed(0) : 0;
+                    const isChecked = !hasProcessFiltersBefore || currentProcessChecked.includes(pt);
+                    return `
                                 <div class="w-full">
                                     <div class="flex justify-between items-center text-[10px] mb-1">
                                         <div class="flex items-center gap-1.5">
@@ -2943,7 +2907,7 @@
                                     </div>
                                 </div>
                             `;
-                        }).join('')}
+                }).join('')}
                     </div>
                 `;
             }
@@ -2958,7 +2922,7 @@
             // 해당 월의 평일 수 계산 (간이)
             const selectedYears = Array.from(document.querySelectorAll('input[name="waYearChk"]:checked')).map(cb => parseInt(cb.value));
             const selectedMonths = Array.from(document.querySelectorAll('input[name="waMonthChk"]:checked')).map(cb => parseInt(cb.value));
-            
+
             let offCount = 0;
             if (selectedYears.length > 0 && selectedMonths.length > 0) {
                 for (let y of selectedYears) {
@@ -3045,48 +3009,48 @@
 
         function openProjectCalendarModal() {
             if (!currentProjectData || currentProjectData.length === 0) return;
-            
+
             const modal = document.getElementById('projectCalendarModal');
             const title = document.getElementById('pcModalTitle');
             const subTitle = document.getElementById('pcModalSubtitle');
             const content = document.getElementById('pcModalContent');
-            
+
             const firstData = currentProjectData[0];
             title.innerText = `🏢 ${firstData.client} - ${firstData.project} 상세 달력`;
-            
+
             let grandH = 0; let grandC = 0;
             currentProjectData.forEach(d => { grandH += (d.h_reg + d.h_over); grandC += d.cost; });
-            
+
             subTitle.innerHTML = `
                 <span>⏱️ 총 투입: ${grandH.toLocaleString()}h</span>
                 <span>💰 총 투입비용: ₩${grandC.toLocaleString()}</span>
-                <span>📅 기간: ${currentProjectData[0].date} ~ ${currentProjectData[currentProjectData.length-1].date}</span>
+                <span>📅 기간: ${currentProjectData[0].date} ~ ${currentProjectData[currentProjectData.length - 1].date}</span>
             `;
-            
+
             // 1. 기간(월별) 파악
             let minDate = new Date(currentProjectData[0].dateObj);
-            let maxDate = new Date(currentProjectData[currentProjectData.length-1].dateObj);
-            
+            let maxDate = new Date(currentProjectData[currentProjectData.length - 1].dateObj);
+
             if (isNaN(minDate)) minDate = new Date(currentProjectData[0].date.replace(/-/g, '/'));
-            if (isNaN(maxDate)) maxDate = new Date(currentProjectData[currentProjectData.length-1].date.replace(/-/g, '/'));
+            if (isNaN(maxDate)) maxDate = new Date(currentProjectData[currentProjectData.length - 1].date.replace(/-/g, '/'));
 
             const minYear = minDate.getFullYear();
             const minMonth = minDate.getMonth(); // 0-based
             const maxYear = maxDate.getFullYear();
             const maxMonth = maxDate.getMonth();
-            
+
             let html = '';
-            
+
             // 각 월별로 루프
             for (let y = minYear; y <= maxYear; y++) {
                 let startM = (y === minYear) ? minMonth : 0;
                 let endM = (y === maxYear) ? maxMonth : 11;
-                
+
                 for (let m = startM; m <= endM; m++) {
                     html += generateProjectMonthCalendarHTML(y, m);
                 }
             }
-            
+
             content.innerHTML = html;
             modal.classList.remove('hidden');
         }
@@ -3096,10 +3060,10 @@
             const lastDay = new Date(year, month + 1, 0);
             const daysInMonth = lastDay.getDate();
             const startDayOfWeek = firstDay.getDay(); // 0(Sun) - 6(Sat)
-            
-            const targetMonthStr = `${year}-${(month+1).toString().padStart(2, '0')}`;
+
+            const targetMonthStr = `${year}-${(month + 1).toString().padStart(2, '0')}`;
             const monthData = currentProjectData.filter(d => d.date.startsWith(targetMonthStr));
-            
+
             let calHTML = `
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
                     <div class="bg-slate-50 p-4 border-b border-slate-200 flex items-center justify-between">
@@ -3108,13 +3072,13 @@
                     </div>
                     <div class="grid grid-cols-8 gap-px bg-slate-100">
             `;
-            
+
             let currentDay = 1;
             let totalWeeks = Math.ceil((daysInMonth + startDayOfWeek) / 7);
-            
+
             for (let w = 0; w < totalWeeks; w++) {
                 let weekDaysData = [];
-                
+
                 for (let d = 0; d < 7; d++) {
                     if (w === 0 && d < startDayOfWeek) {
                         calHTML += `<div class="bg-slate-50/50 p-2 min-h-[140px]"></div>`;
@@ -3124,9 +3088,9 @@
                         const dateStr = `${targetMonthStr}-${currentDay.toString().padStart(2, '0')}`;
                         const dayTasks = monthData.filter(t => t.date === dateStr);
                         weekDaysData.push(...dayTasks);
-                        
+
                         let dayColorClass = d === 0 ? "text-rose-500" : (d === 6 ? "text-blue-500" : "text-slate-500");
-                        
+
                         calHTML += `
                             <div class="bg-white p-2 min-h-[140px] flex flex-col border-r border-b border-slate-100 group hover:bg-slate-50 transition-colors">
                                 <div class="flex justify-between items-start mb-1.5">
@@ -3135,9 +3099,9 @@
                                 </div>
                                 <div class="flex flex-col gap-1.5 flex-1 mt-1">
                                     ${dayTasks.map(t => {
-                                        const hue = [...t.type].reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360;
-                                        const totalH = t.h_reg + t.h_over;
-                                        return `
+                            const hue = [...t.type].reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360;
+                            const totalH = t.h_reg + t.h_over;
+                            return `
                                             <div class="px-2 py-1.5 rounded text-left border shadow-sm flex flex-col hover:scale-[1.02] transition-transform cursor-default" 
                                                  style="background-color: hsla(${hue}, 80%, 97%, 1); border-color: hsla(${hue}, 70%, 90%, 1);">
                                                 <div class="flex justify-between items-center w-full mb-0.5">
@@ -3149,14 +3113,14 @@
                                                 </div>
                                             </div>
                                         `;
-                                    }).join('')}
+                        }).join('')}
                                 </div>
                             </div>
                         `;
                         currentDay++;
                     }
                 }
-                
+
                 let weekCostSum = 0;
                 let processCosts = {};
                 weekDaysData.forEach(t => {
@@ -3164,21 +3128,21 @@
                     if (!processCosts[t.type]) processCosts[t.type] = 0;
                     processCosts[t.type] += t.cost;
                 });
-                
+
                 let summaryContent = '';
                 if (weekCostSum === 0) {
                     summaryContent = `<div class="text-slate-300 font-bold text-xs italic text-center w-full mt-4 flex items-center justify-center h-full opacity-50">-</div>`;
                 } else {
-                    let sortedProcesses = Object.keys(processCosts).map(k => ({ type: k, cost: processCosts[k] })).sort((a,b) => b.cost - a.cost);
-                    
+                    let sortedProcesses = Object.keys(processCosts).map(k => ({ type: k, cost: processCosts[k] })).sort((a, b) => b.cost - a.cost);
+
                     summaryContent = `
                         <div class="w-full h-full flex flex-col justify-center">
                             <div class="text-[10px] font-black text-purple-500/70 mb-1.5 tracking-widest uppercase border-b border-purple-200/50 pb-1 w-full text-left">Weekly Cost</div>
                             <div class="text-[16px] font-black text-purple-700 mb-2.5">₩${weekCostSum.toLocaleString()}</div>
                             <div class="flex flex-col gap-1.5 w-full">
                                 ${sortedProcesses.map(p => {
-                                    const percent = ((p.cost / weekCostSum) * 100).toFixed(0);
-                                    return `
+                        const percent = ((p.cost / weekCostSum) * 100).toFixed(0);
+                        return `
                                         <div>
                                             <div class="flex justify-between items-center text-[10px] mb-0.5">
                                                 <span class="font-bold text-slate-600 truncate max-w-[50%]">${p.type}</span>
@@ -3189,19 +3153,19 @@
                                             </div>
                                         </div>
                                     `;
-                                }).join('')}
+                    }).join('')}
                             </div>
                         </div>
                     `;
                 }
-                
+
                 calHTML += `
                     <div class="bg-purple-50/50 p-4 min-h-[140px] flex flex-col items-start border-b border-purple-100 border-l border-l-purple-200">
                         ${summaryContent}
                     </div>
                 `;
             }
-            
+
             calHTML += `
                     </div>
                 </div>
@@ -3214,4 +3178,5 @@
         }
     </script>
 </body>
+
 </html>

@@ -2296,14 +2296,11 @@
         function renderWorkerCalendar() {
             const selectedYears = Array.from(document.querySelectorAll('input[name="waYearChk"]:checked')).map(cb => parseInt(cb.value)).sort((a,b)=>a-b);
             const selectedMonths = Array.from(document.querySelectorAll('input[name="waMonthChk"]:checked')).map(cb => parseInt(cb.value)).sort((a,b)=>a-b);
-
             // 선택된 작업자들 가져오기 (이름순 정렬하여 고정 위치 보장)
             const selectedWorkers = Array.from(document.querySelectorAll('input[name="waWorker"]:checked'))
                 .map(cb => cb.value)
                 .sort();
 
-            const container = document.getElementById('waMultiCalendarContainer');
-            
             // 모든 필터가 풀(Full)로 체크되어 있는지 확인
             const hasWPUnchecked = document.querySelectorAll('input[name="waWP"]:not(:checked)').length > 0;
             const hasWorkerUnchecked = document.querySelectorAll('input[name="waWorker"]:not(:checked)').length > 0;
@@ -2311,6 +2308,8 @@
             const hasProjUnchecked = document.querySelectorAll('input[name="waProj"]:not(:checked)').length > 0;
             const hasProcessUnchecked = document.querySelectorAll('input[name="waProcessType"]:not(:checked)').length > 0;
             const showAllSelected = !hasWPUnchecked && !hasWorkerUnchecked && !hasClientUnchecked && !hasProjUnchecked && !hasProcessUnchecked;
+
+            const container = document.getElementById('waMultiCalendarContainer');
             container.innerHTML = '';
 
             if (selectedYears.length === 0 || selectedMonths.length === 0) {
@@ -2320,7 +2319,7 @@
                             <h4 class="text-white font-black italic uppercase tracking-widest text-sm">연도와 월을 선택해주세요</h4>
                         </div>
                     </div>`;
-                updateWASummary([], 0, 0, 0, []);
+                updateWASummary([], 0, 0, 0, [], [], []);
                 return;
             }
 
@@ -2331,7 +2330,7 @@
                             <h4 class="text-white font-black italic uppercase tracking-widest text-sm">작업자를 먼저 선택해주세요</h4>
                         </div>
                     </div>`;
-                updateWASummary([], 0, 0, 0, []);
+                updateWASummary([], 0, 0, 0, [], [], []);
                 return;
             }
 
@@ -2349,6 +2348,7 @@
             const waProcessChecks = Array.from(document.querySelectorAll('input[name="waProcessType"]:checked')).map(cb => cb.value);
             const hasProcessFilters = document.querySelectorAll('input[name="waProcessType"]').length > 0;
 
+            // 먼저 모든 선택된 월의 데이터를 수집 (통계 및 필터 리스트 갱신용)
             for (let y of selectedYears) {
                 for (let m of selectedMonths) {
                     const rawMonthData = rawData.filter(d =>
@@ -2357,28 +2357,152 @@
                         parseInt(d.month) === m &&
                         selectedWorkers.includes(d.worker)
                     );
-                    
                     if (rawMonthData.length === 0) continue;
+
+                    [...new Set(rawMonthData.map(d => d.project))].forEach(p => grandProjects.add(p));
+                    [...new Set(rawMonthData.map(d => d.client))].forEach(c => grandClients.add(c));
+                    [...new Set(rawMonthData.map(d => d.type))].forEach(pt => grandProcessTypes.add(pt));
+
+                    let filtered = rawMonthData;
+                    if (hasClientFilters) filtered = filtered.filter(d => waClientChecks.includes(d.client));
+                    if (hasProjFilters) filtered = filtered.filter(d => waProjChecks.includes(d.project));
+                    if (hasProcessFilters) filtered = filtered.filter(d => waProcessChecks.includes(d.type));
                     
-                    const allProjectsInMonth = [...new Set(rawMonthData.map(d => d.project))].sort();
-                    allProjectsInMonth.forEach(p => grandProjects.add(p));
-                    const allClientsInMonth = [...new Set(rawMonthData.map(d => d.client))].sort();
-                    allClientsInMonth.forEach(c => grandClients.add(c));
-                    const allProcessesInMonth = [...new Set(rawMonthData.map(d => d.type))].sort();
-                    allProcessesInMonth.forEach(pt => grandProcessTypes.add(pt));
+                    grandData.push(...filtered);
+                    filtered.forEach(t => {
+                        grandTotalH += (t.h_reg + t.h_over);
+                        grandRegH += t.h_reg; grandOverH += t.h_over;
+                    });
+                }
+            }
+
+            // 요약 패널 갱신
+            updateWASummary(grandData, grandTotalH, grandRegH, grandOverH, Array.from(grandProjects).sort(), Array.from(grandClients).sort(), Array.from(grandProcessTypes).sort());
+
+            // 렌더링 시작
+            if (selectedMonths.length >= 2) {
+                // 연속 주간 뷰 모드
+                const minYear = Math.min(...selectedYears);
+                const maxYear = Math.max(...selectedYears);
+                const minMonth = Math.min(...selectedMonths);
+                const maxMonth = Math.max(...selectedMonths);
+
+                const startDate = new Date(minYear, minMonth - 1, 1);
+                const endDate = new Date(maxYear, maxMonth, 0);
+
+                // 일요일로 시작일 조정
+                const iterDate = new Date(startDate);
+                iterDate.setDate(iterDate.getDate() - iterDate.getDay());
+
+                let html = `
+                    <div class="dashboard-card overflow-hidden">
+                        <div class="bg-slate-900 p-4 flex justify-between items-center">
+                            <h4 class="text-white font-black italic uppercase tracking-widest text-sm">🗓️ 연속 주간 근태 이력 (${selectedMonths.length}개월 통합)</h4>
+                            <div class="flex gap-1.5">
+                                <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                                <div class="w-2.5 h-2.5 bg-rose-500 rounded-full"></div>
+                                <div class="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-white overflow-x-auto">
+                            <div class="min-w-[1200px]">
+                                <div class="grid grid-cols-[100px_repeat(7,1fr)_200px] gap-px mb-px bg-slate-200 border border-slate-200 rounded-t-lg overflow-hidden">
+                                    <div class="bg-slate-800 p-3 text-center text-[10px] font-black text-slate-300 uppercase tracking-tighter">Month/Week</div>
+                                    <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-red-500">SUN</div>
+                                    <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-slate-400">MON</div>
+                                    <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-slate-400">TUE</div>
+                                    <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-slate-400">WED</div>
+                                    <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-slate-400">THU</div>
+                                    <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-slate-400">FRI</div>
+                                    <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-blue-500">SAT</div>
+                                    <div class="bg-rose-100 p-3 text-center text-[10px] font-black text-rose-700 flex justify-center items-center gap-1 border-l border-rose-200">주간 요약</div>
+                                </div>
+                                <div class="grid grid-cols-[100px_repeat(7,1fr)_200px] gap-px bg-slate-200 border-x border-b border-slate-200 rounded-b-lg overflow-hidden">
+                `;
+
+                while (iterDate <= endDate) {
+                    let weekNo = getSundayWeekNumber(iterDate);
+                    let weekMonth = iterDate.getMonth() + 1;
+                    let weekYear = iterDate.getFullYear();
+
+                    html += `
+                        <div class="bg-slate-50 flex flex-col items-center justify-center border-r border-slate-200 p-2 text-center">
+                            <span class="text-[9px] font-black text-slate-400 mb-0.5">${weekYear}년</span>
+                            <span class="text-[14px] font-black text-slate-800 leading-none">${weekMonth}월</span>
+                            <span class="mt-1.5 px-2 py-0.5 bg-slate-800 text-white text-[9px] font-black rounded-full italic shadow-sm">W${weekNo}</span>
+                        </div>
+                    `;
+
+                    let weekTasks = [];
+                    for (let d = 0; d < 7; d++) {
+                        const dateStr = `${iterDate.getFullYear()}-${(iterDate.getMonth()+1).toString().padStart(2,'0')}-${iterDate.getDate().toString().padStart(2,'0')}`;
+                        const dayTasks = grandData.filter(t => t.date === dateStr);
+                        weekTasks.push(...dayTasks);
+
+                        const isInRange = iterDate >= startDate && iterDate <= endDate;
+                        html += generateCalendarCellHTML(iterDate.getDate(), isInRange, dayTasks, selectedWorkers, showAllSelected);
+                        
+                        iterDate.setDate(iterDate.getDate() + 1);
+                    }
+
+                    // Weekly Summary
+                    let weekCost = weekTasks.reduce((s,t) => s + t.cost, 0);
+                    if (weekCost === 0) {
+                        html += `<div class="bg-rose-50/30 p-3 min-h-[160px] border-l border-rose-100 flex items-center justify-center text-slate-300 font-bold text-[10px] italic">-</div>`;
+                    } else {
+                        let processCosts = {};
+                        weekTasks.forEach(t => {
+                            if(!processCosts[t.type]) processCosts[t.type] = 0;
+                            processCosts[t.type] += t.cost;
+                        });
+                        let sorted = Object.keys(processCosts).map(k => ({type: k, cost: processCosts[k]})).sort((a,b) => b.cost - a.cost);
+
+                        html += `
+                            <div class="bg-rose-50/50 p-3 min-h-[160px] flex flex-col justify-center gap-2 border-l border-rose-100 shadow-inner">
+                                <div>
+                                    <div class="text-[9px] font-black text-rose-400 tracking-tighter uppercase mb-0.5">WEEKLY TOTAL</div>
+                                    <div class="text-[14px] font-black text-rose-700 leading-tight">₩${weekCost.toLocaleString()}</div>
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    ${sorted.map(p => {
+                                        const pct = ((p.cost / weekCost) * 100).toFixed(0);
+                                        return `
+                                            <div>
+                                                <div class="flex justify-between items-center text-[9px] mb-0.5">
+                                                    <span class="font-bold text-slate-500 truncate max-w-[50%]">${p.type}</span>
+                                                    <span class="font-black text-slate-700">${pct}%</span>
+                                                </div>
+                                                <div class="w-full bg-slate-200 rounded-full h-1 overflow-hidden">
+                                                    <div class="bg-rose-500 h-1 rounded-full" style="width: ${pct}%"></div>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
+                html += `</div></div></div></div>`;
+                container.innerHTML = html;
+                return;
+            }
+
+            // 기존 월별 렌더링 로직 (1개월 선택 시)
+            for (let y of selectedYears) {
+                for (let m of selectedMonths) {
+                    const rawMonthData = rawData.filter(d =>
+                        waWPs.includes(d.workplace) &&
+                        parseInt(d.year) === y &&
+                        parseInt(d.month) === m &&
+                        selectedWorkers.includes(d.worker)
+                    );
 
                     let monthData = rawMonthData;
-                    if (hasClientFilters) {
-                        monthData = monthData.filter(d => waClientChecks.includes(d.client));
-                    }
-                    if (hasProjFilters) {
-                        monthData = monthData.filter(d => waProjChecks.includes(d.project));
-                    }
-                    if (hasProcessFilters) {
-                        monthData = monthData.filter(d => waProcessChecks.includes(d.type));
-                    }
-                    
-                    grandData.push(...monthData);
+                    if (hasClientFilters) monthData = monthData.filter(d => waClientChecks.includes(d.client));
+                    if (hasProjFilters) monthData = monthData.filter(d => waProjChecks.includes(d.project));
+                    if (hasProcessFilters) monthData = monthData.filter(d => waProcessChecks.includes(d.type));
 
                     const firstDay = new Date(y, m - 1, 1);
                     const lastDay = new Date(y, m, 0);
@@ -2495,6 +2619,12 @@
             }
 
             updateWASummary(grandData, grandTotalH, grandRegH, grandOverH, Array.from(grandProjects).sort(), Array.from(grandClients).sort(), Array.from(grandProcessTypes).sort());
+        }
+
+        function getSundayWeekNumber(date) {
+            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+            const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+            return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
         }
 
         function generateCalendarCellHTML(day, isCurrentMonth, tasks, allSelectedWorkers, showAllSelected) {

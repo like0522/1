@@ -285,11 +285,18 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                    <div class="dashboard-card p-5 border-t-4 border-t-purple-500">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">작업 기간</p>
-                        <div id="viewPeriod" class="text-xl font-black text-slate-900 mt-2">0000.00.00 ~ 0000.00.00
+                    <div class="dashboard-card border-t-4 border-t-purple-500 overflow-hidden cursor-pointer hover:bg-purple-50 transition-colors group relative" onclick="openProjectCalendarModal()">
+                        <div class="p-5">
+                            <div class="flex justify-between items-center">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic group-hover:text-purple-500 transition-colors">작업 기간</p>
+                                <span class="bg-purple-100 text-purple-600 px-2 py-0.5 rounded text-[10px] font-black shadow-sm group-hover:bg-purple-600 group-hover:text-white transition-all flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    상세 달력
+                                </span>
+                            </div>
+                            <div id="viewPeriod" class="text-xl font-black text-slate-900 mt-2">0000.00.00 ~ 0000.00.00</div>
+                            <div id="viewWorkDays" class="text-sm font-bold text-purple-600 mt-0.5">실제 작업: 0일</div>
                         </div>
-                        <div id="viewWorkDays" class="text-sm font-bold text-purple-600 mt-0.5">실제 작업: 0일</div>
                     </div>
                     <div class="dashboard-card p-5 border-t-4 border-t-amber-500">
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">총 투입 시간</p>
@@ -647,6 +654,43 @@
                 <button onclick="closeRecommendModal()"
                     class="px-5 py-2.5 bg-slate-300 hover:bg-slate-400 text-slate-700 font-bold rounded-xl text-sm transition-colors">건너뛰기
                     (수동입력)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 프로젝트 상세 멀티-월력 모달 -->
+    <div id="projectCalendarModal" class="hidden fixed inset-0 bg-slate-900/60 z-[120] flex items-center justify-center backdrop-blur-md">
+        <div class="bg-white rounded-3xl shadow-2xl w-[1400px] max-w-[98%] h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-white/20">
+            <div class="bg-gradient-to-r from-purple-900 to-indigo-900 p-6 flex justify-between items-center border-b border-purple-800">
+                <div>
+                    <h3 id="pcModalTitle" class="text-2xl font-black text-white italic tracking-tighter">프로젝트 상세 달력</h3>
+                    <p id="pcModalSubtitle" class="text-purple-300 text-[11px] font-black uppercase mt-1 tracking-widest flex items-center gap-3">
+                        <span>Loading...</span>
+                    </p>
+                </div>
+                <button onclick="closeProjectCalendarModal()" class="w-10 h-10 flex items-center justify-center bg-purple-800/50 text-purple-200 hover:bg-white hover:text-purple-900 rounded-full transition-all hover:rotate-90 shadow-lg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Sticky 요일 헤더 (8열 구조) -->
+            <div class="grid grid-cols-8 gap-px bg-slate-200 border-b border-slate-300 shadow-sm z-10 relative">
+                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-rose-500 uppercase tracking-wider">SUN (일)</div>
+                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">MON (월)</div>
+                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">TUE (화)</div>
+                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">WED (수)</div>
+                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">THU (목)</div>
+                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">FRI (금)</div>
+                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-blue-500 uppercase tracking-wider">SAT (토)</div>
+                <div class="bg-purple-50 p-3 text-center text-[12px] font-black text-purple-700 uppercase tracking-wider shadow-inner border-l-2 border-purple-200 flex items-center justify-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    주간 요약 (비용/공정)
+                </div>
+            </div>
+
+            <!-- 스크롤 영역 (본문) -->
+            <div id="pcModalContent" class="flex-1 overflow-y-auto custom-scroll bg-slate-100 p-6">
+                <!-- 동적으로 월별 캘린더 생성 -->
             </div>
         </div>
     </div>
@@ -2626,8 +2670,175 @@
                     </label>
                 `}).join('');
             }
+        function openProjectCalendarModal() {
+            if (!currentProjectData || currentProjectData.length === 0) return;
+            
+            const modal = document.getElementById('projectCalendarModal');
+            const title = document.getElementById('pcModalTitle');
+            const subTitle = document.getElementById('pcModalSubtitle');
+            const content = document.getElementById('pcModalContent');
+            
+            const firstData = currentProjectData[0];
+            title.innerText = `🏢 ${firstData.client} - ${firstData.project} 상세 달력`;
+            
+            let grandH = 0; let grandC = 0;
+            currentProjectData.forEach(d => { grandH += (d.h_reg + d.h_over); grandC += d.cost; });
+            
+            subTitle.innerHTML = `
+                <span>⏱️ 총 투입: ${grandH.toLocaleString()}h</span>
+                <span>💰 총 투입비용: ₩${grandC.toLocaleString()}</span>
+                <span>📅 기간: ${currentProjectData[0].date} ~ ${currentProjectData[currentProjectData.length-1].date}</span>
+            `;
+            
+            // 1. 기간(월별) 파악
+            let minDate = new Date(currentProjectData[0].dateObj);
+            let maxDate = new Date(currentProjectData[currentProjectData.length-1].dateObj);
+            
+            if (isNaN(minDate)) minDate = new Date(currentProjectData[0].date.replace(/-/g, '/'));
+            if (isNaN(maxDate)) maxDate = new Date(currentProjectData[currentProjectData.length-1].date.replace(/-/g, '/'));
+
+            const minYear = minDate.getFullYear();
+            const minMonth = minDate.getMonth(); // 0-based
+            const maxYear = maxDate.getFullYear();
+            const maxMonth = maxDate.getMonth();
+            
+            let html = '';
+            
+            // 각 월별로 루프
+            for (let y = minYear; y <= maxYear; y++) {
+                let startM = (y === minYear) ? minMonth : 0;
+                let endM = (y === maxYear) ? maxMonth : 11;
+                
+                for (let m = startM; m <= endM; m++) {
+                    html += generateProjectMonthCalendarHTML(y, m);
+                }
+            }
+            
+            content.innerHTML = html;
+            modal.classList.remove('hidden');
+        }
+
+        function generateProjectMonthCalendarHTML(year, month) {
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startDayOfWeek = firstDay.getDay(); // 0(Sun) - 6(Sat)
+            
+            const targetMonthStr = `${year}-${(month+1).toString().padStart(2, '0')}`;
+            const monthData = currentProjectData.filter(d => d.date.startsWith(targetMonthStr));
+            
+            let calHTML = `
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+                    <div class="bg-slate-50 p-4 border-b border-slate-200 flex items-center justify-between">
+                        <h4 class="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2"><span class="text-purple-600 text-2xl font-black">${month + 1}</span>월 <span class="text-slate-400 text-sm font-bold ml-1">${year}년</span></h4>
+                        <span class="text-xs font-bold text-slate-500 bg-white border border-slate-200 px-3 py-1 rounded-full shadow-sm">${monthData.length}건의 작업 기록</span>
+                    </div>
+                    <div class="grid grid-cols-8 gap-px bg-slate-100">
+            `;
+            
+            let currentDay = 1;
+            let totalWeeks = Math.ceil((daysInMonth + startDayOfWeek) / 7);
+            
+            for (let w = 0; w < totalWeeks; w++) {
+                let weekDaysData = [];
+                
+                for (let d = 0; d < 7; d++) {
+                    if (w === 0 && d < startDayOfWeek) {
+                        calHTML += `<div class="bg-slate-50/50 p-2 min-h-[140px]"></div>`;
+                    } else if (currentDay > daysInMonth) {
+                        calHTML += `<div class="bg-slate-50/50 p-2 min-h-[140px]"></div>`;
+                    } else {
+                        const dateStr = `${targetMonthStr}-${currentDay.toString().padStart(2, '0')}`;
+                        const dayTasks = monthData.filter(t => t.date === dateStr);
+                        weekDaysData.push(...dayTasks);
+                        
+                        let dayColorClass = d === 0 ? "text-rose-500" : (d === 6 ? "text-blue-500" : "text-slate-500");
+                        
+                        calHTML += `
+                            <div class="bg-white p-2 min-h-[140px] flex flex-col border-r border-b border-slate-100 group hover:bg-slate-50 transition-colors">
+                                <div class="flex justify-between items-start mb-1.5">
+                                    <span class="text-[14px] font-black ${dayColorClass} w-6 h-6 flex items-center justify-center rounded-full group-hover:bg-slate-200 transition-colors">${currentDay}</span>
+                                    ${dayTasks.length > 0 ? `<span class="text-[9px] font-bold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded shadow-sm">${dayTasks.length}건</span>` : ''}
+                                </div>
+                                <div class="flex flex-col gap-1.5 flex-1 mt-1">
+                                    ${dayTasks.map(t => {
+                                        const hue = [...t.type].reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360;
+                                        const totalH = t.h_reg + t.h_over;
+                                        return `
+                                            <div class="px-2 py-1.5 rounded text-left border shadow-sm flex flex-col hover:scale-[1.02] transition-transform cursor-default" 
+                                                 style="background-color: hsla(${hue}, 80%, 97%, 1); border-color: hsla(${hue}, 70%, 90%, 1);">
+                                                <div class="flex justify-between items-center w-full mb-0.5">
+                                                    <span class="text-[10px] font-black truncate max-w-[65%]" style="color: hsla(${hue}, 85%, 35%, 1)">${t.worker}</span>
+                                                    <span class="text-[9px] font-black px-1 rounded bg-white shadow-sm" style="color: hsla(${hue}, 85%, 35%, 1)">${totalH}h</span>
+                                                </div>
+                                                <div class="text-[9px] font-bold opacity-80 mt-0.5 flex justify-between items-center" style="color: hsla(${hue}, 85%, 25%, 1)">
+                                                    <span>${t.type}</span>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        `;
+                        currentDay++;
+                    }
+                }
+                
+                let weekCostSum = 0;
+                let processCosts = {};
+                weekDaysData.forEach(t => {
+                    weekCostSum += t.cost;
+                    if (!processCosts[t.type]) processCosts[t.type] = 0;
+                    processCosts[t.type] += t.cost;
+                });
+                
+                let summaryContent = '';
+                if (weekCostSum === 0) {
+                    summaryContent = `<div class="text-slate-300 font-bold text-xs italic text-center w-full mt-4 flex items-center justify-center h-full opacity-50">-</div>`;
+                } else {
+                    let sortedProcesses = Object.keys(processCosts).map(k => ({ type: k, cost: processCosts[k] })).sort((a,b) => b.cost - a.cost);
+                    
+                    summaryContent = `
+                        <div class="w-full h-full flex flex-col justify-center">
+                            <div class="text-[10px] font-black text-purple-500/70 mb-1.5 tracking-widest uppercase border-b border-purple-200/50 pb-1 w-full text-left">Weekly Cost</div>
+                            <div class="text-[16px] font-black text-purple-700 mb-2.5">₩${weekCostSum.toLocaleString()}</div>
+                            <div class="flex flex-col gap-1.5 w-full">
+                                ${sortedProcesses.map(p => {
+                                    const percent = ((p.cost / weekCostSum) * 100).toFixed(0);
+                                    return `
+                                        <div>
+                                            <div class="flex justify-between items-center text-[10px] mb-0.5">
+                                                <span class="font-bold text-slate-600 truncate max-w-[50%]">${p.type}</span>
+                                                <span class="font-black text-slate-800">₩${p.cost.toLocaleString()}</span>
+                                            </div>
+                                            <div class="w-full bg-slate-200/70 rounded-full h-1 overflow-hidden">
+                                                <div class="bg-purple-500 h-1 rounded-full transition-all duration-1000" style="width: ${percent}%"></div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                calHTML += `
+                    <div class="bg-purple-50/50 p-4 min-h-[140px] flex flex-col items-start border-b border-purple-100 border-l border-l-purple-200">
+                        ${summaryContent}
+                    </div>
+                `;
+            }
+            
+            calHTML += `
+                    </div>
+                </div>
+            `;
+            return calHTML;
+        }
+
+        function closeProjectCalendarModal() {
+            document.getElementById('projectCalendarModal').classList.add('hidden');
         }
     </script>
 </body>
-
 </html>

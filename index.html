@@ -2320,7 +2320,7 @@
             waWorkerList.innerHTML = activeWorkers.map(w => `
                 <label class="flex items-center gap-2 p-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors group">
                     <input type="checkbox" name="waWorker" value="${w}" onchange="renderWorkerCalendar()" class="w-4 h-4 text-rose-500 rounded focus:ring-rose-500" checked>
-                    <span class="text-sm font-bold text-slate-600 group-hover:text-slate-900">${w}</span>
+                    <span onclick="event.preventDefault(); selectOnlyWorker('${w}')" class="text-sm font-bold text-slate-600 group-hover:text-rose-600 transition-colors" title="이 작업자만 보기">${w}</span>
                 </label>
             `).join('');
         }
@@ -2972,7 +2972,7 @@
                     return `
                     <label class="flex items-center gap-2 p-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors group">
                         <input type="checkbox" name="waClient" value="${c}" onchange="renderWorkerCalendar()" class="w-3.5 h-3.5 text-purple-500 rounded focus:ring-purple-500" ${isChecked ? 'checked' : ''}>
-                        <span class="text-[11px] font-bold text-slate-600 group-hover:text-slate-900">${c}</span>
+                        <span onclick="event.preventDefault(); selectOnlyClient('${c}')" class="text-[11px] font-bold text-slate-600 group-hover:text-purple-600 transition-colors" title="이 업체만 보기">${c}</span>
                     </label>
                 `}).join('');
             }
@@ -2998,15 +2998,41 @@
             }
         }
 
-        function resetWAClients() {
-            const checkboxes = document.querySelectorAll('input[name="waClient"]');
-            checkboxes.forEach(cb => cb.checked = true);
+        function resetAllWAFilters() {
+            // 연도/월 전체 체크
+            document.querySelectorAll('input[name="waYearChk"]').forEach(cb => cb.checked = true);
+            document.querySelectorAll('input[name="waMonthChk"]').forEach(cb => cb.checked = true);
+            // 사업부 전체 체크
+            document.querySelectorAll('input[name="waWP"]').forEach(cb => cb.checked = true);
+            
+            // 필터 재구성 (숨겨진 목록 복구)
+            populateWorkerFilter();
+            
+            // 이후 하위 필터들은 렌더링 과정에서 자동으로 전체 체크됨 (updateWASummary 로직 참고)
             renderWorkerCalendar();
         }
 
+        function resetWAClients() {
+            resetAllWAFilters();
+        }
+
         function resetWAProjects() {
-            const checkboxes = document.querySelectorAll('input[name="waProj"]');
-            checkboxes.forEach(cb => cb.checked = true);
+            resetAllWAFilters();
+        }
+
+        function selectOnlyWorker(workerName) {
+            const checkboxes = document.querySelectorAll('input[name="waWorker"]');
+            checkboxes.forEach(cb => {
+                cb.checked = (cb.value === workerName);
+            });
+            renderWorkerCalendar();
+        }
+
+        function selectOnlyClient(clientName) {
+            const checkboxes = document.querySelectorAll('input[name="waClient"]');
+            checkboxes.forEach(cb => {
+                cb.checked = (cb.value === clientName);
+            });
             renderWorkerCalendar();
         }
 
@@ -3019,9 +3045,7 @@
         }
 
         function resetWAProcesses() {
-            const checkboxes = document.querySelectorAll('input[name="waProcessType"]');
-            checkboxes.forEach(cb => cb.checked = true);
-            renderWorkerCalendar();
+            resetAllWAFilters();
         }
 
         function openProjectCalendarModal() {

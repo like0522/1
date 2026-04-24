@@ -2437,11 +2437,15 @@
                 selectedWorkers.includes(d.worker)
             );
 
-            // 목록 생성을 위해 하위 필터 적용 전 데이터에서 추출
+            // 목록 생성을 위해 하위 필터 적용 전 데이터에서 추출 (업체 및 공정 목록은 고정)
             baseFilteredData.forEach(d => {
-                grandProjects.add(d.project);
                 grandClients.add(d.client);
                 grandProcessTypes.add(d.type);
+            });
+
+            // 프로젝트 목록은 선택된 업체(waClientChecks)에 따라 필터링하여 렌더링
+            baseFilteredData.filter(d => !hasClientFilters || waClientChecks.includes(d.client)).forEach(d => {
+                grandProjects.add(d.project);
             });
 
             const filteredStatsData = baseFilteredData.filter(d => {

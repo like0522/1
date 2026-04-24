@@ -88,11 +88,24 @@
                 <div class="w-2 h-6 bg-indigo-500 rounded-full"></div>
                 <span class="text-sm font-black text-slate-700 uppercase tracking-tight">사업부 독립 관리 모드</span>
             </div>
-            <div class="flex flex-wrap gap-1.5 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
-                <button id="wpAll" onclick="setWorkplace('ALL')" class="px-6 py-2 rounded-xl bg-slate-900 text-white font-black text-xs transition-all shadow-md">🌐 전체 사업부</button>
-                <button id="wpA" onclick="setWorkplace('A')" class="px-6 py-2 rounded-xl bg-white text-slate-500 font-black text-xs hover:bg-slate-50 transition-all border border-transparent">🅰️ A 작업장</button>
-                <button id="wpB" onclick="setWorkplace('B')" class="px-6 py-2 rounded-xl bg-white text-slate-500 font-black text-xs hover:bg-slate-50 transition-all border border-transparent">🅱️ B 작업장</button>
-                <button id="wpC" onclick="setWorkplace('C')" class="px-6 py-2 rounded-xl bg-white text-slate-500 font-black text-xs hover:bg-slate-50 transition-all border border-transparent">🅲 C 작업장</button>
+            <div class="flex flex-wrap gap-4 items-center p-2.5 bg-slate-50 rounded-2xl border border-slate-200">
+                <label class="flex items-center gap-2 cursor-pointer group px-3 py-1.5 rounded-xl hover:bg-white transition-all">
+                    <input type="checkbox" id="chkWP_ALL" onchange="handleWorkplaceChange('ALL')" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-slate-300" checked>
+                    <span class="text-xs font-black text-slate-600 group-hover:text-indigo-600">🌐 전체 사업부</span>
+                </label>
+                <div class="w-px h-4 bg-slate-200"></div>
+                <label class="flex items-center gap-2 cursor-pointer group px-3 py-1.5 rounded-xl hover:bg-white transition-all">
+                    <input type="checkbox" name="chkWP" value="A" onchange="handleWorkplaceChange('A')" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-slate-300" checked>
+                    <span class="text-xs font-black text-slate-600 group-hover:text-indigo-600 italic">🅰️ A 작업장</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer group px-3 py-1.5 rounded-xl hover:bg-white transition-all">
+                    <input type="checkbox" name="chkWP" value="B" onchange="handleWorkplaceChange('B')" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-slate-300" checked>
+                    <span class="text-xs font-black text-slate-600 group-hover:text-indigo-600 italic">🅱️ B 작업장</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer group px-3 py-1.5 rounded-xl hover:bg-white transition-all">
+                    <input type="checkbox" name="chkWP" value="C" onchange="handleWorkplaceChange('C')" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-slate-300" checked>
+                    <span class="text-xs font-black text-slate-600 group-hover:text-indigo-600 italic">🅲 C 작업장</span>
+                </label>
             </div>
             <div class="ml-auto hidden md:block">
                 <p class="text-[10px] font-bold text-slate-400 italic">※ 각 사업부는 독립적인 예산 및 인력 체계로 분석됩니다.</p>
@@ -291,13 +304,7 @@
                         <select id="waSelYear" onchange="onWAFilterChange()" class="w-full h-12 px-3 bg-white border-2 border-slate-200 rounded-xl text-lg font-black outline-none focus:ring-4 focus:ring-rose-500/20 shadow-sm"></select>
                     </div>
                     <div class="space-y-1">
-                        <div class="flex justify-between items-center mb-0.5">
-                            <label class="text-[10px] font-black text-rose-400 uppercase italic">조회 월</label>
-                            <div class="flex gap-2">
-                                <button onclick="toggleAllWorkers(true)" class="text-[10px] font-black text-rose-500 hover:text-rose-600 transition-colors bg-rose-50 px-2 py-1 rounded">전체 선택</button>
-                                <button onclick="toggleAllWorkers(false)" class="text-[10px] font-black text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 px-2 py-1 rounded">해제</button>
-                            </div>
-                        </div>
+                        <label class="text-[10px] font-black text-rose-400 uppercase italic">조회 월</label>
                         <select id="waSelMonth" onchange="onWAFilterChange()" class="w-full h-12 px-3 bg-white border-2 border-slate-200 rounded-xl text-lg font-black outline-none focus:ring-4 focus:ring-rose-500/20 shadow-sm">
                             <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option>
                             <option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option>
@@ -353,8 +360,31 @@
                     </div>
 
                     <div class="dashboard-card p-5 border-l-8 border-l-slate-800">
-                        <p class="text-[10px] font-black text-slate-400 uppercase italic">Worker Selection</p>
-                        <h4 class="text-sm font-bold text-slate-500 mb-3">작업자 선택</h4>
+                        <div class="flex justify-between items-center mb-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase italic">Worker Selection</p>
+                            <div class="flex gap-2">
+                                <button onclick="toggleAllWorkers(true)" class="text-[10px] font-black text-rose-500 hover:text-rose-600 transition-colors bg-rose-50 px-2 py-1 rounded">전체 선택</button>
+                                <button onclick="toggleAllWorkers(false)" class="text-[10px] font-black text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 px-2 py-1 rounded">해제</button>
+                            </div>
+                        </div>
+                        <h4 class="text-sm font-bold text-slate-500 mb-2">작업자 선택</h4>
+                        
+                        <!-- 추가된 사업부 필터 -->
+                        <div class="flex gap-3 mb-3 pb-2 border-b border-slate-100">
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" name="waWP" value="A" onchange="populateWorkerFilter()" class="w-3.5 h-3.5 text-rose-500 rounded focus:ring-rose-500" checked>
+                                <span class="text-[11px] font-bold text-slate-500">A</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" name="waWP" value="B" onchange="populateWorkerFilter()" class="w-3.5 h-3.5 text-rose-500 rounded focus:ring-rose-500" checked>
+                                <span class="text-[11px] font-bold text-slate-500">B</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" name="waWP" value="C" onchange="populateWorkerFilter()" class="w-3.5 h-3.5 text-rose-500 rounded focus:ring-rose-500" checked>
+                                <span class="text-[11px] font-bold text-slate-500">C</span>
+                            </label>
+                        </div>
+
                         <div id="waWorkerList" class="space-y-1.5 max-h-[300px] overflow-auto custom-scroll pr-1">
                             <p class="text-xs text-slate-400 italic">연/월을 선택하세요.</p>
                         </div>
@@ -513,26 +543,23 @@
         let myTreeMapChart = null; 
         let currentChartMode = 'mixed';
         let lastViewData = []; 
-        let currentWorkplace = 'ALL'; 
+        let currentWorkplace = ['A', 'B', 'C']; 
 
-        function setWorkplace(wp) {
-            currentWorkplace = wp;
-            const buttons = {
-                'ALL': document.getElementById('wpAll'),
-                'A': document.getElementById('wpA'),
-                'B': document.getElementById('wpB'),
-                'C': document.getElementById('wpC')
-            };
+        function handleWorkplaceChange(wp) {
+            const chkAll = document.getElementById('chkWP_ALL');
+            const chks = document.getElementsByName('chkWP');
             
-            Object.keys(buttons).forEach(key => {
-                const btn = buttons[key];
-                if(!btn) return;
-                if(key === wp) {
-                    btn.className = 'px-6 py-2 rounded-xl bg-slate-900 text-white font-black text-xs transition-all shadow-md';
-                } else {
-                    btn.className = 'px-6 py-2 rounded-xl bg-white text-slate-500 font-black text-xs hover:bg-slate-50 transition-all border border-transparent';
-                }
-            });
+            if (wp === 'ALL') {
+                chks.forEach(c => c.checked = chkAll.checked);
+            } else {
+                const allChecked = Array.from(chks).every(c => c.checked);
+                chkAll.checked = allChecked;
+            }
+
+            // 현재 선택된 사업부 배열 업데이트
+            currentWorkplace = Array.from(chks).filter(c => c.checked).map(c => c.value);
+            if (chkAll.checked) currentWorkplace.push('ALL');
+            if (currentWorkplace.length === 0) currentWorkplace = ['NONE']; // 아무것도 선택 안된 경우
 
             // 필터링 상태에 따라 화면 갱신
             updateProjectList();
@@ -714,10 +741,11 @@
         // 전체 작업현황 및 자본 잔업률 다차원 시각화를 그리는 심장엔진 삽입 구동
         function runTreeMap() {
             const title = document.getElementById('tmChartTitle');
+            const isAllSelected = currentWorkplace.includes('ALL') || currentWorkplace.length >= 3;
             if (currentChartMode === 'mixed') {
-                title.innerHTML = currentWorkplace === 'ALL' ? '🌐 사업부별 통합 비교 분석 (A/B/C 성과 비교)' : `🌐 [${currentWorkplace} 사업부] 공정별 핵심 지표 분석`;
+                title.innerHTML = isAllSelected ? '🌐 사업부별 통합 비교 분석 (A/B/C 성과 비교)' : `🌐 [${currentWorkplace.filter(w=>w!=='ALL').join(',')}] 사업부 분석`;
             } else {
-                title.innerHTML = currentWorkplace === 'ALL' ? '🎯 사업부별 리스크 분포도 (A/B/C 비교)' : `🎯 [${currentWorkplace} 사업부] 공정별 리스크 분포도`;
+                title.innerHTML = isAllSelected ? '🎯 사업부별 리스크 분포도 (A/B/C 비교)' : `🎯 [${currentWorkplace.filter(w=>w!=='ALL').join(',')}] 공정별 리스크 분포도`;
             }
 
             if(!myTreeMapChart) {
@@ -740,7 +768,9 @@
 
             // 로우 데이터를 UI필터 셋업에 맞춰 스크리닝 하는 코어 연산망 구현 
             let viewData = rawData;
-            if (currentWorkplace !== 'ALL') viewData = viewData.filter(d => d.workplace === currentWorkplace);
+            if (!currentWorkplace.includes('ALL')) {
+                viewData = viewData.filter(d => currentWorkplace.includes(d.workplace));
+            }
             if(yr) viewData = viewData.filter(d => d.year === yr);
             if(period !== 'ALL') {
                 viewData = viewData.filter(d => {
@@ -762,7 +792,8 @@
 
             let companyDataList = [];
             // '전체' 선택 시 A, B, C 사업부 간 비교를 수행하고, 특정 사업부 선택 시 해당 사업부 내의 '구분(공정)'별 분석을 수행합니다.
-            const groupByField = currentWorkplace === 'ALL' ? 'workplace' : 'type';
+            const isAllSelected = currentWorkplace.includes('ALL') || currentWorkplace.length >= 3;
+            const groupByField = isAllSelected ? 'workplace' : 'type';
             const categories =[...new Set(viewData.map(d => d[groupByField]))].sort();
             
             // 전체 기간 누적 비용을 기준으로 클라이언트 정렬 (내림차순) - 차트 스택 순서 동기화
@@ -993,7 +1024,8 @@
 
                             let metricHtml = metrics.length > 0 ? `<div class="mt-2 pt-1.5 border-t border-slate-100 space-y-0.5">${metrics.join('')}</div>` : '';
 
-                            let categoryLabel = currentWorkplace === 'ALL' ? '사업부' : '공정';
+                            const isAllSelected = currentWorkplace.includes('ALL') || currentWorkplace.length >= 3;
+                            let categoryLabel = isAllSelected ? '사업부' : '공정';
                             return `
                                 <div class="px-2 py-1 font-bold min-w-[240px]">
                                     <div class="text-[16px] text-slate-800 border-b border-slate-200 pb-1.5 mb-1.5 flex justify-between items-center"><span>${comp} (${categoryLabel})</span><span class="text-[10px] text-slate-400 font-black bg-slate-100 px-2 py-0.5 rounded-full">순위별 정렬</span></div>
@@ -1037,7 +1069,8 @@
                         extraCssText: 'border-radius:12px; box-shadow: 0px 4px 20px -3px rgba(0,0,0,0.15); max-height: 70vh; overflow-y: auto;',
                         formatter: function(params) {
                             let d = params.value;
-                            let categoryLabel = currentWorkplace === 'ALL' ? '사업부' : '공정';
+                            const isAllSelected = currentWorkplace.includes('ALL') || currentWorkplace.length >= 3;
+                            let categoryLabel = isAllSelected ? '사업부' : '공정';
                             return `
                                 <div class="px-3 py-2 font-bold">
                                     <div class="text-[17px] text-slate-800 border-b border-slate-200 pb-1.5 mb-2">${d[3]} (${categoryLabel})</div>
@@ -1121,7 +1154,9 @@
             const projSel = document.getElementById('selProject');
 
             let filtered = rawData;
-            if (currentWorkplace !== 'ALL') filtered = filtered.filter(i => i.workplace === currentWorkplace);
+            if (!currentWorkplace.includes('ALL')) {
+                filtered = filtered.filter(i => currentWorkplace.includes(i.workplace));
+            }
             if (year) filtered = filtered.filter(i => i.year === year);
             if (month) filtered = filtered.filter(i => i.month === month);
 
@@ -1963,9 +1998,11 @@
                 if (yr) waSelYear.value = yr;
             }
 
-            // 현재 선택된 연/월에 해당하는 작업자만 추출
+            // 현재 선택된 연/월 및 사업부(WA용)에 해당하는 작업자만 추출
+            const waWPs = Array.from(document.querySelectorAll('input[name="waWP"]:checked')).map(cb => cb.value);
+
             const activeWorkers = [...new Set(rawData
-                .filter(d => (currentWorkplace === 'ALL' || d.workplace === currentWorkplace) && (!yr || d.year === yr) && (!mo || d.month === mo))
+                .filter(d => (waWPs.includes(d.workplace)) && (!yr || d.year === yr) && (!mo || d.month === mo))
                 .map(d => d.worker)
             )].filter(w => w).sort();
 
@@ -2019,8 +2056,9 @@
             }
 
             // 해당 월의 데이터 필터링
+            const waWPs = Array.from(document.querySelectorAll('input[name="waWP"]:checked')).map(cb => cb.value);
             const monthData = rawData.filter(d => 
-                (currentWorkplace === 'ALL' || d.workplace === currentWorkplace) &&
+                (waWPs.includes(d.workplace)) &&
                 parseInt(d.year) === year && 
                 parseInt(d.month) === month && 
                 selectedWorkers.includes(d.worker)

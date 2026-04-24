@@ -126,6 +126,9 @@
     <nav class="bg-slate-900 text-white py-4 px-6 sticky top-0 z-50 shadow-2xl">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
+                <button onclick="goBack()" class="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded-xl transition-all shadow-md flex items-center justify-center" title="이전 화면으로 돌아가기">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                </button>
                 <div class="bg-emerald-500 p-2 rounded-xl text-slate-900 font-black">PRO-V4.5</div>
                 <h1 class="text-xl font-black tracking-tight">생산 공정 및 인력 투입 분석기</h1>
             </div>
@@ -551,9 +554,12 @@
                     </div>
 
                     <div class="dashboard-card p-5">
-                        <p class="text-[10px] font-black text-slate-400 uppercase italic">Project List</p>
-                        <h4 class="text-sm font-bold text-slate-500 mb-3">참여 프로젝트</h4>
-                        <div id="waProjectList" class="space-y-2 max-h-[400px] overflow-auto custom-scroll">
+                        <div class="flex justify-between items-center mb-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase italic">Project List</p>
+                            <button onclick="resetWAProjects()" class="text-[10px] font-black text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 px-2 py-1 rounded">초기화</button>
+                        </div>
+                        <h4 class="text-sm font-bold text-slate-500 mb-2">참여 프로젝트</h4>
+                        <div id="waProjectList" class="space-y-2 max-h-[400px] overflow-auto custom-scroll pr-1">
                             <p class="text-xs text-slate-400 italic">데이터가 없습니다.</p>
                         </div>
                     </div>
@@ -740,6 +746,23 @@
         let currentChartMode = 'mixed';
         let lastViewData = [];
         let currentWorkplace = ['A', 'B', 'C'];
+        let tabHistory = [];
+        let currentActiveTab = 1;
+
+        function goBack() {
+            if (tabHistory.length > 0) {
+                const prevTab = tabHistory.pop();
+                switchTab(prevTab, true);
+            } else {
+                alert("이전 탭 기록이 없습니다.");
+            }
+        }
+
+        function resetWAProjects() {
+            const checkboxes = document.querySelectorAll('input[name="waProj"]');
+            checkboxes.forEach(cb => cb.checked = true);
+            renderWorkerCalendar();
+        }
 
         function handleWorkplaceChange(wp) {
             const chkAll = document.getElementById('chkWP_ALL');
@@ -896,7 +919,12 @@
             tmSelPeriod.innerHTML += '</optgroup>';
         }
 
-        function switchTab(idx) {
+        function switchTab(idx, isBack = false) {
+            if (!isBack && currentActiveTab !== idx) {
+                tabHistory.push(currentActiveTab);
+            }
+            currentActiveTab = idx;
+
             const t1 = document.getElementById('btnTab1');
             const t2 = document.getElementById('btnTab2');
             const t3 = document.getElementById('btnTab3');
@@ -2312,7 +2340,7 @@
                 grid.appendChild(cell);
             }
 
-            updateWASummary(monthData, totalH, regH, overH, Array.from(projects));
+            updateWASummary(monthData, totalH, regH, overH, allProjectsInMonth);
         }
 
         function createCalendarCell(day, isCurrentMonth, tasks, allSelectedWorkers) {

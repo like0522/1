@@ -2802,7 +2802,10 @@
                 const sortedProcessList = [...processList].sort((a, b) => (pCosts[b] || 0) - (pCosts[a] || 0));
 
                 mpContainer.innerHTML = `
-                    <p class="text-[10px] font-black text-rose-400 uppercase italic">공정별 월간 비용 비중</p>
+                    <div class="flex justify-between items-center mb-1">
+                        <p class="text-[10px] font-black text-rose-400 uppercase italic">공정별 월간 비용 비중</p>
+                        <button onclick="resetWAProcesses()" class="text-[10px] font-black text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 px-2 py-1 rounded">초기화</button>
+                    </div>
                     <div class="flex flex-col gap-2 mt-1">
                         ${sortedProcessList.map(pt => {
                             let cost = pCosts[pt] || 0;
@@ -2913,6 +2916,12 @@
             checkboxes.forEach(cb => {
                 cb.checked = (cb.value === processType);
             });
+            renderWorkerCalendar();
+        }
+
+        function resetWAProcesses() {
+            const checkboxes = document.querySelectorAll('input[name="waProcessType"]');
+            checkboxes.forEach(cb => cb.checked = true);
             renderWorkerCalendar();
         }
 

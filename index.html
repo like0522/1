@@ -2052,14 +2052,26 @@
                 return;
             }
 
-            // 해당 월의 데이터 필터링
+            // 1. 기초 데이터 필터링 (연, 월, 사업부, 작업자)
             const waWPs = Array.from(document.querySelectorAll('input[name="waWP"]:checked')).map(cb => cb.value);
-            const monthData = rawData.filter(d => 
+            let rawMonthData = rawData.filter(d => 
                 (waWPs.includes(d.workplace)) &&
                 parseInt(d.year) === year && 
                 parseInt(d.month) === month && 
                 selectedWorkers.includes(d.worker)
             );
+            
+            // 2. 전체 프로젝트 목록 추출 (체크박스 생성용)
+            const allProjectsInMonth = [...new Set(rawMonthData.map(d => d.project))].sort();
+
+            // 3. 현재 체크된 프로젝트 필터링 (UI가 존재할 때만)
+            const waProjChecks = Array.from(document.querySelectorAll('input[name="waProj"]:checked')).map(cb => cb.value);
+            const hasProjFilters = document.querySelectorAll('input[name="waProj"]').length > 0;
+            
+            let monthData = rawMonthData;
+            if (hasProjFilters) {
+                monthData = rawMonthData.filter(d => waProjChecks.includes(d.project));
+            }
             
             // 캘린더 날짜 계산
             const firstDay = new Date(year, month - 1, 1);
@@ -2374,12 +2386,21 @@
             if (projectList.length === 0) {
                 listContainer.innerHTML = '<p class="text-xs text-slate-400 italic">데이터가 없습니다.</p>';
             } else {
-                listContainer.innerHTML = projectList.map(p => `
-                    <div class="p-2.5 bg-white border border-slate-100 rounded-xl shadow-sm text-[11px] font-bold text-slate-700 flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
-                        <span class="truncate">${p}</span>
-                    </div>
-                `).join('');
+                // 현재 체크 상태 유지 (새로 렌더링될 때)
+                const currentChecked = Array.from(document.querySelectorAll('input[name="waProj"]:checked')).map(cb => cb.value);
+                const hasFiltersBefore = document.querySelectorAll('input[name="waProj"]').length > 0;
+
+                listContainer.innerHTML = projectList.map(p => {
+                    // 필터가 아예 없었으면(최초) 전부 체크, 있었으면 기존 상태 유지
+                    const isChecked = !hasFiltersBefore || currentChecked.includes(p);
+                    return `
+                    <label class="flex items-center gap-2 p-2.5 bg-white border border-slate-100 rounded-xl shadow-sm cursor-pointer hover:bg-slate-50 transition-all group">
+                        <input type="checkbox" name="waProj" value="${p}" onchange="renderWorkerCalendar()" class="w-3.5 h-3.5 text-rose-500 rounded focus:ring-rose-500" ${isChecked ? 'checked' : ''}>
+                        <span class="text-[11px] font-bold text-slate-700 truncate group-hover:text-rose-600 transition-colors" onclick="event.preventDefault(); event.stopPropagation(); jumpToProjectAnalysis('${p.replace(/'/g, "\\'")}')">
+                            ${p}
+                        </span>
+                    </label>
+                `}).join('');
             }
         }
     </script>

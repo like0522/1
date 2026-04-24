@@ -2307,6 +2307,13 @@
                 .sort();
 
             const container = document.getElementById('waMultiCalendarContainer');
+            
+            // 모든 필터가 풀(Full)로 체크되어 있는지 확인
+            const hasWPUnchecked = document.querySelectorAll('input[name="waWP"]:not(:checked)').length > 0;
+            const hasWorkerUnchecked = document.querySelectorAll('input[name="waWorker"]:not(:checked)').length > 0;
+            const hasClientUnchecked = document.querySelectorAll('input[name="waClient"]:not(:checked)').length > 0;
+            const hasProjUnchecked = document.querySelectorAll('input[name="waProj"]:not(:checked)').length > 0;
+            const showAllSelected = !hasWPUnchecked && !hasWorkerUnchecked && !hasClientUnchecked && !hasProjUnchecked;
             container.innerHTML = '';
 
             if (selectedYears.length === 0 || selectedMonths.length === 0) {

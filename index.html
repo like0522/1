@@ -2454,7 +2454,7 @@
             });
 
             // 프로젝트 목록은 선택된 업체(waClientChecks)에 따라 필터링하여 렌더링
-            baseFilteredData.filter(d => !hasClientFilters || waClientChecks.includes(d.client)).forEach(d => {
+            baseFilteredData.filter(d => waClientAll.length === 0 || waClientChecks.includes(d.client)).forEach(d => {
                 grandProjects.add(d.project);
             });
 

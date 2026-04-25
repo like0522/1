@@ -607,9 +607,9 @@
 
     <!-- 추천 모달 -->
     <div id="recommendModal"
-        class="hidden fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center backdrop-blur-sm">
+        class="hidden fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center backdrop-blur-sm p-0 sm:p-4">
         <div
-            class="bg-white rounded-2xl shadow-2xl w-[900px] max-w-[95%] max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200">
+            class="bg-white rounded-none sm:rounded-2xl shadow-2xl w-full h-full sm:w-[900px] sm:max-w-[95%] sm:max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200">
             <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <div>
                     <h3 class="text-lg font-black text-slate-800 flex items-center gap-2">🔍 거래명세서 매칭 추천 시스템</h3>
@@ -618,8 +618,9 @@
                 <button onclick="closeRecommendModal()"
                     class="w-8 h-8 flex items-center justify-center bg-slate-200 rounded-full text-slate-500 hover:bg-slate-300 font-black transition-colors">✕</button>
             </div>
-            <div class="p-5 overflow-auto custom-scroll flex-1 bg-slate-50/30">
-                <table class="w-full text-sm text-center border-collapse bg-white shadow-sm rounded-lg overflow-hidden">
+            <div class="p-0 sm:p-5 overflow-auto custom-scroll flex-1 bg-slate-50/30">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-center border-collapse bg-white shadow-sm min-w-[600px]">
                     <thead class="bg-slate-800 text-white font-bold text-xs uppercase tracking-wider">
                         <tr>
                             <th class="p-3 border-r border-slate-600">거래일자</th>
@@ -631,7 +632,8 @@
                         </tr>
                     </thead>
                     <tbody id="recommendBody" class="text-slate-700"></tbody>
-                </table>
+                    </table>
+                </div>
             </div>
             <div class="p-4 border-t border-slate-100 bg-slate-50 text-right">
                 <button onclick="closeRecommendModal()"
@@ -643,9 +645,9 @@
 
     <!-- 프로젝트 상세 멀티-월력 모달 -->
     <div id="projectCalendarModal"
-        class="hidden fixed inset-0 bg-slate-900/60 z-[120] flex items-center justify-center backdrop-blur-md">
+        class="hidden fixed inset-0 bg-slate-900/60 z-[120] flex items-center justify-center backdrop-blur-md p-0 sm:p-4">
         <div
-            class="bg-white rounded-3xl shadow-2xl w-[1400px] max-w-[98%] h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-white/20">
+            class="bg-white rounded-none sm:rounded-3xl shadow-2xl w-full h-full sm:w-[1400px] sm:max-w-[98%] sm:h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-white/20">
             <div
                 class="bg-gradient-to-r from-purple-900 to-indigo-900 p-6 flex justify-between items-center border-b border-purple-800">
                 <div>
@@ -665,34 +667,26 @@
             </div>
 
             <!-- Sticky 요일 헤더 (8열 구조) -->
-            <div class="grid grid-cols-8 gap-px bg-slate-200 border-b border-slate-300 shadow-sm z-10 relative">
-                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-rose-500 uppercase tracking-wider">
-                    SUN (일)</div>
-                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">
-                    MON (월)</div>
-                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">
-                    TUE (화)</div>
-                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">
-                    WED (수)</div>
-                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">
-                    THU (목)</div>
-                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">
-                    FRI (금)</div>
-                <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-blue-500 uppercase tracking-wider">
-                    SAT (토)</div>
-                <div
-                    class="bg-purple-50 p-3 text-center text-[12px] font-black text-purple-700 uppercase tracking-wider shadow-inner border-l-2 border-purple-200 flex items-center justify-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                        </path>
-                    </svg>
-                    주간 요약 (비용/공정)
+            <div class="overflow-x-auto custom-scroll border-b border-slate-300 z-10 relative bg-slate-200 no-scrollbar">
+                <div class="grid grid-cols-8 gap-px min-w-[1200px] shadow-sm">
+                    <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-rose-500 uppercase tracking-wider">SUN (일)</div>
+                    <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">MON (월)</div>
+                    <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">TUE (화)</div>
+                    <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">WED (수)</div>
+                    <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">THU (목)</div>
+                    <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">FRI (금)</div>
+                    <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-blue-500 uppercase tracking-wider">SAT (토)</div>
+                    <div class="bg-purple-50 p-3 text-center text-[12px] font-black text-purple-700 uppercase tracking-wider shadow-inner border-l-2 border-purple-200 flex items-center justify-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        주간 요약
+                    </div>
                 </div>
             </div>
 
             <!-- 스크롤 영역 (본문) -->
-            <div id="pcModalContent" class="flex-1 overflow-y-auto custom-scroll bg-slate-100 p-6">
+            <div id="pcModalContent" class="flex-1 overflow-auto custom-scroll bg-slate-100 p-3 sm:p-6">
                 <!-- 동적으로 월별 캘린더 생성 -->
             </div>
         </div>
@@ -700,9 +694,9 @@
 
     <!-- 드릴다운 모달 (작업자 세부 내역) -->
     <div id="drillDownModal"
-        class="hidden fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center backdrop-blur-sm">
+        class="hidden fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center backdrop-blur-sm p-0 sm:p-4">
         <div
-            class="bg-white rounded-2xl shadow-2xl w-[800px] max-w-[95%] max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200">
+            class="bg-white rounded-none sm:rounded-2xl shadow-2xl w-full h-full sm:w-[800px] sm:max-w-[95%] sm:max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200">
             <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <div>
                     <h3 class="text-lg font-black text-slate-800 flex items-center gap-2" id="drillDownTitle">📊 작업 상세
@@ -714,12 +708,14 @@
                     class="w-8 h-8 flex items-center justify-center bg-slate-200 rounded-full text-slate-500 hover:bg-slate-300 font-black transition-colors">✕</button>
             </div>
             <div class="p-0 overflow-auto custom-scroll flex-1 bg-white">
-                <table class="w-full text-sm text-center border-collapse">
-                    <thead id="drillDownThead"
-                        class="bg-slate-800 text-white font-bold text-xs uppercase tracking-wider sticky top-0 z-10">
-                    </thead>
-                    <tbody id="drillDownBody" class="text-slate-700 divide-y divide-slate-100"></tbody>
-                </table>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-center border-collapse min-w-[500px]">
+                        <thead id="drillDownThead"
+                            class="bg-slate-800 text-white font-bold text-xs uppercase tracking-wider sticky top-0 z-10">
+                        </thead>
+                        <tbody id="drillDownBody" class="text-slate-700 divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
             </div>
             <div class="p-4 border-t border-slate-100 bg-slate-50 text-right">
                 <button onclick="closeDrillDownModal()"
@@ -730,9 +726,9 @@
 
     <!-- 작업자 개인별 참여 프로젝트 상세 모달 -->
     <div id="workerDetailModal"
-        class="hidden fixed inset-0 bg-slate-900/60 z-[110] flex items-center justify-center backdrop-blur-md">
+        class="hidden fixed inset-0 bg-slate-900/60 z-[110] flex items-center justify-center backdrop-blur-md p-0 sm:p-4">
         <div
-            class="bg-white rounded-3xl shadow-2xl w-[1000px] max-w-[95%] max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-white/20">
+            class="bg-white rounded-none sm:rounded-3xl shadow-2xl w-full h-full sm:w-[1000px] sm:max-w-[95%] sm:max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-white/20">
             <div class="bg-slate-900 p-6 flex justify-between items-center border-b border-slate-800">
                 <div>
                     <h3 id="wdModalTitle" class="text-xl font-black text-white italic uppercase tracking-tighter">작업자 상세
@@ -748,7 +744,7 @@
                     </svg>
                 </button>
             </div>
-            <div id="wdModalContent" class="p-6 overflow-y-auto custom-scroll flex-1 bg-white">
+            <div id="wdModalContent" class="p-3 sm:p-6 overflow-auto custom-scroll flex-1 bg-white">
                 <!-- 데이터가 여기에 렌더링됨 -->
             </div>
         </div>
@@ -2792,8 +2788,8 @@
                                          <div class="w-2.5 h-2.5 bg-rose-500 rounded-full"></div>
                                     </div>
                                 </div>
-                                <div class="border-x border-b border-slate-200 bg-slate-50">
-                                    <div class="grid grid-cols-8 gap-px">
+                                <div class="border-x border-b border-slate-200 bg-slate-50 overflow-x-auto custom-scroll">
+                                    <div class="grid grid-cols-8 gap-px min-w-[1000px]">
                                         <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-red-500 tracking-tighter">SUN</div>
                                         <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-slate-400 tracking-tighter">MON</div>
                                         <div class="bg-slate-100 p-3 text-center text-[10px] font-black text-slate-400 tracking-tighter">TUE</div>
@@ -2805,7 +2801,7 @@
                                             요약
                                         </div>
                                     </div>
-                                    <div class="grid grid-cols-8 gap-px bg-slate-200">
+                                    <div class="grid grid-cols-8 gap-px bg-slate-200 min-w-[1000px]">
                         `;
 
                         // 이전 달 빈 칸
@@ -3200,9 +3196,9 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
                     <div class="bg-slate-50 p-4 border-b border-slate-200 flex items-center justify-between">
                         <h4 class="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2"><span class="text-purple-600 text-2xl font-black">${month + 1}</span>월 <span class="text-slate-400 text-sm font-bold ml-1">${year}년</span></h4>
-                        <span class="text-xs font-bold text-slate-500 bg-white border border-slate-200 px-3 py-1 rounded-full shadow-sm">${monthData.length}건의 작업 기록</span>
+                        <span class="text-xs font-bold text-slate-500 bg-white border border-slate-200 px-3 py-1 rounded-full shadow-sm">${monthData.length}건</span>
                     </div>
-                    <div class="grid grid-cols-8 gap-px bg-slate-100">
+                    <div class="grid grid-cols-8 gap-px bg-slate-100 min-w-[1200px]">
             `;
 
             let currentDay = 1;

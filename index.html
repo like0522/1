@@ -470,9 +470,17 @@
             <section class="dashboard-card p-6 border-t-4 border-t-rose-500 bg-slate-50">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-black text-slate-800 italic uppercase tracking-widest">🔍 통합 근태 필터링</h3>
+                <div class="flex items-center gap-4">
+                    <!-- 달력 폭 조절 슬라이더 추가 -->
+                    <div class="flex items-center gap-3 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
+                        <span class="text-[10px] font-black text-slate-400 uppercase italic">달력 폭</span>
+                        <input type="range" id="waWidthSlider" min="1200" max="3000" step="100" value="1200" oninput="updateCalendarWidth(this.value)" class="w-24 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-500">
+                        <span id="waWidthVal" class="text-[10px] font-black text-rose-500 min-w-[45px]">1200px</span>
+                    </div>
                     <button onclick="resetAllWAFilters()" class="px-4 py-2 bg-rose-500 text-white font-black text-xs rounded-lg hover:bg-rose-600 transition-all shadow-md shadow-rose-500/20 flex items-center gap-2">
                         <span>🔄 전체 필터 초기화</span>
                     </button>
+                </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-200">
                     <div class="space-y-1">
@@ -790,6 +798,7 @@
         let currentChartMode = 'mixed';
         let lastViewData = [];
         let currentWorkplace = ['A', 'B', 'C'];
+        let waCalendarWidth = 1200; // 통합근태현황 달력 가로 폭 기본값
         let tabHistory = [];
         let currentActiveTab = 1;
 
@@ -2514,7 +2523,7 @@
                             
                             <!-- [캘린더 영역] -->
                             <div class="flex-1 overflow-x-auto custom-scroll">
-                                <div class="grid grid-cols-9 gap-px mb-px bg-slate-200 border border-slate-200 rounded-t-lg overflow-hidden min-w-[1200px]">
+                                <div class="grid grid-cols-9 gap-px mb-px bg-slate-200 border border-slate-200 rounded-t-lg overflow-hidden" style="min-width: ${waCalendarWidth}px">
                                     <div class="bg-slate-100 p-3 text-center text-[11px] font-black text-slate-500 uppercase">MONTH/WEEK</div>
                                     <div class="bg-slate-50 p-3 text-center text-[11px] font-black text-red-500 uppercase">SUN</div>
                                     <div class="bg-slate-50 p-3 text-center text-[11px] font-black text-slate-400 uppercase">MON</div>
@@ -2527,7 +2536,7 @@
                                         주간 요약
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-9 gap-px bg-slate-200 border-x border-b border-slate-200 rounded-b-lg overflow-hidden min-w-[1200px]">
+                                <div class="grid grid-cols-9 gap-px bg-slate-200 border-x border-b border-slate-200 rounded-b-lg overflow-hidden" style="min-width: ${waCalendarWidth}px">
                 `;
 
                 const blockStartDate = new Date(first.y, first.m - 1, 1);
@@ -2634,6 +2643,18 @@
             });
 
             updateWASummary(filteredStatsData, grandTotalH, grandRegH, grandOverH, Array.from(grandProjects).sort(), Array.from(grandClients).sort(), Array.from(grandProcessTypes).sort());
+        }
+
+        // 달력 폭 조절 핸들러
+        function updateCalendarWidth(val) {
+            waCalendarWidth = parseInt(val);
+            document.getElementById('waWidthVal').innerText = val + 'px';
+            
+            // 렌더링된 그리드들의 너비 즉시 업데이트 (전체 리렌더링 없이 성능 최적화)
+            const containers = document.querySelectorAll('#waMultiCalendarContainer .grid.grid-cols-9');
+            containers.forEach(el => {
+                el.style.minWidth = val + 'px';
+            });
         }
 
 

@@ -2323,12 +2323,18 @@
                 return;
             }
 
-            waWorkerList.innerHTML = activeWorkers.map(w => `
+            // 현재 체크 상태 기억 (새로 추가된 작업자는 기본 체크)
+            const workerStates = new Map();
+            document.querySelectorAll('input[name="waWorker"]').forEach(cb => workerStates.set(cb.value, cb.checked));
+
+            waWorkerList.innerHTML = activeWorkers.map(w => {
+                const isChecked = workerStates.has(w) ? workerStates.get(w) : true;
+                return `
                 <label class="flex items-center gap-2 p-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors group">
-                    <input type="checkbox" name="waWorker" value="${w}" onchange="renderWorkerCalendar()" class="w-4 h-4 text-rose-500 rounded focus:ring-rose-500" checked>
+                    <input type="checkbox" name="waWorker" value="${w}" onchange="renderWorkerCalendar()" class="w-4 h-4 text-rose-500 rounded focus:ring-rose-500" ${isChecked ? 'checked' : ''}>
                     <span class="text-sm font-bold text-slate-600 group-hover:text-slate-900" onclick="event.preventDefault(); selectOnlyWorker('${w}')">${w}</span>
                 </label>
-            `).join('');
+            `}).join('');
         }
 
         function toggleAllWorkers(checked) {
@@ -2994,8 +3000,9 @@
                     pCosts[d.type] += d.cost;
                 });
 
-                const currentProcessChecked = Array.from(document.querySelectorAll('input[name="waProcessType"]:checked')).map(cb => cb.value);
-                const hasProcessFiltersBefore = document.querySelectorAll('input[name="waProcessType"]').length > 0;
+                // 현재 체크 상태 기억 (새로 추가된 공정은 기본 체크)
+                const processStates = new Map();
+                document.querySelectorAll('input[name="waProcessType"]').forEach(cb => processStates.set(cb.value, cb.checked));
 
                 // 비용이 큰 순서대로 공정 목록 정렬
                 const sortedProcessList = [...processList].sort((a, b) => (pCosts[b] || 0) - (pCosts[a] || 0));
@@ -3009,7 +3016,7 @@
                         ${sortedProcessList.map(pt => {
                     let cost = pCosts[pt] || 0;
                     let pct = totalCost > 0 ? ((cost / totalCost) * 100).toFixed(0) : 0;
-                    const isChecked = !hasProcessFiltersBefore || currentProcessChecked.includes(pt);
+                    const isChecked = processStates.has(pt) ? processStates.get(pt) : true;
                     return `
                                 <div class="w-full">
                                     <div class="flex justify-between items-center text-[10px] mb-1">
@@ -3065,10 +3072,12 @@
             if (!clientList || clientList.length === 0) {
                 clientContainer.innerHTML = '<p class="text-xs text-slate-400 italic">데이터가 없습니다.</p>';
             } else {
-                const currentChecked = Array.from(document.querySelectorAll('input[name="waClient"]:checked')).map(cb => cb.value);
-                const hasFiltersBefore = document.querySelectorAll('input[name="waClient"]').length > 0;
+                // 현재 체크 상태 기억 (새로 추가된 업체는 기본 체크)
+                const clientStates = new Map();
+                document.querySelectorAll('input[name="waClient"]').forEach(cb => clientStates.set(cb.value, cb.checked));
+
                 clientContainer.innerHTML = clientList.map(c => {
-                    const isChecked = !hasFiltersBefore || currentChecked.includes(c);
+                    const isChecked = clientStates.has(c) ? clientStates.get(c) : true;
                     return `
                     <label class="flex items-center gap-2 p-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors group">
                         <input type="checkbox" name="waClient" value="${c}" onchange="renderWorkerCalendar()" class="w-3.5 h-3.5 text-purple-500 rounded focus:ring-purple-500" ${isChecked ? 'checked' : ''}>
@@ -3082,11 +3091,12 @@
             if (!projectList || projectList.length === 0) {
                 listContainer.innerHTML = '<p class="text-xs text-slate-400 italic">데이터가 없습니다.</p>';
             } else {
-                const currentChecked = Array.from(document.querySelectorAll('input[name="waProj"]:checked')).map(cb => cb.value);
-                const hasFiltersBefore = document.querySelectorAll('input[name="waProj"]').length > 0;
+                // 현재 체크 상태 기억 (새로 추가된 프로젝트는 기본 체크)
+                const projectStates = new Map();
+                document.querySelectorAll('input[name="waProj"]').forEach(cb => projectStates.set(cb.value, cb.checked));
 
                 listContainer.innerHTML = projectList.map(p => {
-                    const isChecked = !hasFiltersBefore || currentChecked.includes(p);
+                    const isChecked = projectStates.has(p) ? projectStates.get(p) : true;
                     return `
                     <label class="flex items-center gap-2 p-2.5 bg-white border border-slate-100 rounded-xl shadow-sm cursor-pointer hover:bg-slate-50 transition-all group">
                         <input type="checkbox" name="waProj" value="${p}" onchange="renderWorkerCalendar()" class="w-3.5 h-3.5 text-rose-500 rounded focus:ring-rose-500" ${isChecked ? 'checked' : ''}>

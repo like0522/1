@@ -651,12 +651,10 @@
         class="hidden fixed inset-0 bg-slate-900/60 z-[120] flex items-center justify-center backdrop-blur-md p-0 sm:p-4">
         <div
             class="bg-white rounded-none sm:rounded-3xl shadow-2xl w-full h-full sm:w-[1400px] sm:max-w-[98%] sm:h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-white/20">
-            <div
-                class="bg-gradient-to-r from-purple-900 to-indigo-900 p-6 flex justify-between items-center border-b border-purple-800">
-                <div>
-                    <h3 id="pcModalTitle" class="text-2xl font-black text-white italic tracking-tighter">프로젝트 상세 달력</h3>
-                    <p id="pcModalSubtitle"
-                        class="text-purple-300 text-[11px] font-black uppercase mt-1 tracking-widest flex items-center gap-3">
+            <div class="bg-gradient-to-r from-purple-900 to-indigo-900 p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-purple-800 gap-4">
+                <div class="w-full sm:w-auto">
+                    <h3 id="pcModalTitle" class="text-lg sm:text-2xl font-black text-white italic tracking-tighter truncate max-w-full">프로젝트 상세 달력</h3>
+                    <p id="pcModalSubtitle" class="text-purple-300 text-[12px] sm:text-[14px] font-black uppercase mt-1 tracking-widest flex flex-wrap items-center gap-x-4 gap-y-1">
                         <span>Loading...</span>
                     </p>
                 </div>
@@ -671,7 +669,7 @@
 
             <!-- Sticky 요일 헤더 (8열 구조) -->
             <div class="overflow-x-auto custom-scroll border-b border-slate-300 z-10 relative bg-slate-200 no-scrollbar">
-                <div class="grid grid-cols-8 gap-px min-w-[1200px] shadow-sm">
+                <div class="grid grid-cols-8 gap-px min-w-[1500px] shadow-sm">
                     <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-rose-500 uppercase tracking-wider">SUN (일)</div>
                     <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">MON (월)</div>
                     <div class="bg-slate-50 p-3 text-center text-[12px] font-black text-slate-500 uppercase tracking-wider">TUE (화)</div>
@@ -2567,11 +2565,11 @@
 
                     blockHTML += `
                         <div class="bg-slate-50/80 p-2 flex flex-col justify-center items-center border-r border-slate-200">
-                            <div class="text-[10px] font-black text-slate-400 italic mb-0.5 leading-none">${current.getFullYear()}</div>
-                            <div class="text-[14px] font-black text-slate-900 leading-none">${monthText}</div>
+                            <div class="text-[12px] font-black text-slate-400 italic mb-0.5 leading-none">${current.getFullYear()}</div>
+                            <div class="text-[16px] font-black text-slate-900 leading-none">${monthText}</div>
                             <div class="flex flex-col gap-1 mt-1.5 w-full items-center">
-                                <div class="px-2 py-0.5 bg-slate-900 rounded text-[9px] font-black text-white uppercase tracking-tighter w-fit">${weekCount} WEEK</div>
-                                <div class="px-2 py-0.5 bg-rose-600 rounded text-[9px] font-black text-white uppercase tracking-tighter w-fit">W${yearWeek}</div>
+                                <div class="px-2 py-0.5 bg-slate-900 rounded text-[10px] font-black text-white uppercase tracking-tighter w-fit">${weekCount} WEEK</div>
+                                <div class="px-2 py-0.5 bg-rose-600 rounded text-[10px] font-black text-white uppercase tracking-tighter w-fit">W${yearWeek}</div>
                             </div>
                         </div>
                     `;
@@ -2653,17 +2651,17 @@
             } else {
                 let sortedProcesses = Object.keys(processCosts).map(k => ({ type: k, cost: processCosts[k] })).sort((a, b) => b.cost - a.cost);
                 return `
-                    <div class="bg-rose-50/50 p-3 min-h-[160px] flex flex-col justify-center gap-1.5 border-l border-rose-100 transition-colors hover:bg-rose-50">
+                    <div class="bg-rose-50/50 p-3 min-h-[160px] flex flex-col justify-center gap-2 border-l border-rose-100 transition-colors hover:bg-rose-50">
                         <div>
-                            <div class="text-[9px] font-black text-rose-500/70 tracking-widest uppercase border-b border-rose-200/50 pb-0.5 text-left mb-1">Weekly Cost</div>
-                            <div class="text-[14px] font-black text-rose-700">₩${weekCostSum.toLocaleString()}</div>
+                            <div class="text-[11px] font-black text-rose-500/70 tracking-widest uppercase border-b border-rose-200/50 pb-1 text-left mb-1.5">Weekly Cost</div>
+                            <div class="text-[18px] font-black text-rose-700">₩${weekCostSum.toLocaleString()}</div>
                         </div>
-                        <div class="flex flex-col gap-1.5 w-full mt-1">
+                        <div class="flex flex-col gap-2 w-full mt-2">
                             ${sortedProcesses.map(p => {
                     const percent = ((p.cost / weekCostSum) * 100).toFixed(0);
                     return `
                                     <div>
-                                        <div class="flex justify-between items-center text-[9px] mb-0.5">
+                                        <div class="flex justify-between items-center text-[11px] mb-1">
                                             <span class="font-bold text-slate-600 truncate max-w-[50%]">${p.type}</span>
                                             <span class="font-black text-slate-800">₩${p.cost.toLocaleString()}</span>
                                         </div>
@@ -3198,10 +3196,10 @@
             let calHTML = `
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-x-auto custom-scroll mb-8">
                     <div class="bg-slate-50 p-4 border-b border-slate-200 flex items-center justify-between">
-                        <h4 class="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2"><span class="text-purple-600 text-2xl font-black">${month + 1}</span>월 <span class="text-slate-400 text-sm font-bold ml-1">${year}년</span></h4>
-                        <span class="text-xs font-bold text-slate-500 bg-white border border-slate-200 px-3 py-1 rounded-full shadow-sm">${monthData.length}건</span>
+                        <h4 class="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2"><span class="text-purple-600 text-3xl font-black">${month + 1}</span>월 <span class="text-slate-400 text-sm font-bold ml-1">${year}년</span></h4>
+                        <span class="text-sm font-black text-slate-500 bg-white border border-slate-200 px-4 py-1.5 rounded-full shadow-sm">${monthData.length}건</span>
                     </div>
-                    <div class="grid grid-cols-8 gap-px bg-slate-100 min-w-[1200px]">
+                    <div class="grid grid-cols-8 gap-px bg-slate-100 min-w-[1500px]">
             `;
 
             let currentDay = 1;
@@ -3223,23 +3221,23 @@
                         let dayColorClass = d === 0 ? "text-rose-500" : (d === 6 ? "text-blue-500" : "text-slate-500");
 
                         calHTML += `
-                            <div class="bg-white p-2 min-h-[140px] flex flex-col border-r border-b border-slate-100 group hover:bg-slate-50 transition-colors">
-                                <div class="flex justify-between items-start mb-1.5">
-                                    <span class="text-[14px] font-black ${dayColorClass} w-6 h-6 flex items-center justify-center rounded-full group-hover:bg-slate-200 transition-colors">${currentDay}</span>
-                                    ${dayTasks.length > 0 ? `<span class="text-[9px] font-bold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded shadow-sm">${dayTasks.length}건</span>` : ''}
+                            <div class="bg-white p-3 min-h-[160px] flex flex-col border-r border-b border-slate-100 group hover:bg-slate-50 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="text-[18px] font-black ${dayColorClass} w-8 h-8 flex items-center justify-center rounded-full group-hover:bg-slate-200 transition-colors">${currentDay}</span>
+                                    ${dayTasks.length > 0 ? `<span class="text-[11px] font-black bg-slate-100 text-slate-500 px-2 py-1 rounded-lg shadow-sm border border-slate-200">${dayTasks.length}건</span>` : ''}
                                 </div>
                                 <div class="flex flex-col gap-1.5 flex-1 mt-1">
                                     ${dayTasks.map(t => {
                             const hue = [...t.type].reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360;
                             const totalH = t.h_reg + t.h_over;
                             return `
-                                            <div class="px-3 py-2.5 rounded-2xl text-left border shadow-sm flex flex-col hover:scale-[1.02] transition-transform cursor-default" 
+                                            <div class="px-3.5 py-3 rounded-2xl text-left border shadow-sm flex flex-col hover:scale-[1.02] transition-transform cursor-default mb-1.5" 
                                                  style="background-color: hsla(${hue}, 80%, 97%, 1); border-color: hsla(${hue}, 70%, 90%, 1);">
-                                                <div class="flex justify-between items-center w-full mb-1">
-                                                    <span class="text-[12px] font-black truncate max-w-[65%]" style="color: hsla(${hue}, 85%, 35%, 1)">${t.worker}</span>
-                                                    <span class="text-[11px] font-black px-2 rounded-xl bg-white shadow-sm" style="color: hsla(${hue}, 85%, 35%, 1)">${totalH}h</span>
+                                                <div class="flex justify-between items-center w-full mb-1.5">
+                                                    <span class="text-[14px] font-black truncate max-w-[65%]" style="color: hsla(${hue}, 85%, 35%, 1)">${t.worker}</span>
+                                                    <span class="text-[12px] font-black px-2 py-0.5 rounded-xl bg-white shadow-sm" style="color: hsla(${hue}, 85%, 35%, 1)">${totalH}h</span>
                                                 </div>
-                                                <div class="text-[11px] font-bold opacity-80 mt-1 flex justify-between items-center" style="color: hsla(${hue}, 85%, 25%, 1)">
+                                                <div class="text-[12px] font-bold opacity-80 flex justify-between items-center" style="color: hsla(${hue}, 85%, 25%, 1)">
                                                     <span>${t.type}</span>
                                                 </div>
                                             </div>

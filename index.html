@@ -225,19 +225,54 @@
 
         <!-- 탭 1: 상세 정보 보기 (기존 영역 보존 래퍼) -->
         <div id="tabDetailAnalysis" class="space-y-6">
-            <section class="dashboard-card p-6 border-t-4 border-t-emerald-500 bg-slate-50">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <section class="dashboard-card p-6 border-t-4 border-t-emerald-500 bg-slate-50 space-y-4">
+                <!-- ⚡ 2,850개 프로젝트 통합 스마트 검색 바 -->
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-[11px] font-black text-emerald-700 uppercase tracking-wider flex items-center gap-1.5">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs">⚡</span>
+                            <span>통합 스마트 프로젝트 검색</span>
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-bold hidden sm:inline">전체 2,850개 프로젝트 중 실시간 자동완성 &amp; 바로가기</span>
+                    </div>
+                    <div class="relative flex items-center">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        <input type="text" id="smartQuickSearch"
+                            placeholder="🔍 프로젝트명 또는 업체명을 바로 검색하세요 (예: 동부, 타워, 101동, 현대 등)..."
+                            oninput="onSmartSearchInput(this.value)"
+                            onkeydown="onSmartSearchKeydown(event)"
+                            class="w-full h-11 pl-10 pr-10 bg-white border-2 border-slate-200 focus:border-emerald-500 rounded-xl text-sm font-black text-slate-800 outline-none focus:ring-4 focus:ring-emerald-500/15 shadow-sm transition-all placeholder:text-slate-400 placeholder:font-normal"
+                            autocomplete="off">
+                        <button type="button" id="btnSmartClear" onclick="clearSmartSearch()"
+                            class="hidden absolute right-3 text-slate-400 hover:text-slate-600 text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors">✕</button>
+                    </div>
+                    <!-- 스마트 검색 드롭다운 결과 팝업 -->
+                    <div id="smartSearchDropdown" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 max-h-80 overflow-y-auto divide-y divide-slate-100 custom-scroll">
+                    </div>
+                </div>
+
+                <div class="relative flex py-0.5 items-center">
+                    <div class="flex-grow border-t border-slate-200"></div>
+                    <span class="flex-shrink mx-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">또는 조건별 상세 필터 &amp; 검색</span>
+                    <div class="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     <div class="space-y-1">
                         <label class="text-[10px] font-black text-slate-400 uppercase italic">연도</label>
                         <select id="selYear" onchange="updateProjectList()"
-                            class="w-full h-12 px-3 bg-white border-2 border-slate-200 rounded-xl text-lg font-black outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-sm">
+                            class="w-full h-11 px-3 bg-white border-2 border-slate-200 rounded-xl text-base font-black outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-sm">
                             <option value="">전체 연도</option>
                         </select>
                     </div>
                     <div class="space-y-1">
                         <label class="text-[10px] font-black text-slate-400 uppercase italic">월</label>
                         <select id="selMonth" onchange="updateProjectList()"
-                            class="w-full h-12 px-3 bg-white border-2 border-slate-200 rounded-xl text-lg font-black outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-sm">
+                            class="w-full h-11 px-3 bg-white border-2 border-slate-200 rounded-xl text-base font-black outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-sm">
                             <option value="">전체 월</option>
                             <option value="1">1월</option>
                             <option value="2">2월</option>
@@ -254,16 +289,42 @@
                         </select>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-black text-slate-400 uppercase italic">업체명</label>
+                        <div class="flex items-center justify-between">
+                            <label class="text-[10px] font-black text-slate-400 uppercase italic">업체명</label>
+                            <span id="badgeCompanyCount" class="text-[10px] font-bold text-slate-400"></span>
+                        </div>
+                        <div class="relative mb-1">
+                            <input type="text" id="searchCompanyInput"
+                                placeholder="🔍 업체 검색..."
+                                oninput="onCompanySearchInput()"
+                                onkeydown="onCompanySearchKeydown(event)"
+                                class="w-full h-8 px-2.5 pr-6 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-slate-400"
+                                autocomplete="off">
+                            <button type="button" id="btnClearCompSearch" onclick="clearCompanyFilter()"
+                                class="hidden absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+                        </div>
                         <select id="selCompany" onchange="updateProjectList()"
-                            class="w-full h-12 px-3 bg-white border-2 border-slate-200 rounded-xl text-md font-bold outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-sm">
+                            class="w-full h-11 px-3 bg-white border-2 border-slate-200 rounded-xl text-sm font-bold outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-sm">
                             <option value="">업체 선택 (전체)</option>
                         </select>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-black text-slate-400 uppercase italic">프로젝트</label>
+                        <div class="flex items-center justify-between">
+                            <label class="text-[10px] font-black text-slate-400 uppercase italic">프로젝트</label>
+                            <span id="badgeProjectCount" class="text-[10px] font-black text-emerald-600"></span>
+                        </div>
+                        <div class="relative mb-1">
+                            <input type="text" id="searchProjectInput"
+                                placeholder="🔍 프로젝트 검색 (Enter 선택)..."
+                                oninput="onProjectSearchInput()"
+                                onkeydown="onProjectSearchKeydown(event)"
+                                class="w-full h-8 px-2.5 pr-6 bg-white border-2 border-emerald-400 rounded-lg text-xs font-black text-slate-800 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-slate-400 placeholder:font-normal"
+                                autocomplete="off">
+                            <button type="button" id="btnClearProjSearch" onclick="clearProjectFilter()"
+                                class="hidden absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+                        </div>
                         <select id="selProject" onchange="runAnalysis()"
-                            class="w-full h-12 px-3 bg-white border-2 border-emerald-500 rounded-xl text-md font-black text-slate-900 outline-none shadow-md ring-2 ring-emerald-500/10">
+                            class="w-full h-11 px-3 bg-white border-2 border-emerald-500 rounded-xl text-sm font-black text-slate-900 outline-none shadow-md ring-2 ring-emerald-500/10">
                             <option value="">선택 대기</option>
                         </select>
                     </div>
@@ -1470,6 +1531,14 @@
             const month = document.getElementById('selMonth').value;
             const compSel = document.getElementById('selCompany');
             const projSel = document.getElementById('selProject');
+            const compSearchVal = (document.getElementById('searchCompanyInput')?.value || '').trim().toLowerCase();
+            const projSearchVal = (document.getElementById('searchProjectInput')?.value || '').trim().toLowerCase();
+
+            // ✕ 버튼 표시 토글
+            const btnClearComp = document.getElementById('btnClearCompSearch');
+            if (btnClearComp) btnClearComp.classList.toggle('hidden', !compSearchVal);
+            const btnClearProj = document.getElementById('btnClearProjSearch');
+            if (btnClearProj) btnClearProj.classList.toggle('hidden', !projSearchVal);
 
             let filtered = rawData;
             if (!currentWorkplace.includes('ALL')) {
@@ -1478,18 +1547,45 @@
             if (year) filtered = filtered.filter(i => i.year === year);
             if (month) filtered = filtered.filter(i => i.month === month);
 
-            const companies = [...new Set(filtered.map(i => i.client))].sort();
+            // 전체 업체 목록
+            let companies = [...new Set(filtered.map(i => i.client))].sort();
+            const totalCompCount = companies.length;
+
+            // 업체 검색어 필터링
+            if (compSearchVal) {
+                companies = companies.filter(c => (c || '').toLowerCase().includes(compSearchVal));
+            }
+
             const currentCompValue = compSel.value;
-            compSel.innerHTML = '<option value="">업체 선택 (전체)</option>';
+            compSel.innerHTML = `<option value="">업체 선택 (${compSearchVal ? companies.length + '/' + totalCompCount : '전체 ' + totalCompCount})</option>`;
             companies.forEach(c => compSel.add(new Option(c, c)));
-            if (companies.includes(currentCompValue)) compSel.value = currentCompValue;
+            if (companies.includes(currentCompValue)) {
+                compSel.value = currentCompValue;
+            }
+
+            // 업체 개수 뱃지
+            const badgeComp = document.getElementById('badgeCompanyCount');
+            if (badgeComp) {
+                badgeComp.innerText = compSearchVal ? `${companies.length}/${totalCompCount}개` : `${totalCompCount}개`;
+            }
 
             const company = compSel.value;
             let pFiltered = filtered;
             if (company) pFiltered = pFiltered.filter(i => i.client === company);
 
-            const projectPairs = [...new Set(pFiltered.map(i => `${i.client}|${i.project}`))].sort();
-            projSel.innerHTML = `<option value="">프로젝트 선택 (${projectPairs.length})</option>`;
+            // 프로젝트 목록
+            let projectPairs = [...new Set(pFiltered.map(i => `${i.client}|${i.project}`))].sort();
+            const totalProjCount = projectPairs.length;
+
+            // 프로젝트 검색어 필터링
+            if (projSearchVal) {
+                projectPairs = projectPairs.filter(pair => {
+                    const [cName, pName] = pair.split('|');
+                    return (pName || '').toLowerCase().includes(projSearchVal) || (!company && (cName || '').toLowerCase().includes(projSearchVal));
+                });
+            }
+
+            projSel.innerHTML = `<option value="">프로젝트 선택 (${projectPairs.length}${projSearchVal ? '/' + totalProjCount : ''})</option>`;
 
             projectPairs.forEach(pair => {
                 const [cName, pName] = pair.split('|');
@@ -1498,7 +1594,255 @@
                 option.dataset.client = cName;
                 projSel.add(option);
             });
+
+            // 프로젝트 개수 뱃지
+            const badgeProj = document.getElementById('badgeProjectCount');
+            if (badgeProj) {
+                badgeProj.innerText = projSearchVal ? `${projectPairs.length}개 일치` : `${totalProjCount}개`;
+            }
         }
+
+        // 업체 검색 핸들러
+        function onCompanySearchInput() {
+            updateProjectList();
+        }
+
+        function onCompanySearchKeydown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const compSel = document.getElementById('selCompany');
+                if (compSel && compSel.options.length > 1) {
+                    compSel.selectedIndex = 1;
+                    updateProjectList();
+                    const projInput = document.getElementById('searchProjectInput');
+                    if (projInput) projInput.focus();
+                }
+            }
+        }
+
+        function clearCompanyFilter() {
+            const input = document.getElementById('searchCompanyInput');
+            if (input) input.value = '';
+            updateProjectList();
+            input.focus();
+        }
+
+        // 프로젝트 검색 핸들러
+        function onProjectSearchInput() {
+            updateProjectList();
+        }
+
+        function onProjectSearchKeydown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const projSel = document.getElementById('selProject');
+                if (projSel && projSel.options.length > 1) {
+                    projSel.selectedIndex = 1;
+                    runAnalysis();
+                }
+            }
+        }
+
+        function clearProjectFilter() {
+            const input = document.getElementById('searchProjectInput');
+            if (input) input.value = '';
+            updateProjectList();
+            input.focus();
+        }
+
+        // ⚡ 초고속 스마트 프로젝트 검색 로직
+        let smartSearchActiveIndex = -1;
+
+        function onSmartSearchInput(val) {
+            const q = (val || '').trim().toLowerCase();
+            const dropdown = document.getElementById('smartSearchDropdown');
+            const btnClear = document.getElementById('btnSmartClear');
+            if (btnClear) btnClear.classList.toggle('hidden', !q);
+
+            if (!q || q.length < 1) {
+                dropdown.classList.add('hidden');
+                dropdown.innerHTML = '';
+                smartSearchActiveIndex = -1;
+                return;
+            }
+
+            // rawData에서 고유 프로젝트 추출
+            const map = new Map();
+            for (let i = 0; i < rawData.length; i++) {
+                const item = rawData[i];
+                const key = `${item.client}||${item.project}`;
+                if (!map.has(key)) {
+                    map.set(key, {
+                        client: item.client || '',
+                        project: item.project || '',
+                        workplace: item.workplace || '',
+                        year: item.year || '',
+                        month: item.month || '',
+                        count: 1
+                    });
+                } else {
+                    map.get(key).count++;
+                }
+            }
+
+            const allProjects = Array.from(map.values());
+            const matches = allProjects.filter(p => {
+                return p.project.toLowerCase().includes(q) || p.client.toLowerCase().includes(q);
+            }).slice(0, 30);
+
+            if (matches.length === 0) {
+                dropdown.innerHTML = `
+                    <div class="p-5 text-center text-xs font-bold text-slate-400">
+                        일치하는 프로젝트가 없습니다: <span class="text-rose-500 font-black">"${q}"</span>
+                    </div>
+                `;
+                dropdown.classList.remove('hidden');
+                smartSearchActiveIndex = -1;
+                return;
+            }
+
+            let html = `<div class="p-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
+                <span>검색 결과: <strong class="text-emerald-600 font-black">${matches.length}</strong>건 (클릭 또는 Enter로 즉시 분석)</span>
+                <span class="text-[10px] text-slate-400">↑↓ 키보드 탐색, Enter 선택, ESC 닫기</span>
+            </div>`;
+
+            matches.forEach((item, idx) => {
+                const reg = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                const pHighlight = item.project.replace(reg, '<span class="bg-amber-200 text-amber-950 px-0.5 rounded font-black">$1</span>');
+                const cHighlight = item.client.replace(reg, '<span class="bg-amber-200 text-amber-950 px-0.5 rounded font-black">$1</span>');
+
+                html += `
+                    <div class="smart-search-item px-4 py-3 hover:bg-emerald-50/80 cursor-pointer flex items-center justify-between transition-colors border-b border-slate-50 last:border-b-0"
+                         data-idx="${idx}"
+                         onclick="selectSmartSearchResult('${item.client.replace(/'/g, "\\'")}', '${item.project.replace(/'/g, "\\'")}')">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0">
+                            <span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-black flex-shrink-0 border border-slate-200">
+                                ${cHighlight}
+                            </span>
+                            <span class="text-sm font-black text-slate-800 truncate">
+                                ${pHighlight}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+                            <span class="text-[10px] text-slate-400 font-bold hidden sm:inline">${item.workplace || ''}</span>
+                            <span class="text-[11px] font-black text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition-colors">
+                                선택 ➔
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            dropdown.innerHTML = html;
+            dropdown.classList.remove('hidden');
+            smartSearchActiveIndex = -1;
+        }
+
+        function selectSmartSearchResult(clientName, projectName) {
+            const dropdown = document.getElementById('smartSearchDropdown');
+            if (dropdown) dropdown.classList.add('hidden');
+            const searchInput = document.getElementById('smartQuickSearch');
+            if (searchInput) searchInput.value = projectName;
+
+            // 1. 연도 및 월 필터 초기화(전체로)
+            document.getElementById('selYear').value = "";
+            document.getElementById('selMonth').value = "";
+
+            // 2. 검색창 초기화
+            const compInput = document.getElementById('searchCompanyInput');
+            if (compInput) compInput.value = '';
+            const projInput = document.getElementById('searchProjectInput');
+            if (projInput) projInput.value = '';
+
+            // 3. 업체 선택
+            document.getElementById('selCompany').value = clientName;
+
+            // 4. 프로젝트 목록 업데이트
+            updateProjectList();
+
+            // 5. 프로젝트 선택
+            const projSel = document.getElementById('selProject');
+            projSel.value = projectName;
+
+            if (projSel.value !== projectName) {
+                const opt = document.createElement('option');
+                opt.value = projectName;
+                opt.text = `[${clientName}] ${projectName}`;
+                opt.dataset.client = clientName;
+                projSel.add(opt);
+                projSel.value = projectName;
+            }
+
+            // 6. 분석 실행
+            runAnalysis();
+
+            // 7. 분석 결과 위치로 부드럽게 스크롤
+            const analysisView = document.getElementById('analysisView');
+            if (analysisView) {
+                analysisView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function clearSmartSearch() {
+            const input = document.getElementById('smartQuickSearch');
+            if (input) input.value = '';
+            const dropdown = document.getElementById('smartSearchDropdown');
+            if (dropdown) {
+                dropdown.classList.add('hidden');
+                dropdown.innerHTML = '';
+            }
+            const btnClear = document.getElementById('btnSmartClear');
+            if (btnClear) btnClear.classList.add('hidden');
+            smartSearchActiveIndex = -1;
+            input.focus();
+        }
+
+        function onSmartSearchKeydown(e) {
+            const dropdown = document.getElementById('smartSearchDropdown');
+            if (!dropdown || dropdown.classList.contains('hidden')) return;
+
+            const items = dropdown.querySelectorAll('.smart-search-item');
+            if (items.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                smartSearchActiveIndex = (smartSearchActiveIndex + 1) % items.length;
+                updateSmartSearchHighlight(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                smartSearchActiveIndex = (smartSearchActiveIndex - 1 + items.length) % items.length;
+                updateSmartSearchHighlight(items);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (smartSearchActiveIndex >= 0 && smartSearchActiveIndex < items.length) {
+                    items[smartSearchActiveIndex].click();
+                } else if (items.length > 0) {
+                    items[0].click();
+                }
+            } else if (e.key === 'Escape') {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        function updateSmartSearchHighlight(items) {
+            items.forEach((it, idx) => {
+                if (idx === smartSearchActiveIndex) {
+                    it.classList.add('bg-emerald-100/90');
+                    it.scrollIntoView({ block: 'nearest' });
+                } else {
+                    it.classList.remove('bg-emerald-100/90');
+                }
+            });
+        }
+
+        // 바깥 클릭 시 스마트 검색 닫기
+        document.addEventListener('click', function(e) {
+            const container = document.getElementById('smartQuickSearch')?.parentElement?.parentElement;
+            if (container && !container.contains(e.target)) {
+                const dropdown = document.getElementById('smartSearchDropdown');
+                if (dropdown) dropdown.classList.add('hidden');
+            }
+        });
 
         function runAnalysis(isProjectChange = true) {
             const projSel = document.getElementById('selProject');

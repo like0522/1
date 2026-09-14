@@ -523,6 +523,172 @@
                     </label>
                 </div>
                 <div class="flex-1 w-full p-4" id="tmChartContainer"></div>
+
+            <!-- ⚖️ 데이터 정밀 다각 비교 분석실 (업체별 / 프로젝트별 비교) -->
+            <section id="sectionComparisonLab" class="dashboard-card p-6 border-t-4 border-t-purple-600 bg-slate-50 space-y-6 mt-6">
+                <!-- 헤더 & 모드 전환 바 -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+                    <div>
+                        <h4 class="text-lg font-black text-slate-800 italic uppercase tracking-widest flex items-center gap-2">
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-xl bg-purple-100 text-purple-700 text-base not-italic shadow-sm">⚖️</span>
+                            <span>데이터 정밀 다각 비교 분석실 (Comparative Analytics Lab)</span>
+                        </h4>
+                        <p class="text-xs font-bold text-slate-500 mt-1">
+                            업체별 또는 프로젝트별로 두 대상을 선택하여 투입 공수, 비용, 공정별 비중, 작업자 및 세부 지표를 다각도로 비교 분석합니다.
+                        </p>
+                    </div>
+
+                    <!-- 모드 전환 버튼 & 도구 -->
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <div class="bg-white p-1 rounded-xl border border-slate-200 shadow-sm flex items-center">
+                            <button type="button" id="btnCompModeClient" onclick="setComparisonMode('client')"
+                                class="px-4 py-2 text-xs font-black rounded-lg transition-all bg-purple-600 text-white shadow-sm">
+                                🏢 업체 vs 업체 비교
+                            </button>
+                            <button type="button" id="btnCompModeProject" onclick="setComparisonMode('project')"
+                                class="px-4 py-2 text-xs font-black rounded-lg transition-all text-slate-500 hover:text-slate-800">
+                                📁 프로젝트 vs 프로젝트 비교
+                            </button>
+                        </div>
+                        <button type="button" onclick="exportComparisonCSV()" title="CSV 엑셀 다운로드"
+                            class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-sm transition-all flex items-center gap-1.5 active:scale-95">
+                            <span>📥</span> 엑셀 다운로드
+                        </button>
+                        <button type="button" onclick="copyComparisonSummary()" title="분석 결과 요약 복사"
+                            class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-black rounded-xl shadow-sm transition-all flex items-center gap-1.5 active:scale-95">
+                            <span>📋</span> 요약 복사
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 대상 선택 및 검색 컨트롤 영역 -->
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between flex-wrap gap-2 text-xs font-bold text-slate-500">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse"></span>
+                            <span id="compDescText">비교할 두 업체를 검색창이나 드롭다운에서 선택하세요.</span>
+                        </div>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-slate-800 transition-colors bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                            <input type="checkbox" id="chkCompSyncPeriod" onchange="runComparison()" class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
+                            <span>상단 조회 연도/구간 필터 연동 (<span id="compSyncPeriodLabel" class="text-purple-600 font-black">전체 누적 이력 비교</span>)</span>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-[1fr,auto,1fr] gap-4 items-center">
+                        <!-- 대상 [A] -->
+                        <div class="p-4 rounded-2xl border-2 border-indigo-200 bg-indigo-50/40 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-indigo-700 uppercase tracking-wide flex items-center gap-1.5">
+                                    <span class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-black shadow-sm">A</span>
+                                    <span id="compLabelA">기준 대상 [A]</span>
+                                </span>
+                                <span id="compBadgeA" class="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">선택 대기</span>
+                            </div>
+                            <div class="relative">
+                                <input type="text" id="compSearchInputA" placeholder="🔍 [A] 실시간 검색..." oninput="onCompSearchInput('A')"
+                                    class="w-full h-9 px-3 pr-7 bg-white border border-indigo-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-sm"
+                                    autocomplete="off">
+                                <button type="button" onclick="clearCompSearch('A')" class="hidden absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs font-bold" id="btnClearCompA">✕</button>
+                            </div>
+                            <select id="compSelA" onchange="onCompSelectChange('A')"
+                                class="w-full h-11 px-3 bg-white border-2 border-indigo-400 rounded-xl text-sm font-black text-slate-900 outline-none shadow-sm focus:ring-4 focus:ring-indigo-500/20">
+                            </select>
+                        </div>
+
+                        <!-- ⇄ 맞바꾸기(Swap) 버튼 -->
+                        <div class="flex justify-center my-1 md:my-0">
+                            <button type="button" onclick="swapComparisonTargets()" title="A와 B 대상 맞바꾸기 (Swap)"
+                                class="w-12 h-12 rounded-2xl bg-purple-100 hover:bg-purple-200 text-purple-700 font-black flex flex-col items-center justify-center transition-all border border-purple-200 shadow-sm active:scale-95 group">
+                                <span class="text-base leading-none group-hover:rotate-180 transition-transform duration-300">⇄</span>
+                                <span class="text-[9px] font-black mt-0.5">교체</span>
+                            </button>
+                        </div>
+
+                        <!-- 대상 [B] -->
+                        <div class="p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50/40 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-emerald-700 uppercase tracking-wide flex items-center gap-1.5">
+                                    <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black shadow-sm">B</span>
+                                    <span id="compLabelB">비교 대상 [B]</span>
+                                </span>
+                                <span id="compBadgeB" class="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">선택 대기</span>
+                            </div>
+                            <div class="relative">
+                                <input type="text" id="compSearchInputB" placeholder="🔍 [B] 실시간 검색..." oninput="onCompSearchInput('B')"
+                                    class="w-full h-9 px-3 pr-7 bg-white border border-emerald-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-sm"
+                                    autocomplete="off">
+                                <button type="button" onclick="clearCompSearch('B')" class="hidden absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs font-bold" id="btnClearCompB">✕</button>
+                            </div>
+                            <select id="compSelB" onchange="onCompSelectChange('B')"
+                                class="w-full h-11 px-3 bg-white border-2 border-emerald-400 rounded-xl text-sm font-black text-slate-900 outline-none shadow-sm focus:ring-4 focus:ring-emerald-500/20">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 비교 결과 렌더링 컨테이너 -->
+                <div id="compResultContainer" class="space-y-6">
+                    <!-- 1. 핵심 지표(KPI) 수치 비교 카드 그리드 (동적 렌더링) -->
+                    <div id="compKpiGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
+
+                    <!-- 2. AI & 수석 엔지니어 인사이트 자동 진단 박스 -->
+                    <div id="compInsightBox" class="p-5 rounded-2xl bg-gradient-to-r from-purple-50 via-indigo-50 to-slate-50 border border-purple-200 shadow-sm space-y-2">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2 text-purple-900 font-black text-sm">
+                                <span class="text-base">💡</span>
+                                <span>수석 엔지니어 비교 분석 인사이트 요약</span>
+                            </div>
+                            <span class="text-[11px] font-bold text-purple-600 bg-white/80 px-2.5 py-0.5 rounded-full border border-purple-200">자동 정밀 진단</span>
+                        </div>
+                        <div id="compInsightContent" class="text-xs font-bold text-slate-700 leading-relaxed space-y-1 pt-1"></div>
+                    </div>
+
+                    <!-- 3. 시각화 비교 차트 2종 (공정별 비교 & 월별 추이 비교) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- 차트 1: 공정별 투입 시간 비교 -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                            <div class="flex items-center justify-between mb-3">
+                                <h5 class="text-sm font-black text-slate-800 flex items-center gap-1.5">
+                                    <span>📊</span> 공정별 투입 시간 비교
+                                </h5>
+                                <span class="text-[10px] text-slate-400 font-bold bg-slate-50 px-2 py-0.5 rounded border border-slate-100">단위: 시간(h)</span>
+                            </div>
+                            <div id="compProcessChart" class="w-full h-72"></div>
+                        </div>
+
+                        <!-- 차트 2: 월별 투입 추이 비교 -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                            <div class="flex items-center justify-between mb-3">
+                                <h5 class="text-sm font-black text-slate-800 flex items-center gap-1.5">
+                                    <span>📈</span> 월별 투입 추이 비교
+                                </h5>
+                                <span class="text-[10px] text-slate-400 font-bold bg-slate-50 px-2 py-0.5 rounded border border-slate-100">단위: 시간(h)</span>
+                            </div>
+                            <div id="compTimelineChart" class="w-full h-72"></div>
+                        </div>
+                    </div>
+
+                    <!-- 4. 정밀 세부 비교 표 (탭형 세부 분석) -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="p-4 bg-slate-50/80 border-b border-slate-200 flex flex-wrap gap-3 items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-sm font-black text-slate-800">📋 세부 비교 데이터 표</span>
+                                <div class="flex bg-slate-200 p-0.5 rounded-lg text-xs font-bold">
+                                    <button type="button" id="btnSubTabProcess" onclick="switchCompSubTab('process')"
+                                        class="px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm font-black transition-all">공정별 상세</button>
+                                    <button type="button" id="btnSubTabWorker" onclick="switchCompSubTab('worker')"
+                                        class="px-3 py-1.5 rounded-md text-slate-500 hover:text-slate-800 transition-all">작업자별 상세</button>
+                                    <button type="button" id="btnSubTabMonthly" onclick="switchCompSubTab('monthly')"
+                                        class="px-3 py-1.5 rounded-md text-slate-500 hover:text-slate-800 transition-all">월별 추이</button>
+                                </div>
+                            </div>
+                            <span class="text-[11px] text-slate-500 font-bold" id="compTableSubtext">공정별 투입 공수 및 비중 격차를 분석합니다.</span>
+                        </div>
+                        <div id="compTableContainer" class="overflow-x-auto custom-scroll p-4"></div>
+                    </div>
+                </div>
+            </section>
+
             </div>
         </div>
 
@@ -1104,6 +1270,7 @@
                 if (t2) t2.className = 'px-6 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm transition-all shadow-md shadow-indigo-500/30';
                 document.getElementById('tabTreeMapMode').classList.remove('hidden');
                 runTreeMap();
+                if (typeof initComparisonLab === 'function') initComparisonLab();
                 setTimeout(() => { if (myTreeMapChart) myTreeMapChart.resize(); }, 50);
             } else if (idx === 3) {
                 if (t3) t3.className = 'px-6 py-2.5 rounded-xl bg-rose-600 text-white font-bold text-sm transition-all shadow-md shadow-rose-500/30';
@@ -3670,7 +3837,945 @@
         function closeProjectCalendarModal() {
             document.getElementById('projectCalendarModal').classList.add('hidden');
         }
-    </script>
+    
+        // =====================================================================
+        // ⚖️ 데이터 정밀 다각 비교 분석실 (Comparative Analytics Lab) 코어 엔진
+        // =====================================================================
+        let compMode = 'client'; // 'client' or 'project'
+        let compTargetA = '';
+        let compTargetB = '';
+        let compSubTab = 'process'; // 'process', 'worker', 'monthly'
+        let compProcessChartInstance = null;
+        let compTimelineChartInstance = null;
+        let compLastReportData = null;
+
+        function initComparisonLab() {
+            if (!rawData || rawData.length === 0) return;
+            populateCompDropdowns();
+            if (compTargetA && compTargetB) {
+                runComparison();
+            }
+        }
+
+        function setComparisonMode(mode) {
+            compMode = mode;
+            const btnClient = document.getElementById('btnCompModeClient');
+            const btnProject = document.getElementById('btnCompModeProject');
+            const desc = document.getElementById('compDescText');
+
+            if (mode === 'client') {
+                btnClient.className = 'px-4 py-2 text-xs font-black rounded-lg transition-all bg-purple-600 text-white shadow-sm';
+                btnProject.className = 'px-4 py-2 text-xs font-black rounded-lg transition-all text-slate-500 hover:text-slate-800';
+                if (desc) desc.innerText = '비교할 두 업체를 검색창이나 드롭다운에서 선택하세요.';
+                document.getElementById('compLabelA').innerText = '기준 업체 [A]';
+                document.getElementById('compLabelB').innerText = '비교 업체 [B]';
+            } else {
+                btnClient.className = 'px-4 py-2 text-xs font-black rounded-lg transition-all text-slate-500 hover:text-slate-800';
+                btnProject.className = 'px-4 py-2 text-xs font-black rounded-lg transition-all bg-purple-600 text-white shadow-sm';
+                if (desc) desc.innerText = '비교할 두 프로젝트를 검색창이나 드롭다운에서 선택하세요.';
+                document.getElementById('compLabelA').innerText = '기준 프로젝트 [A]';
+                document.getElementById('compLabelB').innerText = '비교 프로젝트 [B]';
+            }
+
+            // 검색창 초기화
+            clearCompSearch('A', false);
+            clearCompSearch('B', false);
+
+            compTargetA = '';
+            compTargetB = '';
+            populateCompDropdowns();
+            runComparison();
+        }
+
+        function populateCompDropdowns() {
+            const selA = document.getElementById('compSelA');
+            const selB = document.getElementById('compSelB');
+            if (!selA || !selB) return;
+
+            const searchA = (document.getElementById('compSearchInputA')?.value || '').trim().toLowerCase();
+            const searchB = (document.getElementById('compSearchInputB')?.value || '').trim().toLowerCase();
+
+            if (compMode === 'client') {
+                // 업체 목록 추출 및 총 시간 기준 정렬
+                const clientHoursMap = {};
+                rawData.forEach(d => {
+                    if (!clientHoursMap[d.client]) clientHoursMap[d.client] = 0;
+                    clientHoursMap[d.client] += (d.h_reg + d.h_over);
+                });
+                let allClients = Object.keys(clientHoursMap).filter(Boolean).sort((a, b) => clientHoursMap[b] - clientHoursMap[a]);
+
+                // 기본 타겟 선정 (처음 실행 시 상위 2개 자동 선택)
+                if (!compTargetA && allClients.length > 0) compTargetA = allClients[0];
+                if (!compTargetB && allClients.length > 1) compTargetB = allClients[1] || allClients[0];
+
+                // 드롭다운 A 옵션 생성
+                let listA = allClients;
+                if (searchA) listA = listA.filter(c => c.toLowerCase().includes(searchA));
+                selA.innerHTML = '';
+                listA.forEach(c => {
+                    const h = Math.round(clientHoursMap[c] || 0);
+                    selA.add(new Option(`${c} (${h.toLocaleString()}h)`, c));
+                });
+                if (allClients.includes(compTargetA)) selA.value = compTargetA;
+
+                // 드롭다운 B 옵션 생성
+                let listB = allClients;
+                if (searchB) listB = listB.filter(c => c.toLowerCase().includes(searchB));
+                selB.innerHTML = '';
+                listB.forEach(c => {
+                    const h = Math.round(clientHoursMap[c] || 0);
+                    selB.add(new Option(`${c} (${h.toLocaleString()}h)`, c));
+                });
+                if (allClients.includes(compTargetB)) selB.value = compTargetB;
+
+            } else {
+                // 프로젝트 목록 추출 및 총 시간 기준 정렬
+                const projMap = {};
+                rawData.forEach(d => {
+                    const key = `${d.client}|${d.project}`;
+                    if (!projMap[key]) projMap[key] = { client: d.client, project: d.project, hours: 0 };
+                    projMap[key].hours += (d.h_reg + d.h_over);
+                });
+                let allProjs = Object.keys(projMap).filter(Boolean).sort((a, b) => projMap[b].hours - projMap[a].hours);
+
+                // 기본 타겟 선정
+                if (!compTargetA && allProjs.length > 0) compTargetA = allProjs[0];
+                if (!compTargetB && allProjs.length > 1) compTargetB = allProjs[1] || allProjs[0];
+
+                // 드롭다운 A 옵션 생성
+                let listA = allProjs;
+                if (searchA) listA = listA.filter(k => k.toLowerCase().includes(searchA));
+                selA.innerHTML = '';
+                listA.forEach(k => {
+                    const item = projMap[k];
+                    const h = Math.round(item.hours || 0);
+                    selA.add(new Option(`[${item.client}] ${item.project} (${h.toLocaleString()}h)`, k));
+                });
+                if (allProjs.includes(compTargetA)) selA.value = compTargetA;
+
+                // 드롭다운 B 옵션 생성
+                let listB = allProjs;
+                if (searchB) listB = listB.filter(k => k.toLowerCase().includes(searchB));
+                selB.innerHTML = '';
+                listB.forEach(k => {
+                    const item = projMap[k];
+                    const h = Math.round(item.hours || 0);
+                    selB.add(new Option(`[${item.client}] ${item.project} (${h.toLocaleString()}h)`, k));
+                });
+                if (allProjs.includes(compTargetB)) selB.value = compTargetB;
+            }
+        }
+
+        function onCompSearchInput(side) {
+            const input = document.getElementById(`compSearchInput${side}`);
+            const btnClear = document.getElementById(`btnClearComp${side}`);
+            if (btnClear) btnClear.classList.toggle('hidden', !input.value);
+
+            populateCompDropdowns();
+            const sel = document.getElementById(`compSel${side}`);
+            if (sel && sel.options.length > 0) {
+                if (side === 'A') compTargetA = sel.value;
+                else compTargetB = sel.value;
+                runComparison();
+            }
+        }
+
+        function clearCompSearch(side, trigger = true) {
+            const input = document.getElementById(`compSearchInput${side}`);
+            if (input) input.value = '';
+            const btnClear = document.getElementById(`btnClearComp${side}`);
+            if (btnClear) btnClear.classList.add('hidden');
+            if (trigger) {
+                populateCompDropdowns();
+                runComparison();
+            }
+        }
+
+        function onCompSelectChange(side) {
+            const sel = document.getElementById(`compSel${side}`);
+            if (side === 'A') compTargetA = sel.value;
+            else compTargetB = sel.value;
+            runComparison();
+        }
+
+        function swapComparisonTargets() {
+            const temp = compTargetA;
+            compTargetA = compTargetB;
+            compTargetB = temp;
+
+            populateCompDropdowns();
+            runComparison();
+        }
+
+        function updateComparisonPeriodSync() {
+            const syncChk = document.getElementById('chkCompSyncPeriod');
+            if (syncChk && syncChk.checked) {
+                runComparison();
+            }
+        }
+
+        // =====================================================================
+        // 핵심 비교 연산 및 렌더링
+        // =====================================================================
+        function runComparison() {
+            const selA = document.getElementById('compSelA');
+            const selB = document.getElementById('compSelB');
+            if (selA && selA.value) compTargetA = selA.value;
+            if (selB && selB.value) compTargetB = selB.value;
+
+            const isSync = document.getElementById('chkCompSyncPeriod')?.checked;
+            const syncLabel = document.getElementById('compSyncPeriodLabel');
+            if (syncLabel) {
+                if (isSync) {
+                    const yr = document.getElementById('tmSelYear')?.value;
+                    const period = document.getElementById('tmSelPeriod')?.value;
+                    syncLabel.innerText = `${yr ? yr + '년' : '전체년도'} / ${period || '전체구간'} 적용중`;
+                } else {
+                    syncLabel.innerText = '전체 누적 이력 비교';
+                }
+            }
+
+            // 데이터 필터링 기본셋
+            let baseData = rawData;
+            if (isSync) {
+                const yr = document.getElementById('tmSelYear')?.value;
+                const period = document.getElementById('tmSelPeriod')?.value;
+                if (!currentWorkplace.includes('ALL')) {
+                    baseData = baseData.filter(d => currentWorkplace.includes(d.workplace));
+                }
+                if (yr) baseData = baseData.filter(d => d.year === yr);
+                if (period && period !== 'ALL') {
+                    baseData = baseData.filter(d => {
+                        let m = parseInt(d.month);
+                        if (period === 'H1') return m >= 1 && m <= 6;
+                        if (period === 'H2') return m >= 7 && m <= 12;
+                        if (period.startsWith('Q')) {
+                            let q = parseInt(period.replace('Q', ''));
+                            return m >= (q - 1) * 3 + 1 && m <= q * 3;
+                        }
+                        if (period.startsWith('M')) {
+                            return m === parseInt(period.replace('M', ''));
+                        }
+                        return true;
+                    });
+                }
+            }
+
+            // Target A / B 데이터 추출
+            let dataA = [];
+            let dataB = [];
+            let labelA = compTargetA;
+            let labelB = compTargetB;
+
+            if (compMode === 'client') {
+                dataA = baseData.filter(d => d.client === compTargetA);
+                dataB = baseData.filter(d => d.client === compTargetB);
+            } else {
+                const [cNameA, pNameA] = (compTargetA || '').split('|');
+                const [cNameB, pNameB] = (compTargetB || '').split('|');
+                dataA = baseData.filter(d => d.client === cNameA && d.project === pNameA);
+                dataB = baseData.filter(d => d.client === cNameB && d.project === pNameB);
+                labelA = pNameA ? `[${cNameA}] ${pNameA}` : compTargetA;
+                labelB = pNameB ? `[${cNameB}] ${pNameB}` : compTargetB;
+            }
+
+            const metricsA = calculateDatasetMetrics(dataA);
+            const metricsB = calculateDatasetMetrics(dataB);
+
+            // 뱃지 업데이트
+            const badgeA = document.getElementById('compBadgeA');
+            const badgeB = document.getElementById('compBadgeB');
+            if (badgeA) badgeA.innerText = `${Math.round(metricsA.totalHours).toLocaleString()}h (${metricsA.records}건)`;
+            if (badgeB) badgeB.innerText = `${Math.round(metricsB.totalHours).toLocaleString()}h (${metricsB.records}건)`;
+
+            compLastReportData = { metricsA, metricsB, labelA, labelB, mode: compMode };
+
+            // 1. KPI 카드 렌더링
+            renderCompKpiCards(metricsA, metricsB, labelA, labelB);
+
+            // 2. AI 인사이트 렌더링
+            renderCompInsight(metricsA, metricsB, labelA, labelB);
+
+            // 3. 차트 렌더링
+            renderCompCharts(metricsA, metricsB, labelA, labelB);
+
+            // 4. 테이블 렌더링
+            renderCompTable(metricsA, metricsB, labelA, labelB);
+        }
+
+        function calculateDatasetMetrics(dataset) {
+            let totalHours = 0;
+            let regHours = 0;
+            let overHours = 0;
+            let totalCost = 0;
+            const workers = new Set();
+            const dates = new Set();
+            const processMap = {};
+            const workerMap = {};
+            const monthlyMap = {};
+
+            dataset.forEach(d => {
+                const h = (d.h_reg + d.h_over) || 0;
+                totalHours += h;
+                regHours += (d.h_reg || 0);
+                overHours += (d.h_over || 0);
+                totalCost += (d.cost || 0);
+
+                if (d.worker) workers.add(d.worker);
+                if (d.date) dates.add(d.date);
+
+                // 공정별 집계
+                const pType = d.type || '기타';
+                if (!processMap[pType]) processMap[pType] = { hours: 0, cost: 0, count: 0 };
+                processMap[pType].hours += h;
+                processMap[pType].cost += (d.cost || 0);
+                processMap[pType].count++;
+
+                // 작업자별 집계
+                if (d.worker) {
+                    if (!workerMap[d.worker]) workerMap[d.worker] = { hours: 0, cost: 0, types: new Set() };
+                    workerMap[d.worker].hours += h;
+                    workerMap[d.worker].cost += (d.cost || 0);
+                    workerMap[d.worker].types.add(pType);
+                }
+
+                // 월별 집계 (YYYY-MM)
+                const ym = (d.year && d.month) ? `${d.year}.${d.month.padStart(2, '0')}` : '기타';
+                if (!monthlyMap[ym]) monthlyMap[ym] = { hours: 0, cost: 0 };
+                monthlyMap[ym].hours += h;
+                monthlyMap[ym].cost += (d.cost || 0);
+            });
+
+            const overRate = totalHours > 0 ? (overHours / totalHours) * 100 : 0;
+            const costPerHour = totalHours > 0 ? totalCost / totalHours : 0;
+            const activeDays = dates.size;
+            const dailyHours = activeDays > 0 ? totalHours / activeDays : 0;
+
+            return {
+                records: dataset.length,
+                totalHours,
+                regHours,
+                overHours,
+                overRate,
+                totalCost,
+                costPerHour,
+                workerCount: workers.size,
+                activeDays,
+                dailyHours,
+                processMap,
+                workerMap,
+                monthlyMap
+            };
+        }
+
+        // =====================================================================
+        // 1. KPI 지표 카드 렌더링
+        // =====================================================================
+        function renderCompKpiCards(mA, mB, labelA, labelB) {
+            const container = document.getElementById('compKpiGrid');
+            if (!container) return;
+
+            function formatDiff(valA, valB, unit = '', isPositiveGood = false) {
+                const diff = valA - valB;
+                if (valB === 0 && valA === 0) return `<span class="text-slate-400 font-bold text-[11px]">- 동일</span>`;
+                const pct = valB > 0 ? ((diff / valB) * 100).toFixed(1) : (diff > 0 ? '+100' : '0');
+                const isHigher = diff > 0;
+                const sign = isHigher ? '+' : '';
+                
+                // 잔업률 등은 낮을수록 좋은 지표
+                const isGood = isPositiveGood ? isHigher : !isHigher;
+                const colorCls = diff === 0 ? 'text-slate-400' : (isGood ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-rose-600 bg-rose-50 border-rose-200');
+
+                return `<span class="inline-flex items-center gap-1 text-[11px] font-black px-2 py-0.5 rounded-full border ${colorCls}">
+                    ${isHigher ? '▲' : (diff < 0 ? '▼' : '')} ${sign}${typeof diff === 'number' && Number.isInteger(diff) ? diff.toLocaleString() : diff.toFixed(1)}${unit} (${sign}${pct}%)
+                </span>`;
+            }
+
+            function makeCard(title, icon, valAStr, valBStr, numA, numB, diffHtml, helperText) {
+                const total = (numA + numB) || 1;
+                const pctA = Math.min(100, Math.max(0, Math.round((numA / total) * 100)));
+                const pctB = 100 - pctA;
+
+                return `
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-purple-300 transition-colors">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[11px] font-black text-slate-500 flex items-center gap-1.5">
+                                    <span>${icon}</span>
+                                    <span>${title}</span>
+                                </span>
+                                ${diffHtml}
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 mt-1">
+                                <div class="bg-indigo-50/60 p-2 rounded-xl border border-indigo-100">
+                                    <span class="text-[10px] font-bold text-indigo-500 block">A: 기준</span>
+                                    <span class="text-sm font-black text-indigo-950">${valAStr}</span>
+                                </div>
+                                <div class="bg-emerald-50/60 p-2 rounded-xl border border-emerald-100">
+                                    <span class="text-[10px] font-bold text-emerald-600 block">B: 비교</span>
+                                    <span class="text-sm font-black text-emerald-950">${valBStr}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 듀얼 미니 바 게이지 -->
+                        <div class="mt-3 pt-2 border-t border-slate-100">
+                            <div class="flex items-center justify-between text-[9px] font-extrabold text-slate-400 mb-1">
+                                <span>A ${pctA}%</span>
+                                <span>B ${pctB}%</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex">
+                                <div style="width: ${pctA}%" class="bg-indigo-500 h-full transition-all duration-500"></div>
+                                <div style="width: ${pctB}%" class="bg-emerald-500 h-full transition-all duration-500"></div>
+                            </div>
+                            ${helperText ? `<span class="text-[10px] text-slate-400 font-bold block mt-1.5">${helperText}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            const cards = [
+                makeCard(
+                    '총 투입 공수 (Total Hours)',
+                    '⏱️',
+                    `${Math.round(mA.totalHours).toLocaleString()}h`,
+                    `${Math.round(mB.totalHours).toLocaleString()}h`,
+                    mA.totalHours,
+                    mB.totalHours,
+                    formatDiff(mA.totalHours, mB.totalHours, 'h', false),
+                    `정규 ${Math.round(mA.regHours)}h vs ${Math.round(mB.regHours)}h`
+                ),
+                makeCard(
+                    '총 투입 비용 (Total Cost)',
+                    '💰',
+                    `₩ ${(mA.totalCost / 10000).toLocaleString(undefined, {maximumFractionDigits: 0})}만`,
+                    `₩ ${(mB.totalCost / 10000).toLocaleString(undefined, {maximumFractionDigits: 0})}만`,
+                    mA.totalCost,
+                    mB.totalCost,
+                    formatDiff(Math.round(mA.totalCost / 10000), Math.round(mB.totalCost / 10000), '만', false),
+                    `실집행 공급가 총액`
+                ),
+                makeCard(
+                    '야간 / 잔업률 (Overtime)',
+                    '🌙',
+                    `${mA.overRate.toFixed(1)}%`,
+                    `${mB.overRate.toFixed(1)}%`,
+                    mA.overRate,
+                    mB.overRate,
+                    formatDiff(mA.overRate, mB.overRate, '%p', false), // 잔업률은 낮을수록 좋음
+                    `잔업 ${Math.round(mA.overHours)}h vs ${Math.round(mB.overHours)}h`
+                ),
+                makeCard(
+                    '시간당 평균 단가 (Cost / Hour)',
+                    '🏷️',
+                    `₩ ${Math.round(mA.costPerHour).toLocaleString()}`,
+                    `₩ ${Math.round(mB.costPerHour).toLocaleString()}`,
+                    mA.costPerHour,
+                    mB.costPerHour,
+                    formatDiff(Math.round(mA.costPerHour), Math.round(mB.costPerHour), '원', false),
+                    `투입 공수당 집행 비용 단가`
+                ),
+                makeCard(
+                    '투입 작업자 수 (Workers)',
+                    '👥',
+                    `${mA.workerCount}명`,
+                    `${mB.workerCount}명`,
+                    mA.workerCount,
+                    mB.workerCount,
+                    formatDiff(mA.workerCount, mB.workerCount, '명', true),
+                    `참여 고유 인력 규모`
+                ),
+                makeCard(
+                    '작업 투입 일수 (Active Days)',
+                    '📅',
+                    `${mA.activeDays}일`,
+                    `${mB.activeDays}일`,
+                    mA.activeDays,
+                    mB.activeDays,
+                    formatDiff(mA.activeDays, mB.activeDays, '일', false),
+                    `실제 작업이 발생한 일자 수`
+                ),
+                makeCard(
+                    '일평균 투입 공수 (Daily Hours)',
+                    '⚡',
+                    `${mA.dailyHours.toFixed(1)}h/일`,
+                    `${mB.dailyHours.toFixed(1)}h/일`,
+                    mA.dailyHours,
+                    mB.dailyHours,
+                    formatDiff(mA.dailyHours, mB.dailyHours, 'h', false),
+                    `작업일 기준 하루 투입 집중도`
+                ),
+                makeCard(
+                    '작업 기록 건수 (Records)',
+                    '📑',
+                    `${mA.records.toLocaleString()}건`,
+                    `${mB.records.toLocaleString()}건`,
+                    mA.records,
+                    mB.records,
+                    formatDiff(mA.records, mB.records, '건', false),
+                    `데이터 로그 등록 행수`
+                )
+            ];
+
+            container.innerHTML = cards.join('');
+        }
+
+        // =====================================================================
+        // 2. AI 인사이트 자동 진단 텍스트 생성
+        // =====================================================================
+        function renderCompInsight(mA, mB, labelA, labelB) {
+            const container = document.getElementById('compInsightContent');
+            if (!container) return;
+
+            const insights = [];
+
+            // 1) 총 공수 비교
+            const hDiff = mA.totalHours - mB.totalHours;
+            const hPct = mB.totalHours > 0 ? Math.abs((hDiff / mB.totalHours) * 100).toFixed(1) : 0;
+            if (Math.abs(hDiff) > 1) {
+                const targetMore = hDiff > 0 ? labelA : labelB;
+                const targetLess = hDiff > 0 ? labelB : labelA;
+                insights.push(`⏱️ <strong>총 투입 공수:</strong> <strong>[${targetMore}]</strong>이(가) [${targetLess}] 대비 <span class="text-indigo-700 font-black">${Math.abs(Math.round(hDiff)).toLocaleString()}시간 (${hPct}%)</span> 더 많은 인력이 집중 투입되었습니다.`);
+            } else {
+                insights.push(`⏱️ <strong>총 투입 공수:</strong> 두 대상의 총 투입 공수가 약 ${Math.round(mA.totalHours)}시간으로 거의 대등한 수준입니다.`);
+            }
+
+            // 2) 잔업률 비교
+            const otDiff = mA.overRate - mB.overRate;
+            if (Math.abs(otDiff) >= 1.0) {
+                const otBetter = otDiff < 0 ? labelA : labelB;
+                const otHigher = otDiff < 0 ? labelB : labelA;
+                insights.push(`🌙 <strong>야간/잔업 의존도:</strong> <strong>[${otBetter}]</strong>의 잔업률(${Math.min(mA.overRate, mB.overRate).toFixed(1)}%)이 [${otHigher}](${Math.max(mA.overRate, mB.overRate).toFixed(1)}%)보다 <span class="text-emerald-700 font-black">${Math.abs(otDiff).toFixed(1)}%p 낮아</span> 정규 근무 집중도 및 피로도 관리 측면에서 효율적입니다.`);
+            }
+
+            // 3) 시간당 단가 효율
+            const costDiff = mA.costPerHour - mB.costPerHour;
+            if (Math.abs(costDiff) > 500) {
+                const lowerCost = costDiff < 0 ? labelA : labelB;
+                const higherCost = costDiff < 0 ? labelB : labelA;
+                insights.push(`💰 <strong>비용 효율성:</strong> 시간당 집행 단가는 <strong>[${lowerCost}]</strong>이(가) 시간당 ₩${Math.round(Math.min(mA.costPerHour, mB.costPerHour)).toLocaleString()}으로 [${higherCost}] 대비 <span class="text-purple-700 font-black">시간당 ₩${Math.abs(Math.round(costDiff)).toLocaleString()}</span> 더 경제적으로 집행되었습니다.`);
+            }
+
+            // 4) 최대 공정 비교
+            const topProcA = Object.keys(mA.processMap).sort((x, y) => mA.processMap[y].hours - mA.processMap[x].hours)[0] || '-';
+            const topProcB = Object.keys(mB.processMap).sort((x, y) => mB.processMap[y].hours - mB.processMap[x].hours)[0] || '-';
+            const pctProcA = mA.totalHours > 0 ? ((mA.processMap[topProcA]?.hours || 0) / mA.totalHours * 100).toFixed(1) : 0;
+            const pctProcB = mB.totalHours > 0 ? ((mB.processMap[topProcB]?.hours || 0) / mB.totalHours * 100).toFixed(1) : 0;
+
+            insights.push(`🔧 <strong>주력 공정 분석:</strong> [${labelA}]의 최다 투입 공정은 <strong>[${topProcA}]</strong>(${pctProcA}%), [${labelB}]의 최다 투입 공정은 <strong>[${topProcB}]</strong>(${pctProcB}%)입니다.`);
+
+            container.innerHTML = insights.map(i => `<div class="p-1.5 bg-white/70 rounded-lg border border-purple-100 flex items-start gap-1.5"><span>•</span><div>${i}</div></div>`).join('');
+        }
+
+        // =====================================================================
+        // 3. 차트 2종 렌더링 (ECharts)
+        // =====================================================================
+        function renderCompCharts(mA, mB, labelA, labelB) {
+            const chartDom1 = document.getElementById('compProcessChart');
+            const chartDom2 = document.getElementById('compTimelineChart');
+            if (!chartDom1 || !chartDom2) return;
+
+            if (!compProcessChartInstance) {
+                compProcessChartInstance = echarts.init(chartDom1);
+                window.addEventListener('resize', () => { if (compProcessChartInstance) compProcessChartInstance.resize(); });
+            }
+            if (!compTimelineChartInstance) {
+                compTimelineChartInstance = echarts.init(chartDom2);
+                window.addEventListener('resize', () => { if (compTimelineChartInstance) compTimelineChartInstance.resize(); });
+            }
+
+            // --- 1) 공정별 투입 비교 바 차트 ---
+            const allProcesses = [...new Set([...Object.keys(mA.processMap), ...Object.keys(mB.processMap)])].sort((x, y) => {
+                const totalX = (mA.processMap[x]?.hours || 0) + (mB.processMap[x]?.hours || 0);
+                const totalY = (mA.processMap[y]?.hours || 0) + (mB.processMap[y]?.hours || 0);
+                return totalY - totalX;
+            }).slice(0, 10); // 상위 10개 공정
+
+            const seriesA_Proc = allProcesses.map(p => Math.round(mA.processMap[p]?.hours || 0));
+            const seriesB_Proc = allProcesses.map(p => Math.round(mB.processMap[p]?.hours || 0));
+
+            const optProcess = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                    formatter: function(params) {
+                        let res = `<div class="font-bold text-xs pb-1 mb-1 border-b border-slate-200">${params[0].name}</div>`;
+                        params.forEach(p => {
+                            res += `<div class="flex items-center justify-between gap-4 text-xs py-0.5">
+                                <span>${p.marker} ${p.seriesName}</span>
+                                <span class="font-black">${p.value.toLocaleString()} h</span>
+                            </div>`;
+                        });
+                        return res;
+                    }
+                },
+                legend: {
+                    top: '0%',
+                    right: '0%',
+                    textStyle: { fontWeight: 'bold', fontSize: 11 }
+                },
+                grid: { top: '35px', left: '3%', right: '4%', bottom: '5%', containLabel: true },
+                xAxis: {
+                    type: 'category',
+                    data: allProcesses,
+                    axisLabel: { interval: 0, rotate: 25, fontSize: 11, fontWeight: 'bold', color: '#475569' }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '시간 (h)',
+                    nameTextStyle: { color: '#94a3b8', fontSize: 10 },
+                    splitLine: { lineStyle: { type: 'dashed', color: '#f1f5f9' } }
+                },
+                series: [
+                    {
+                        name: `[A] ${labelA.length > 12 ? labelA.slice(0, 10) + '..' : labelA}`,
+                        type: 'bar',
+                        data: seriesA_Proc,
+                        itemStyle: { color: '#6366f1', borderRadius: [6, 6, 0, 0] },
+                        barMaxWidth: 24
+                    },
+                    {
+                        name: `[B] ${labelB.length > 12 ? labelB.slice(0, 10) + '..' : labelB}`,
+                        type: 'bar',
+                        data: seriesB_Proc,
+                        itemStyle: { color: '#10b981', borderRadius: [6, 6, 0, 0] },
+                        barMaxWidth: 24
+                    }
+                ]
+            };
+            compProcessChartInstance.setOption(optProcess, true);
+
+            // --- 2) 월별 투입 추이 라인 차트 ---
+            const allMonths = [...new Set([...Object.keys(mA.monthlyMap), ...Object.keys(mB.monthlyMap)])].sort();
+            const seriesA_Time = allMonths.map(m => Math.round(mA.monthlyMap[m]?.hours || 0));
+            const seriesB_Time = allMonths.map(m => Math.round(mB.monthlyMap[m]?.hours || 0));
+
+            const optTimeline = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'line' },
+                    formatter: function(params) {
+                        let res = `<div class="font-bold text-xs pb-1 mb-1 border-b border-slate-200">${params[0].name}</div>`;
+                        params.forEach(p => {
+                            res += `<div class="flex items-center justify-between gap-4 text-xs py-0.5">
+                                <span>${p.marker} ${p.seriesName}</span>
+                                <span class="font-black">${p.value.toLocaleString()} h</span>
+                            </div>`;
+                        });
+                        return res;
+                    }
+                },
+                legend: {
+                    top: '0%',
+                    right: '0%',
+                    textStyle: { fontWeight: 'bold', fontSize: 11 }
+                },
+                grid: { top: '35px', left: '3%', right: '4%', bottom: '5%', containLabel: true },
+                xAxis: {
+                    type: 'category',
+                    data: allMonths,
+                    boundaryGap: false,
+                    axisLabel: { interval: 'auto', rotate: 25, fontSize: 11, fontWeight: 'bold', color: '#475569' }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '시간 (h)',
+                    nameTextStyle: { color: '#94a3b8', fontSize: 10 },
+                    splitLine: { lineStyle: { type: 'dashed', color: '#f1f5f9' } }
+                },
+                series: [
+                    {
+                        name: `[A] ${labelA.length > 12 ? labelA.slice(0, 10) + '..' : labelA}`,
+                        type: 'line',
+                        data: seriesA_Time,
+                        smooth: true,
+                        symbol: 'circle',
+                        symbolSize: 6,
+                        lineStyle: { width: 3, color: '#6366f1' },
+                        itemStyle: { color: '#6366f1' },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: 'rgba(99, 102, 241, 0.25)' },
+                                { offset: 1, color: 'rgba(99, 102, 241, 0.01)' }
+                            ])
+                        }
+                    },
+                    {
+                        name: `[B] ${labelB.length > 12 ? labelB.slice(0, 10) + '..' : labelB}`,
+                        type: 'line',
+                        data: seriesB_Time,
+                        smooth: true,
+                        symbol: 'circle',
+                        symbolSize: 6,
+                        lineStyle: { width: 3, color: '#10b981' },
+                        itemStyle: { color: '#10b981' },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: 'rgba(16, 185, 129, 0.25)' },
+                                { offset: 1, color: 'rgba(16, 185, 129, 0.01)' }
+                            ])
+                        }
+                    }
+                ]
+            };
+            compTimelineChartInstance.setOption(optTimeline, true);
+        }
+
+        // =====================================================================
+        // 4. 정밀 세부 비교 표 렌더링
+        // =====================================================================
+        function switchCompSubTab(tab) {
+            compSubTab = tab;
+            ['process', 'worker', 'monthly'].forEach(t => {
+                const btn = document.getElementById(`btnSubTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if (btn) {
+                    if (t === tab) {
+                        btn.className = 'px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm font-black transition-all';
+                    } else {
+                        btn.className = 'px-3 py-1.5 rounded-md text-slate-500 hover:text-slate-800 transition-all';
+                    }
+                }
+            });
+
+            const subText = document.getElementById('compTableSubtext');
+            if (subText) {
+                if (tab === 'process') subText.innerText = '공정별 투입 공수 및 비중 격차를 분석합니다.';
+                else if (tab === 'worker') subText.innerText = '각 대상에 투입된 작업자별 공수 기여도를 비교합니다.';
+                else subText.innerText = '월별 투입 시간 및 비용 추이를 비교합니다.';
+            }
+
+            if (compLastReportData) {
+                renderCompTable(compLastReportData.metricsA, compLastReportData.metricsB, compLastReportData.labelA, compLastReportData.labelB);
+            }
+        }
+
+        function renderCompTable(mA, mB, labelA, labelB) {
+            const container = document.getElementById('compTableContainer');
+            if (!container) return;
+
+            let html = '';
+
+            if (compSubTab === 'process') {
+                const allProcesses = [...new Set([...Object.keys(mA.processMap), ...Object.keys(mB.processMap)])].sort((x, y) => {
+                    const tX = (mA.processMap[x]?.hours || 0) + (mB.processMap[x]?.hours || 0);
+                    const tY = (mA.processMap[y]?.hours || 0) + (mB.processMap[y]?.hours || 0);
+                    return tY - tX;
+                });
+
+                html = `
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 text-[11px] font-black uppercase">
+                                <th class="p-3">공정 구분</th>
+                                <th class="p-3 text-indigo-700 bg-indigo-50/50">[A] 시간 (h)</th>
+                                <th class="p-3 text-indigo-700 bg-indigo-50/50">[A] 비중 (%)</th>
+                                <th class="p-3 text-emerald-700 bg-emerald-50/50">[B] 시간 (h)</th>
+                                <th class="p-3 text-emerald-700 bg-emerald-50/50">[B] 비중 (%)</th>
+                                <th class="p-3 text-purple-700">격차 (A - B)</th>
+                                <th class="p-3" style="min-width: 160px;">비중 비교 바</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-bold text-slate-700">
+                `;
+
+                allProcesses.forEach(p => {
+                    const hA = mA.processMap[p]?.hours || 0;
+                    const hB = mB.processMap[p]?.hours || 0;
+                    const pctA = mA.totalHours > 0 ? (hA / mA.totalHours) * 100 : 0;
+                    const pctB = mB.totalHours > 0 ? (hB / mB.totalHours) * 100 : 0;
+                    const diff = hA - hB;
+                    const diffCls = diff > 0 ? 'text-indigo-600' : (diff < 0 ? 'text-emerald-600' : 'text-slate-400');
+                    const diffSign = diff > 0 ? '+' : '';
+
+                    html += `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-3 font-black text-slate-900 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                                <span>${p}</span>
+                            </td>
+                            <td class="p-3 bg-indigo-50/20 font-black text-indigo-950">${Math.round(hA).toLocaleString()} h</td>
+                            <td class="p-3 bg-indigo-50/20 text-indigo-700">${pctA.toFixed(1)}%</td>
+                            <td class="p-3 bg-emerald-50/20 font-black text-emerald-950">${Math.round(hB).toLocaleString()} h</td>
+                            <td class="p-3 bg-emerald-50/20 text-emerald-700">${pctB.toFixed(1)}%</td>
+                            <td class="p-3 font-black ${diffCls}">${diffSign}${Math.round(diff).toLocaleString()} h</td>
+                            <td class="p-3">
+                                <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden flex">
+                                    <div style="width: ${pctA}%" class="bg-indigo-500 h-full" title="A: ${pctA.toFixed(1)}%"></div>
+                                    <div style="width: ${pctB}%" class="bg-emerald-500 h-full" title="B: ${pctB.toFixed(1)}%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `</tbody></table>`;
+
+            } else if (compSubTab === 'worker') {
+                const allWorkers = [...new Set([...Object.keys(mA.workerMap), ...Object.keys(mB.workerMap)])].sort((x, y) => {
+                    const tX = (mA.workerMap[x]?.hours || 0) + (mB.workerMap[x]?.hours || 0);
+                    const tY = (mA.workerMap[y]?.hours || 0) + (mB.workerMap[y]?.hours || 0);
+                    return tY - tX;
+                });
+
+                html = `
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 text-[11px] font-black uppercase">
+                                <th class="p-3">작업자</th>
+                                <th class="p-3 text-indigo-700 bg-indigo-50/50">[A] 투입시간</th>
+                                <th class="p-3 text-indigo-700 bg-indigo-50/50">[A] 참여 공정</th>
+                                <th class="p-3 text-emerald-700 bg-emerald-50/50">[B] 투입시간</th>
+                                <th class="p-3 text-emerald-700 bg-emerald-50/50">[B] 참여 공정</th>
+                                <th class="p-3 text-purple-700">격차 (A - B)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-bold text-slate-700">
+                `;
+
+                allWorkers.forEach(w => {
+                    const hA = mA.workerMap[w]?.hours || 0;
+                    const hB = mB.workerMap[w]?.hours || 0;
+                    const typesA = Array.from(mA.workerMap[w]?.types || []).join(', ') || '-';
+                    const typesB = Array.from(mB.workerMap[w]?.types || []).join(', ') || '-';
+                    const diff = hA - hB;
+                    const diffSign = diff > 0 ? '+' : '';
+                    const diffCls = diff > 0 ? 'text-indigo-600' : (diff < 0 ? 'text-emerald-600' : 'text-slate-400');
+
+                    html += `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-3 font-black text-slate-900">${w}</td>
+                            <td class="p-3 bg-indigo-50/20 font-black text-indigo-950">${hA > 0 ? Math.round(hA).toLocaleString() + ' h' : '-'}</td>
+                            <td class="p-3 bg-indigo-50/20 text-slate-500 text-[11px]">${typesA}</td>
+                            <td class="p-3 bg-emerald-50/20 font-black text-emerald-950">${hB > 0 ? Math.round(hB).toLocaleString() + ' h' : '-'}</td>
+                            <td class="p-3 bg-emerald-50/20 text-slate-500 text-[11px]">${typesB}</td>
+                            <td class="p-3 font-black ${diffCls}">${diff !== 0 ? diffSign + Math.round(diff).toLocaleString() + ' h' : '0 h'}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `</tbody></table>`;
+
+            } else {
+                // 월별 추이
+                const allMonths = [...new Set([...Object.keys(mA.monthlyMap), ...Object.keys(mB.monthlyMap)])].sort();
+
+                html = `
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 text-[11px] font-black uppercase">
+                                <th class="p-3">연도 / 월</th>
+                                <th class="p-3 text-indigo-700 bg-indigo-50/50">[A] 시간 (h)</th>
+                                <th class="p-3 text-indigo-700 bg-indigo-50/50">[A] 비용 (₩)</th>
+                                <th class="p-3 text-emerald-700 bg-emerald-50/50">[B] 시간 (h)</th>
+                                <th class="p-3 text-emerald-700 bg-emerald-50/50">[B] 비용 (₩)</th>
+                                <th class="p-3 text-purple-700">시간 격차</th>
+                                <th class="p-3 text-purple-700">비용 격차</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-bold text-slate-700">
+                `;
+
+                allMonths.forEach(ym => {
+                    const hA = mA.monthlyMap[ym]?.hours || 0;
+                    const cA = mA.monthlyMap[ym]?.cost || 0;
+                    const hB = mB.monthlyMap[ym]?.hours || 0;
+                    const cB = mB.monthlyMap[ym]?.cost || 0;
+                    const hDiff = hA - hB;
+                    const cDiff = cA - cB;
+
+                    html += `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-3 font-black text-slate-900">${ym}</td>
+                            <td class="p-3 bg-indigo-50/20 font-black text-indigo-950">${Math.round(hA).toLocaleString()} h</td>
+                            <td class="p-3 bg-indigo-50/20 text-slate-600">₩ ${Math.round(cA).toLocaleString()}</td>
+                            <td class="p-3 bg-emerald-50/20 font-black text-emerald-950">${Math.round(hB).toLocaleString()} h</td>
+                            <td class="p-3 bg-emerald-50/20 text-slate-600">₩ ${Math.round(cB).toLocaleString()}</td>
+                            <td class="p-3 font-black ${hDiff > 0 ? 'text-indigo-600' : (hDiff < 0 ? 'text-emerald-600' : 'text-slate-400')}">
+                                ${hDiff > 0 ? '+' : ''}${Math.round(hDiff).toLocaleString()} h
+                            </td>
+                            <td class="p-3 font-black ${cDiff > 0 ? 'text-indigo-600' : (cDiff < 0 ? 'text-emerald-600' : 'text-slate-400')}">
+                                ${cDiff > 0 ? '+' : ''}₩ ${Math.round(cDiff).toLocaleString()}
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `</tbody></table>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // =====================================================================
+        // 5. 부가 도구 (CSV 다운로드 & 요약 복사)
+        // =====================================================================
+        function exportComparisonCSV() {
+            if (!compLastReportData) {
+                alert('비교 데이터가 존재하지 않습니다.');
+                return;
+            }
+            const { metricsA, metricsB, labelA, labelB, mode } = compLastReportData;
+
+            let csvContent = `\uFEFF[비교 분석 리포트]\n`;
+            csvContent += `구분,[A] ${labelA},[B] ${labelB},격차 (A - B)\n`;
+            csvContent += `총 투입 공수(h),${Math.round(metricsA.totalHours)},${Math.round(metricsB.totalHours)},${Math.round(metricsA.totalHours - metricsB.totalHours)}\n`;
+            csvContent += `정규 시간(h),${Math.round(metricsA.regHours)},${Math.round(metricsB.regHours)},${Math.round(metricsA.regHours - metricsB.regHours)}\n`;
+            csvContent += `잔업 시간(h),${Math.round(metricsA.overHours)},${Math.round(metricsB.overHours)},${Math.round(metricsA.overHours - metricsB.overHours)}\n`;
+            csvContent += `잔업률(%),${metricsA.overRate.toFixed(1)}%,${metricsB.overRate.toFixed(1)}%,${(metricsA.overRate - metricsB.overRate).toFixed(1)}%p\n`;
+            csvContent += `총 투입 비용(원),${Math.round(metricsA.totalCost)},${Math.round(metricsB.totalCost)},${Math.round(metricsA.totalCost - metricsB.totalCost)}\n`;
+            csvContent += `시간당 단가(원/h),${Math.round(metricsA.costPerHour)},${Math.round(metricsB.costPerHour)},${Math.round(metricsA.costPerHour - metricsB.costPerHour)}\n`;
+            csvContent += `투입 인원수(명),${metricsA.workerCount},${metricsB.workerCount},${metricsA.workerCount - metricsB.workerCount}\n`;
+            csvContent += `작업 일수(일),${metricsA.activeDays},${metricsB.activeDays},${metricsA.activeDays - metricsB.activeDays}\n\n`;
+
+            csvContent += `[공정별 투입 세부내역]\n`;
+            csvContent += `공정명,[A] 시간(h),[A] 비중(%),[B] 시간(h),[B] 비중(%),격차(h)\n`;
+            const allP = [...new Set([...Object.keys(metricsA.processMap), ...Object.keys(metricsB.processMap)])].sort();
+            allP.forEach(p => {
+                const hA = metricsA.processMap[p]?.hours || 0;
+                const hB = metricsB.processMap[p]?.hours || 0;
+                const pA = metricsA.totalHours > 0 ? (hA / metricsA.totalHours * 100).toFixed(1) : '0';
+                const pB = metricsB.totalHours > 0 ? (hB / metricsB.totalHours * 100).toFixed(1) : '0';
+                csvContent += `${p},${Math.round(hA)},${pA}%,${Math.round(hB)},${pB}%,${Math.round(hA - hB)}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `비교분석_${mode === 'client' ? '업체' : '프로젝트'}_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function copyComparisonSummary() {
+            if (!compLastReportData) {
+                alert('비교 데이터가 존재하지 않습니다.');
+                return;
+            }
+            const { metricsA, metricsB, labelA, labelB } = compLastReportData;
+            const diffH = metricsA.totalHours - metricsB.totalHours;
+            const pctH = metricsB.totalHours > 0 ? ((diffH / metricsB.totalHours) * 100).toFixed(1) : '0';
+
+            const summaryText = `[데이터 비교 분석 요약]
+- 대상 A: ${labelA}
+- 대상 B: ${labelB}
+----------------------------------------
+• 총 투입 공수: [A] ${Math.round(metricsA.totalHours).toLocaleString()}h vs [B] ${Math.round(metricsB.totalHours).toLocaleString()}h (차이: ${diffH > 0 ? '+' : ''}${Math.round(diffH).toLocaleString()}h, ${diffH > 0 ? '+' : ''}${pctH}%)
+• 총 투입 비용: [A] ₩${Math.round(metricsA.totalCost).toLocaleString()} vs [B] ₩${Math.round(metricsB.totalCost).toLocaleString()}
+• 야간 잔업률: [A] ${metricsA.overRate.toFixed(1)}% vs [B] ${metricsB.overRate.toFixed(1)}%
+• 시간당 단가: [A] ₩${Math.round(metricsA.costPerHour).toLocaleString()}/h vs [B] ₩${Math.round(metricsB.costPerHour).toLocaleString()}/h
+• 투입 인원수: [A] ${metricsA.workerCount}명 vs [B] ${metricsB.workerCount}명`;
+
+            navigator.clipboard.writeText(summaryText).then(() => {
+                alert('비교 분석 요약이 클립보드에 복사되었습니다. (보고서나 메신저에 바로 붙여넣기 하실 수 있습니다)');
+            }).catch(() => {
+                alert(summaryText);
+            });
+        }
+
+</script>
 </body>
 
 </html>

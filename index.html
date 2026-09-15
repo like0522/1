@@ -1621,7 +1621,27 @@
             renderSeriesCohort();
         }
 
-        function onSeriesCompanyChange() {
+        
+        function onSeriesChipToggleByIndex(idx) {
+            const p = seriesLastProjectsList[idx];
+            if (!p) return;
+            if (seriesSelectedProjects.has(p.key)) {
+                seriesSelectedProjects.delete(p.key);
+            } else {
+                seriesSelectedProjects.add(p.key);
+            }
+            updateSeriesChipsUI();
+            calculateAndRenderSeriesCharts();
+        }
+
+        function onSeriesTableDetailClick(idx) {
+            const activeProjects = seriesLastProjectsList.filter(p => seriesSelectedProjects.has(p.key));
+            const p = activeProjects[idx];
+            if (p && typeof selectSmartSearchResult === 'function') {
+                selectSmartSearchResult(p.client, p.project);
+            }
+        }
+function onSeriesCompanyChange() {
             renderSeriesCohort();
         }
 
@@ -1729,14 +1749,15 @@
                 return;
             }
 
-            container.innerHTML = seriesLastProjectsList.map(p => {
+            container.innerHTML = seriesLastProjectsList.map((p, idx) => {
                 const isSelected = seriesSelectedProjects.has(p.key);
                 const bg = isSelected ? 'bg-purple-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200';
+                const safeName = (p.project || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
                 return `
-                    <button type="button" onclick="onSeriesChipToggle('${p.key.replace(/'/g, "\\'")}')"
+                    <button type="button" onclick="onSeriesChipToggleByIndex(${idx})"
                         class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${bg}">
                         <span>${isSelected ? '✓' : '+'}</span>
-                        <span class="truncate max-w-[200px]">${p.project}</span>
+                        <span class="truncate max-w-[200px]">${safeName}</span>
                         <span class="text-[10px] opacity-80">(${Math.round(p.totalH)}h)</span>
                     </button>
                 `;
@@ -1958,19 +1979,20 @@
                     <tbody class="divide-y divide-slate-100 font-bold text-slate-700">
             `;
 
-            projects.forEach(p => {
+            projects.forEach((p, idx) => {
                 const diff = p.totalH - avgH;
                 const diffSign = diff > 0 ? '+' : '';
                 const diffCls = diff > 20 ? 'text-rose-600 bg-rose-50 border-rose-200' : (diff < -20 ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-slate-600 bg-slate-50 border-slate-200');
                 const overRate = p.totalH > 0 ? (p.overH / p.totalH) * 100 : 0;
                 const wage = p.totalH > 0 ? (p.cost / p.totalH) : 0;
+                const safeProj = (p.project || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
                 html += `
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="p-3 font-black text-slate-900 text-sm">
                             <div class="flex items-center gap-1.5">
                                 <span class="w-2 h-2 rounded-full bg-purple-600"></span>
-                                <span>${p.project}</span>
+                                <span>${safeProj}</span>
                             </div>
                         </td>
                         <td class="p-3 font-black text-indigo-950 text-sm">${Math.round(p.totalH).toLocaleString()} h</td>
@@ -1986,7 +2008,7 @@
                         <td class="p-3 text-slate-600">${p.workers.size}명</td>
                         <td class="p-3 text-slate-600">${p.dates.size}일</td>
                         <td class="p-3 text-center">
-                            <button type="button" onclick="selectSmartSearchResult('${p.client.replace(/'/g, "\\'")}', '${p.project.replace(/'/g, "\\')}')"
+                            <button type="button" onclick="onSeriesTableDetailClick(${idx})"
                                 class="px-3 py-1 bg-slate-800 hover:bg-purple-600 text-white font-black text-[11px] rounded-lg transition-colors shadow-sm">
                                 단가 상세 분석 ➔
                             </button>

@@ -127,8 +127,8 @@
     </style>
     <!-- UI 탭 스위처 조기 등록 (ReferenceError 원천 차단) -->
     <script>
-        var currentActiveTab = 1;
-        var tabHistory = [];
+        window.currentActiveTab = 1;
+        window.tabHistory = [];
 
         function switchTab(idx, isBack) {
             if (typeof window._internalSwitchTab === 'function') {
@@ -1320,8 +1320,8 @@
         let lastViewData = [];
         let currentWorkplace = ['A', 'B', 'C'];
         let waCalendarWidth = 1200; // 통합근태현황 달력 가로 폭 기본값
-        let tabHistory = [];
-        let currentActiveTab = 1;
+        var tabHistory = window.tabHistory || [];
+        var currentActiveTab = window.currentActiveTab || 1;
 
         function goBack() {
             if (tabHistory.length > 0) {

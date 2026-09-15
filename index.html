@@ -242,7 +242,7 @@
                             </svg>
                         </div>
                         <input type="text" id="smartQuickSearch"
-                            placeholder="🔍 프로젝트명 또는 업체명을 바로 검색하세요 (예: 동부, 타워, 101동, 현대 등)..."
+                            placeholder="🔍 복수 키워드로 정밀 검색 (예: 한일 500 타워 → 3개 단어를 모두 포함하는 결과만 표시)..."
                             oninput="onSmartSearchInput(this.value)"
                             onkeydown="onSmartSearchKeydown(event)"
                             class="w-full h-11 pl-10 pr-10 bg-white border-2 border-slate-200 focus:border-emerald-500 rounded-xl text-sm font-black text-slate-800 outline-none focus:ring-4 focus:ring-emerald-500/15 shadow-sm transition-all placeholder:text-slate-400 placeholder:font-normal"
@@ -295,7 +295,7 @@
                         </div>
                         <div class="relative mb-1">
                             <input type="text" id="searchCompanyInput"
-                                placeholder="🔍 업체 검색..."
+                                placeholder="🔍 업체 검색 (공백으로 복수 키워드, 예: 한일 프레스)..."
                                 oninput="onCompanySearchInput()"
                                 onkeydown="onCompanySearchKeydown(event)"
                                 class="w-full h-8 px-2.5 pr-6 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-slate-400"
@@ -315,7 +315,7 @@
                         </div>
                         <div class="relative mb-1">
                             <input type="text" id="searchProjectInput"
-                                placeholder="🔍 프로젝트 검색 (Enter 선택)..."
+                                placeholder="🔍 프로젝트 검색 (공백으로 복수 검색, 예: 500 타워)..."
                                 oninput="onProjectSearchInput()"
                                 onkeydown="onProjectSearchKeydown(event)"
                                 class="w-full h-8 px-2.5 pr-6 bg-white border-2 border-emerald-400 rounded-lg text-xs font-black text-slate-800 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-slate-400 placeholder:font-normal"
@@ -1718,9 +1718,13 @@
             let companies = [...new Set(filtered.map(i => i.client))].sort();
             const totalCompCount = companies.length;
 
-            // 업체 검색어 필터링
+            // 업체 검색어 필터링 (공백 구분 복수 키워드 AND 조건)
             if (compSearchVal) {
-                companies = companies.filter(c => (c || '').toLowerCase().includes(compSearchVal));
+                const compKeywords = compSearchVal.split(/\s+/).filter(k => k.length > 0);
+                companies = companies.filter(c => {
+                    const lc = (c || '').toLowerCase();
+                    return compKeywords.every(kw => lc.includes(kw));
+                });
             }
 
             const currentCompValue = compSel.value;
@@ -1744,11 +1748,13 @@
             let projectPairs = [...new Set(pFiltered.map(i => `${i.client}|${i.project}`))].sort();
             const totalProjCount = projectPairs.length;
 
-            // 프로젝트 검색어 필터링
+            // 프로젝트 검색어 필터링 (공백 구분 복수 키워드 AND 조건)
             if (projSearchVal) {
+                const projKeywords = projSearchVal.split(/\s+/).filter(k => k.length > 0);
                 projectPairs = projectPairs.filter(pair => {
                     const [cName, pName] = pair.split('|');
-                    return (pName || '').toLowerCase().includes(projSearchVal) || (!company && (cName || '').toLowerCase().includes(projSearchVal));
+                    const combined = ((pName || '') + ' ' + (cName || '')).toLowerCase();
+                    return projKeywords.every(kw => combined.includes(kw));
                 });
             }
 
@@ -1853,14 +1859,17 @@
             }
 
             const allProjects = Array.from(map.values());
+            const keywords = q.split(/\s+/).filter(k => k.length > 0);
             const matches = allProjects.filter(p => {
-                return p.project.toLowerCase().includes(q) || p.client.toLowerCase().includes(q);
+                const combined = (p.project + ' ' + p.client).toLowerCase();
+                return keywords.every(kw => combined.includes(kw));
             }).slice(0, 30);
 
             if (matches.length === 0) {
                 dropdown.innerHTML = `
                     <div class="p-5 text-center text-xs font-bold text-slate-400">
-                        일치하는 프로젝트가 없습니다: <span class="text-rose-500 font-black">"${q}"</span>
+                        일치하는 프로젝트가 없습니다: <span class="text-rose-500 font-black">"${keywords.join(' + ')}"</span>
+                        <div class="text-[10px] text-slate-400 mt-1">입력한 모든 키워드를 동시에 포함하는 결과가 없습니다.</div>
                     </div>
                 `;
                 dropdown.classList.remove('hidden');
@@ -1869,14 +1878,19 @@
             }
 
             let html = `<div class="p-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
-                <span>검색 결과: <strong class="text-emerald-600 font-black">${matches.length}</strong>건 (클릭 또는 Enter로 즉시 분석)</span>
+                <span>검색 결과: <strong class="text-emerald-600 font-black">${matches.length}</strong>건 (키워드 ${keywords.length}개 AND 매칭)</span>
                 <span class="text-[10px] text-slate-400">↑↓ 키보드 탐색, Enter 선택, ESC 닫기</span>
             </div>`;
 
             matches.forEach((item, idx) => {
-                const reg = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-                const pHighlight = item.project.replace(reg, '<span class="bg-amber-200 text-amber-950 px-0.5 rounded font-black">$1</span>');
-                const cHighlight = item.client.replace(reg, '<span class="bg-amber-200 text-amber-950 px-0.5 rounded font-black">$1</span>');
+                // 복수 키워드 각각에 대해 순차적으로 하이라이트 적용
+                let pHighlight = item.project;
+                let cHighlight = item.client;
+                keywords.forEach(kw => {
+                    const reg = new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                    pHighlight = pHighlight.replace(reg, '<span class="bg-amber-200 text-amber-950 px-0.5 rounded font-black">$1</span>');
+                    cHighlight = cHighlight.replace(reg, '<span class="bg-amber-200 text-amber-950 px-0.5 rounded font-black">$1</span>');
+                });
 
                 html += `
                     <div class="smart-search-item px-4 py-3 hover:bg-emerald-50/80 cursor-pointer flex items-center justify-between transition-colors border-b border-slate-50 last:border-b-0"

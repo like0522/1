@@ -2,6 +2,9 @@
 <html lang="ko">
 
 <head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>프로젝트 정밀 분석 시스템 V4.5 (단가/도급 분석 최적화 & 시각화)</title>
@@ -122,6 +125,35 @@
             animation: highlight 0.4s ease-out;
         }
     </style>
+    <!-- UI 탭 스위처 조기 등록 (ReferenceError 원천 차단) -->
+    <script>
+        var currentActiveTab = 1;
+        var tabHistory = [];
+
+        function switchTab(idx, isBack) {
+            if (typeof window._internalSwitchTab === 'function') {
+                window._internalSwitchTab(idx, isBack);
+            } else {
+                currentActiveTab = idx;
+                // 아직 메인 스크립트가 파싱 중인 경우 UI 클래스만 선행 반영
+                var t1 = document.getElementById('btnTab1');
+                var t2 = document.getElementById('btnTab2');
+                var t3 = document.getElementById('btnTab3');
+                var d1 = document.getElementById('tabDetailAnalysis');
+                var d2 = document.getElementById('tabTreeMapMode');
+                var d3 = document.getElementById('tabWorkerAttendance');
+                
+                if (d1) d1.classList.add('hidden');
+                if (d2) d2.classList.add('hidden');
+                if (d3) d3.classList.add('hidden');
+
+                if (idx === 1 && d1) d1.classList.remove('hidden');
+                if (idx === 2 && d2) d2.classList.remove('hidden');
+                if (idx === 3 && d3) d3.classList.remove('hidden');
+            }
+        }
+        window.switchTab = switchTab;
+    </script>
 </head>
 
 <body class="pb-20">
@@ -1371,6 +1403,7 @@
         }
 
         function switchTab(idx, isBack = false) {
+            window._internalSwitchTab = switchTab;
             if (!isBack && currentActiveTab !== idx) {
                 tabHistory.push(currentActiveTab);
             }
@@ -2866,113 +2899,180 @@
         const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXpen60QpXqMC4HdFQ6R_E5K2coAe69reBg6Fge_jLAMlvdzl7TXWooeXhgGvllkurG6GPQyhIep93/pub?output=csv";
         const TRANS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQrHCwanEsWryz-KcBkfESw7lKzQ9-oUlNQrtLSNBs1_YOEOI-U8ZUN8jDcRCGvpIYQ0bGexnoKbB5D/pub?gid=1825653935&single=true&output=csv";
 
+        // 다중 프록시 fallback fetch 도우미
+        async function fetchWithFallback(targetUrl) {
+            const cacheBust = (targetUrl.includes('?') ? '&' : '?') + '_t=' + Date.now();
+            const directUrl = targetUrl + cacheBust;
+
+            // 1차: 직접 fetch
+            try {
+                const res = await fetch(directUrl, { cache: 'no-cache' });
+                if (res.ok) return await res.text();
+            } catch (e) {
+                console.warn("[Fetch] 1차 직접 연결 실패, 2차 CORS 프록시로 전환:", e.message);
+            }
+
+            // 2차: allorigins 프록시
+            try {
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+                const res = await fetch(proxyUrl);
+                if (res.ok) return await res.text();
+            } catch (e) {
+                console.warn("[Fetch] 2차 allorigins 프록시 실패, 3차 corsproxy로 전환:", e.message);
+            }
+
+            // 3차: corsproxy 프록시
+            try {
+                const proxyUrl2 = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+                const res = await fetch(proxyUrl2);
+                if (res.ok) return await res.text();
+            } catch (e) {
+                console.warn("[Fetch] 3차 프록시 실패:", e.message);
+            }
+
+            throw new Error(`데이터 서버(${targetUrl.slice(0, 40)}...) 연결에 실패했습니다.`);
+        }
+
         async function fetchGoogleSheet() {
             const statusEl = document.getElementById('lastUpdated');
-            if (statusEl) statusEl.innerText = "데이터 서버 연결 중...";
+            if (statusEl) {
+                statusEl.innerText = "🌐 실시간 데이터 동기화 중...";
+                statusEl.className = "text-xs font-bold text-amber-500 mr-2 animate-pulse";
+            }
 
             try {
-                const curYear = document.getElementById('selYear').value;
-                const curMonth = document.getElementById('selMonth').value;
-                const curComp = document.getElementById('selCompany').value;
-                const curProj = document.getElementById('selProject').value;
-
-                // 트레맵 상태기억
+                const curYear = document.getElementById('selYear')?.value || '';
+                const curMonth = document.getElementById('selMonth')?.value || '';
+                const curComp = document.getElementById('selCompany')?.value || '';
+                const curProj = document.getElementById('selProject')?.value || '';
                 const isTreeMap = !document.getElementById('tabTreeMapMode').classList.contains('hidden');
 
-                const timeStr = "&cache=" + new Date().getTime();
-                const [responseProd, responseTrans] = await Promise.all([
-                    fetch(GOOGLE_SHEET_CSV_URL + timeStr),
-                    fetch(TRANS_CSV_URL + timeStr)
+                // 3중 fallback 엔진으로 생산일보 및 거래명세서 병렬 수신
+                const [csvTextProd, csvTextTrans] = await Promise.all([
+                    fetchWithFallback(GOOGLE_SHEET_CSV_URL),
+                    fetchWithFallback(TRANS_CSV_URL)
                 ]);
 
-                if (!responseProd.ok) throw new Error(`생산 공정 서버 응답 에러: ${responseProd.status}`);
-                if (!responseTrans.ok) throw new Error(`거래명세서 서버 응답 에러: ${responseTrans.status}`);
+                // localStorage에 성공 데이터 캐시 백업 (오프라인 대비)
+                try {
+                    localStorage.setItem('cached_prod_csv', csvTextProd);
+                    localStorage.setItem('cached_trans_csv', csvTextTrans);
+                    localStorage.setItem('cached_sync_time', new Date().toISOString());
+                } catch (e) { /* storage quota ignore */ }
 
-                const csvTextProd = await responseProd.text();
-                const csvTextTrans = await responseTrans.text();
-
-                const rowsProd = csvTextProd.split(/\r?\n/).slice(1);
-                const parsedProd = rowsProd.map(r => {
-                    const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.replace(/(^"|"$)/g, '').trim());
-                    if (c.length < 7 || !c[0]) return null;
-                    return {
-                        date: c[0],
-                        type: c[1] || '기타',
-                        client: c[2],
-                        project: c[3],
-                        h_reg: parseFloat(c[4]) || 0,
-                        h_over: parseFloat(c[5]) || 0,
-                        cost: parseInt(c[6]?.replace(/[^0-9]/g, "")) || 0,
-                        worker: c[7] || '',
-                        workplace: (c[8] || 'A').trim().toUpperCase() // A, B, C 등 사업부 구분
-                    };
-                }).filter(i => i !== null);
-
-                const rowsTrans = csvTextTrans.split(/\r?\n/).slice(1);
-                transData = rowsTrans.map(r => {
-                    const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.replace(/(^"|"$)/g, '').trim());
-                    if (c.length < 7 || !c[0]) return null;
-
-                    let dateStr = c[0] || '';
-                    let dParts = dateStr.split('.');
-                    let dObj = new Date();
-                    if (dParts.length === 3) {
-                        let y = parseInt(dParts[0]);
-                        if (y < 100) y = (y > 50 ? 1900 : 2000) + y;
-                        dObj = new Date(y, parseInt(dParts[1]) - 1, parseInt(dParts[2]));
-                    }
-
-                    let unitWeight = parseFloat((c[7] || '').replace(/,/g, ''));
-                    if (isNaN(unitWeight) || unitWeight === 0) {
-                        unitWeight = parseFloat((c[3] || '').replace(/,/g, '')) || 0;
-                    }
-
-                    return {
-                        year: dObj.getFullYear().toString(),
-                        month: (dObj.getMonth() + 1).toString(),
-                        dateStr: dateStr,
-                        dateObj: dObj,
-                        client: c[1] || '',
-                        project: c[2] || '',
-                        normName: normalizeProjName(c[2]),
-                        weight: unitWeight,
-                        qty: parseFloat((c[4] || '').replace(/,/g, '')) || 0,
-                        unitPrice: parseFloat((c[5] || '').replace(/,/g, '')) || 0,
-                        cost: parseFloat((c[6] || '').replace(/,/g, '')) || 0
-                    };
-                }).filter(i => i !== null);
-
-                if (parsedProd.length === 0) {
-                    alert("구글 시트에서 생산 데이터를 읽어왔으나 표시할 내용이 없습니다.");
-                    return;
-                }
-
-                initData(parsedProd);
-
-                if (curYear) document.getElementById('selYear').value = curYear;
-                if (curMonth) document.getElementById('selMonth').value = curMonth;
-                updateProjectList();
-                if (curComp) document.getElementById('selCompany').value = curComp;
-                updateProjectList();
-                if (curProj) document.getElementById('selProject').value = curProj;
-
-                const isWA = !document.getElementById('tabWorkerAttendance').classList.contains('hidden');
-
-                if (isTreeMap) { runTreeMap(); }
-                else if (isWA) { onWAFilterChange(); }
-                else { runAnalysis(false); }
-
-                const now = new Date();
-                const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-                document.getElementById('lastUpdated').innerText = `마지막 동기화: ${timeString}`;
-                document.getElementById('lastUpdated').classList.remove("text-red-500", "text-blue-500");
-                document.getElementById('lastUpdated').classList.add("text-emerald-500");
+                processAndRenderCsv(csvTextProd, csvTextTrans, curYear, curMonth, curComp, curProj, isTreeMap);
 
             } catch (error) {
                 console.error("데이터 동기화 실패:", error);
-                document.getElementById('lastUpdated').innerText = "동기화 실패 (오프라인 수동 업로드 가능)";
-                document.getElementById('lastUpdated').classList.remove("text-emerald-500", "text-blue-500");
-                document.getElementById('lastUpdated').classList.add("text-red-500");
+
+                // 오프라인 캐시가 있는지 확인하여 자동 복원
+                const cachedProd = localStorage.getItem('cached_prod_csv');
+                const cachedTrans = localStorage.getItem('cached_trans_csv');
+                const cachedTime = localStorage.getItem('cached_sync_time');
+
+                if (cachedProd && cachedTrans) {
+                    console.info("[Cache] 로컬 캐시 데이터로 자동 복원합니다.");
+                    const curYear = document.getElementById('selYear')?.value || '';
+                    const curMonth = document.getElementById('selMonth')?.value || '';
+                    const curComp = document.getElementById('selCompany')?.value || '';
+                    const curProj = document.getElementById('selProject')?.value || '';
+                    const isTreeMap = !document.getElementById('tabTreeMapMode').classList.contains('hidden');
+
+                    processAndRenderCsv(cachedProd, cachedTrans, curYear, curMonth, curComp, curProj, isTreeMap);
+
+                    if (statusEl) {
+                        const d = new Date(cachedTime);
+                        const timeStr = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+                        statusEl.innerText = `⚠️ 오프라인 모드 (캐시 데이터: ${timeStr})`;
+                        statusEl.className = "text-xs font-bold text-amber-600 mr-2";
+                    }
+                } else {
+                    if (statusEl) {
+                        statusEl.innerText = "동기화 실패 (오프라인 수동 업로드 가능)";
+                        statusEl.className = "text-xs font-bold text-rose-500 mr-2";
+                    }
+                }
+            }
+        }
+
+        function processAndRenderCsv(csvTextProd, csvTextTrans, curYear, curMonth, curComp, curProj, isTreeMap) {
+            const rowsProd = csvTextProd.split(/\r?\n/).slice(1);
+            const parsedProd = rowsProd.map(r => {
+                const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.replace(/(^"|"$)/g, '').trim());
+                if (c.length < 7 || !c[0]) return null;
+                return {
+                    date: c[0],
+                    type: c[1] || '기타',
+                    client: c[2],
+                    project: c[3],
+                    h_reg: parseFloat(c[4]) || 0,
+                    h_over: parseFloat(c[5]) || 0,
+                    cost: parseInt(c[6]?.replace(/[^0-9]/g, "")) || 0,
+                    worker: c[7] || '',
+                    workplace: (c[8] || 'A').trim().toUpperCase()
+                };
+            }).filter(i => i !== null);
+
+            const rowsTrans = csvTextTrans.split(/\r?\n/).slice(1);
+            transData = rowsTrans.map(r => {
+                const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.replace(/(^"|"$)/g, '').trim());
+                if (c.length < 7 || !c[0]) return null;
+
+                let dateStr = c[0] || '';
+                let dParts = dateStr.split('.');
+                let dObj = new Date();
+                if (dParts.length === 3) {
+                    let y = parseInt(dParts[0]);
+                    if (y < 100) y = (y > 50 ? 1900 : 2000) + y;
+                    dObj = new Date(y, parseInt(dParts[1]) - 1, parseInt(dParts[2]));
+                }
+
+                let unitWeight = parseFloat((c[7] || '').replace(/,/g, ''));
+                if (isNaN(unitWeight) || unitWeight === 0) {
+                    unitWeight = parseFloat((c[3] || '').replace(/,/g, '')) || 0;
+                }
+
+                return {
+                    year: dObj.getFullYear().toString(),
+                    month: (dObj.getMonth() + 1).toString(),
+                    dateStr: dateStr,
+                    dateObj: dObj,
+                    client: c[1] || '',
+                    project: c[2] || '',
+                    normName: normalizeProjName(c[2]),
+                    weight: unitWeight,
+                    qty: parseFloat((c[4] || '').replace(/,/g, '')) || 0,
+                    unitPrice: parseFloat((c[5] || '').replace(/,/g, '')) || 0,
+                    cost: parseFloat((c[6] || '').replace(/,/g, '')) || 0
+                };
+            }).filter(i => i !== null);
+
+            if (parsedProd.length === 0) {
+                alert("구글 시트에서 생산 데이터를 읽어왔으나 표시할 내용이 없습니다.");
+                return;
+            }
+
+            initData(parsedProd);
+
+            if (curYear) document.getElementById('selYear').value = curYear;
+            if (curMonth) document.getElementById('selMonth').value = curMonth;
+            updateProjectList();
+            if (curComp) document.getElementById('selCompany').value = curComp;
+            updateProjectList();
+            if (curProj) document.getElementById('selProject').value = curProj;
+
+            const isWA = !document.getElementById('tabWorkerAttendance').classList.contains('hidden');
+
+            if (isTreeMap) { runTreeMap(); }
+            else if (isWA) { onWAFilterChange(); }
+            else { runAnalysis(false); }
+
+            const now = new Date();
+            const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+            const statusEl = document.getElementById('lastUpdated');
+            if (statusEl) {
+                statusEl.innerText = `마지막 동기화: ${timeString}`;
+                statusEl.className = "text-xs font-bold text-emerald-500 mr-2";
             }
         }
 

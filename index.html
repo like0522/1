@@ -761,8 +761,14 @@
                             <span class="text-slate-300">|</span>
                             <button type="button" onclick="toggleAllSeriesProjects(false)" class="text-[11px] font-bold text-slate-500 hover:underline">전체 해제</button>
                         </div>
-                        <div class="text-[11px] text-slate-400 font-bold">
-                            ※ 아래 체크박스로 비교할 프로젝트를 선별할 수 있습니다.
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <label class="flex items-center gap-1.5 text-xs font-black text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-1 rounded-xl border-2 border-emerald-300 cursor-pointer select-none transition-all shadow-xs">
+                                <input type="checkbox" id="chkSeriesCombineProjects" onchange="toggleSeriesCombineProjects(this.checked)" class="w-4 h-4 accent-emerald-600 rounded cursor-pointer">
+                                <span>📦 선택 제품 동시진행 합산 통계 (통합 세트/롯트 합계)</span>
+                            </label>
+                            <span class="text-[11px] text-slate-400 font-bold hidden md:inline">
+                                ※ 여러 제품 동시진행 시 체크하면 총합계가 산출됩니다.
+                            </span>
                         </div>
                     </div>
 
@@ -1846,6 +1852,14 @@
         let chartSeriesHoursInstance = null;
         let chartSeriesProcessInstance = null;
         let isSeriesShowChartValues = true;
+        let isSeriesCombineProjects = false;
+
+        function toggleSeriesCombineProjects(checked) {
+            isSeriesCombineProjects = checked;
+            const chk = document.getElementById('chkSeriesCombineProjects');
+            if (chk) chk.checked = checked;
+            calculateAndRenderSeriesCharts();
+        }
 
         function toggleSeriesChartValues(checked) {
             isSeriesShowChartValues = checked;
@@ -2254,6 +2268,8 @@ function onSeriesCompanyChange() {
             let totalH = 0; let regH = 0; let overH = 0; let totalC = 0;
             let maxH = 0; let minH = 999999;
             let maxProj = ''; let minProj = '';
+            const allWorkers = new Set();
+            const allDates = new Set();
 
             activeProjects.forEach(p => {
                 totalH += p.totalH;
@@ -2262,6 +2278,8 @@ function onSeriesCompanyChange() {
                 totalC += p.cost;
                 if (p.totalH > maxH) { maxH = p.totalH; maxProj = p.project; }
                 if (p.totalH < minH) { minH = p.totalH; minProj = p.project; }
+                if (p.workers) p.workers.forEach(w => allWorkers.add(w));
+                if (p.dates) p.dates.forEach(d => allDates.add(d));
             });
 
             const avgH = totalH / activeProjects.length;
@@ -2269,48 +2287,90 @@ function onSeriesCompanyChange() {
             const avgWage = totalH > 0 ? (totalC / totalH) : 0;
             const variancePct = minH > 0 ? (((maxH - minH) / minH) * 100).toFixed(0) : 0;
 
-            // 2. KPI 카드 렌더링
+            // 2. KPI 카드 렌더링 (동시진행 합산 모드 분기)
             const kpiGrid = document.getElementById('seriesSummaryKpiGrid');
             if (kpiGrid) {
-                kpiGrid.innerHTML = `
-                    <div class="dashboard-card p-4 border-t-2 border-t-purple-600 flex flex-col justify-between shadow-sm">
-                        <span class="text-[10px] font-black text-slate-400 uppercase">비교 프로젝트 수</span>
-                        <div class="text-xl font-black text-purple-950 my-1">${activeProjects.length}개 호기/부품</div>
-                        <span class="text-[10px] font-bold text-slate-400">선택된 기종 모수</span>
-                    </div>
-                    <div class="dashboard-card p-4 border-t-2 border-t-indigo-600 flex flex-col justify-between shadow-sm">
-                        <span class="text-[10px] font-black text-slate-400 uppercase">기종 평균 작업시간</span>
-                        <div class="text-xl font-black text-indigo-950 my-1">${Math.round(avgH).toLocaleString()} h /대</div>
-                        <span class="text-[10px] font-bold text-slate-400">총 합계: ${Math.round(totalH).toLocaleString()}h</span>
-                    </div>
-                    <div class="dashboard-card p-4 border-t-2 border-t-rose-500 flex flex-col justify-between shadow-sm">
-                        <span class="text-[10px] font-black text-slate-400 uppercase">기종 내 공수 편차율</span>
-                        <div class="text-xl font-black text-rose-600 my-1">±${variancePct}%</div>
-                        <span class="text-[10px] font-bold text-slate-400">최대 ${Math.round(maxH)}h vs 최소 ${Math.round(minH)}h</span>
-                    </div>
-                    <div class="dashboard-card p-4 border-t-2 border-t-amber-500 flex flex-col justify-between shadow-sm">
-                        <span class="text-[10px] font-black text-slate-400 uppercase">기종 평균 잔업률</span>
-                        <div class="text-xl font-black ${overRate > 20 ? 'text-rose-600' : 'text-slate-800'} my-1">${overRate.toFixed(1)}%</div>
-                        <span class="text-[10px] font-bold text-slate-400">정규 ${Math.round(regH)}h | 잔업 ${Math.round(overH)}h</span>
-                    </div>
-                    <div class="dashboard-card p-4 border-t-2 border-t-emerald-600 flex flex-col justify-between shadow-sm">
-                        <span class="text-[10px] font-black text-slate-400 uppercase">시간당 평균 임율</span>
-                        <div class="text-xl font-black text-emerald-950 my-1">₩${Math.round(avgWage).toLocaleString()}</div>
-                        <span class="text-[10px] font-bold text-slate-400">기종 총 노무비: ₩${(totalC/10000).toLocaleString(undefined, {maximumFractionDigits:0})}만</span>
-                    </div>
-                `;
+                if (isSeriesCombineProjects) {
+                    kpiGrid.innerHTML = `
+                        <div class="dashboard-card p-4 border-t-4 border-t-emerald-500 bg-emerald-50/40 flex flex-col justify-between shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-black text-emerald-800 uppercase">동시진행 제품 수</span>
+                                <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-600 text-white">📦 합산</span>
+                            </div>
+                            <div class="text-xl font-black text-emerald-950 my-1">${activeProjects.length}개 제품 묶음</div>
+                            <span class="text-[10px] font-bold text-emerald-700">통합 세트/롯트 합산</span>
+                        </div>
+                        <div class="dashboard-card p-4 border-t-4 border-t-emerald-600 bg-emerald-50/40 flex flex-col justify-between shadow-sm">
+                            <span class="text-[10px] font-black text-emerald-800 uppercase">동시진행 총 투입공수</span>
+                            <div class="text-2xl font-black text-emerald-700 my-1">${Math.round(totalH).toLocaleString()} h</div>
+                            <span class="text-[10px] font-bold text-slate-500">대당 평균: ${Math.round(avgH).toLocaleString()}h</span>
+                        </div>
+                        <div class="dashboard-card p-4 border-t-4 border-t-indigo-500 flex flex-col justify-between shadow-sm">
+                            <span class="text-[10px] font-black text-slate-400 uppercase">동시진행 총 집행비용</span>
+                            <div class="text-xl font-black text-indigo-950 my-1">₩${(totalC/10000).toLocaleString(undefined, {maximumFractionDigits:0})}만원</div>
+                            <span class="text-[10px] font-bold text-slate-400">실집행: ₩${Math.round(totalC).toLocaleString()}원</span>
+                        </div>
+                        <div class="dashboard-card p-4 border-t-4 border-t-amber-500 flex flex-col justify-between shadow-sm">
+                            <span class="text-[10px] font-black text-slate-400 uppercase">동시진행 잔업률</span>
+                            <div class="text-xl font-black ${overRate > 20 ? 'text-rose-600' : 'text-slate-800'} my-1">${overRate.toFixed(1)}%</div>
+                            <span class="text-[10px] font-bold text-slate-400">정규 ${Math.round(regH)}h | 잔업 ${Math.round(overH)}h</span>
+                        </div>
+                        <div class="dashboard-card p-4 border-t-4 border-t-purple-600 flex flex-col justify-between shadow-sm">
+                            <span class="text-[10px] font-black text-slate-400 uppercase">통합 시간당 임율</span>
+                            <div class="text-xl font-black text-purple-950 my-1">₩${Math.round(avgWage).toLocaleString()}</div>
+                            <span class="text-[10px] font-bold text-slate-400">투입인력: ${allWorkers.size}명 (${allDates.size}일)</span>
+                        </div>
+                    `;
+                } else {
+                    kpiGrid.innerHTML = `
+                        <div class="dashboard-card p-4 border-t-2 border-t-purple-600 flex flex-col justify-between shadow-sm">
+                            <span class="text-[10px] font-black text-slate-400 uppercase">비교 프로젝트 수</span>
+                            <div class="text-xl font-black text-purple-950 my-1">${activeProjects.length}개 호기/부품</div>
+                            <span class="text-[10px] font-bold text-slate-400">선택된 기종 모수</span>
+                        </div>
+                        <div class="dashboard-card p-4 border-t-2 border-t-indigo-600 flex flex-col justify-between shadow-sm">
+                            <span class="text-[10px] font-black text-slate-400 uppercase">기종 평균 작업시간</span>
+                            <div class="text-xl font-black text-indigo-950 my-1">${Math.round(avgH).toLocaleString()} h /대</div>
+                            <span class="text-[10px] font-bold text-slate-400">총 합계: ${Math.round(totalH).toLocaleString()}h</span>
+                        </div>
+                        <div class="dashboard-card p-4 border-t-2 border-t-rose-500 flex flex-col justify-between shadow-sm">
+                            <span class="text-[10px] font-black text-slate-400 uppercase">기종 내 공수 편차율</span>
+                            <div class="text-xl font-black text-rose-600 my-1">±${variancePct}%</div>
+                            <span class="text-[10px] font-bold text-slate-400">최대 ${Math.round(maxH)}h vs 최소 ${Math.round(minH)}h</span>
+                        </div>
+                        <div class="dashboard-card p-4 border-t-2 border-t-amber-500 flex flex-col justify-between shadow-sm">
+                            <span class="text-[10px] font-black text-slate-400 uppercase">기종 평균 잔업률</span>
+                            <div class="text-xl font-black ${overRate > 20 ? 'text-rose-600' : 'text-slate-800'} my-1">${overRate.toFixed(1)}%</div>
+                            <span class="text-[10px] font-bold text-slate-400">정규 ${Math.round(regH)}h | 잔업 ${Math.round(overH)}h</span>
+                        </div>
+                        <div class="dashboard-card p-4 border-t-2 border-t-emerald-600 flex flex-col justify-between shadow-sm">
+                            <span class="text-[10px] font-black text-slate-400 uppercase">시간당 평균 임율</span>
+                            <div class="text-xl font-black text-emerald-950 my-1">₩${Math.round(avgWage).toLocaleString()}</div>
+                            <span class="text-[10px] font-bold text-slate-400">기종 총 노무비: ₩${(totalC/10000).toLocaleString(undefined, {maximumFractionDigits:0})}만</span>
+                        </div>
+                    `;
+                }
             }
 
-            // 3. 수석 엔지니어 기종 자동 진단 텍스트
+            // 3. 수석 엔지니어 기종 자동 진단 텍스트 (합산 모드 분기)
             const diagBox = document.getElementById('seriesDiagnosisText');
             if (diagBox) {
-                const diffMaxAvg = avgH > 0 ? (((maxH - avgH) / avgH) * 100).toFixed(1) : 0;
-                diagBox.innerHTML = `
-                    <div>• 📊 <strong>기종 표준 공수:</strong> 본 기종(${activeProjects.length}개 프로젝트)의 1대당 평균 소요 공수는 <strong>${Math.round(avgH).toLocaleString()}시간</strong>이며, 평균 노무비는 <strong>₩${(totalC / activeProjects.length / 10000).toLocaleString(undefined, {maximumFractionDigits:0})}만원</strong>입니다.</div>
-                    <div>• ⚠️ <strong>최다 공수 프로젝트:</strong> <strong>[${maxProj}]</strong>(이)가 <strong>${Math.round(maxH).toLocaleString()}시간</strong>으로 기종 평균 대비 <span class="text-rose-600 font-black">+${diffMaxAvg}% (${Math.round(maxH - avgH)}시간 초과)</span> 투입되어 가장 공수 부하가 컸습니다.</div>
-                    <div>• 💡 <strong>최소 공수 프로젝트:</strong> <strong>[${minProj}]</strong>(은)는 <strong>${Math.round(minH).toLocaleString()}시간</strong>만에 완료되어 가장 효율적인 작업 공수를 기록했습니다.</div>
-                    <div>• 🎯 <strong>개선 권고사항:</strong> 동일 기종 내에서 최대-최소 공수 편차가 <strong>${variancePct}%</strong>에 달하므로, [${maxProj}]에서 발생한 돌발 재작업 또는 공정 지연 원인을 표준 작업지도서와 대조하여 표준 공수 수렴 관리가 필요합니다.</div>
-                `;
+                if (isSeriesCombineProjects) {
+                    const projNamesStr = activeProjects.map(p => `[${p.project}]`).join(' + ');
+                    diagBox.innerHTML = `
+                        <div>• 📦 <strong>동시진행 통합 진단:</strong> 선택된 <strong>${activeProjects.length}개 제품</strong>(${projNamesStr})의 <strong>동시진행 총 투입 공수는 ${Math.round(totalH).toLocaleString()}시간</strong>이며, 총 집행 노무비는 <strong>₩${(totalC / 10000).toLocaleString(undefined, {maximumFractionDigits:0})}만원</strong>입니다.</div>
+                        <div>• ⏱️ <strong>근무 구분:</strong> 정규 작업 <strong>${Math.round(regH).toLocaleString()}h</strong> + 잔업 <strong>${Math.round(overH).toLocaleString()}h</strong>가 투입되어 통합 잔업률은 <strong>${overRate.toFixed(1)}%</strong>를 기록했습니다.</div>
+                        <div>• 👥 <strong>투입 인력:</strong> 총 <strong>${allWorkers.size}명의 가동 인력</strong>이 <strong>${allDates.size}일간</strong> 동시 작업을 수행하였으며, 평균 시간당 임율은 <strong>₩${Math.round(avgWage).toLocaleString()}/h</strong>입니다.</div>
+                    `;
+                } else {
+                    const diffMaxAvg = avgH > 0 ? (((maxH - avgH) / avgH) * 100).toFixed(1) : 0;
+                    diagBox.innerHTML = `
+                        <div>• 📊 <strong>기종 표준 공수:</strong> 본 기종(${activeProjects.length}개 프로젝트)의 1대당 평균 소요 공수는 <strong>${Math.round(avgH).toLocaleString()}시간</strong>이며, 평균 노무비는 <strong>₩${(totalC / activeProjects.length / 10000).toLocaleString(undefined, {maximumFractionDigits:0})}만원</strong>입니다.</div>
+                        <div>• ⚠️ <strong>최다 공수 프로젝트:</strong> <strong>[${maxProj}]</strong>(이)가 <strong>${Math.round(maxH).toLocaleString()}시간</strong>으로 기종 평균 대비 <span class="text-rose-600 font-black">+${diffMaxAvg}% (${Math.round(maxH - avgH)}시간 초과)</span> 투입되어 가장 공수 부하가 컸습니다.</div>
+                        <div>• 💡 <strong>최소 공수 프로젝트:</strong> <strong>[${minProj}]</strong>(은)는 <strong>${Math.round(minH).toLocaleString()}시간</strong>만에 완료되어 가장 효율적인 작업 공수를 기록했습니다.</div>
+                        <div>• 🎯 <strong>개선 권고사항:</strong> 동일 기종 내에서 최대-최소 공수 편차가 <strong>${variancePct}%</strong>에 달하므로, [${maxProj}]에서 발생한 돌발 재작업 또는 공정 지연 원인을 표준 작업지도서와 대조하여 표준 공수 수렴 관리가 필요합니다.</div>
+                    `;
+                }
             }
 
             // 4. 차트 1: 프로젝트별 총 작업시간 비교 바 (나란히 나열)
@@ -2325,12 +2385,35 @@ function onSeriesCompanyChange() {
                 const regData = activeProjects.map(p => Math.round(p.regH));
                 const overData = activeProjects.map(p => Math.round(p.overH));
 
+                // 동시진행 합산 모드 시 TOTAL 막대 추가
+                if (isSeriesCombineProjects && activeProjects.length > 1) {
+                    names.push('📦 동시진행 합계');
+                    regData.push({
+                        value: Math.round(regH),
+                        itemStyle: { color: '#059669' }
+                    });
+                    overData.push({
+                        value: Math.round(overH),
+                        itemStyle: { color: '#10b981', borderRadius: [4, 4, 0, 0] }
+                    });
+                }
+
                 const opt1 = {
                     tooltip: {
                         trigger: 'axis',
                         axisPointer: { type: 'shadow' },
                         formatter: function(params) {
                             const idx = params[0].dataIndex;
+                            if (idx >= activeProjects.length) {
+                                // 합산 막대 툴팁
+                                return `<div class="font-black text-xs pb-1 border-b border-emerald-300 text-emerald-800">📦 [동시진행 합산] ${activeProjects.length}개 제품 묶음 합계</div>
+                                    <div class="text-xs pt-1 space-y-0.5">
+                                        • 동시진행 총 작업시간: <strong>${Math.round(totalH).toLocaleString()} h</strong><br>
+                                        • 정규 시간: <strong>${Math.round(regH).toLocaleString()} h</strong><br>
+                                        • 잔업 시간: <strong class="text-emerald-600">${Math.round(overH).toLocaleString()} h</strong> (${overRate.toFixed(1)}%)<br>
+                                        • 총 집행비용: <strong>₩${(totalC/10000).toLocaleString(undefined, {maximumFractionDigits:0})}만원</strong>
+                                    </div>`;
+                            }
                             const p = activeProjects[idx];
                             const diff = p.totalH - avgH;
                             const diffSign = diff > 0 ? '+' : '';
@@ -2389,8 +2472,13 @@ function onSeriesCompanyChange() {
                                 distance: 4,
                                 formatter: function(p) {
                                     const idx = p.dataIndex;
+                                    if (idx >= activeProjects.length) {
+                                        const tot = Math.round(totalH);
+                                        const o = typeof p.value === 'object' ? Math.round(p.value.value) : Math.round(p.value);
+                                        return `총 ${tot}h\n(+${o}h)`;
+                                    }
                                     const tot = Math.round(activeProjects[idx].totalH);
-                                    const o = Math.round(p.value);
+                                    const o = typeof p.value === 'object' ? Math.round(p.value.value) : Math.round(p.value);
                                     return o > 0 ? `${tot}h\n(+${o}h)` : `${tot}h`;
                                 },
                                 fontSize: 10,
@@ -2422,12 +2510,17 @@ function onSeriesCompanyChange() {
                 const names = activeProjects.map(p => p.project.length > 15 ? p.project.slice(0, 13) + '..' : p.project);
 
                 const procColors = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'];
+                let procChartNames = [...names];
                 const procSeries = topProcs.map((proc, pIdx) => {
+                    let seriesData = activeProjects.map(p => Math.round(p.processMap[proc] || 0));
+                    if (isSeriesCombineProjects && activeProjects.length > 1) {
+                        seriesData.push(Math.round(allProcMap[proc] || 0));
+                    }
                     return {
                         name: proc,
                         type: 'bar',
                         stack: 'processTotal',
-                        data: activeProjects.map(p => Math.round(p.processMap[proc] || 0)),
+                        data: seriesData,
                         itemStyle: { color: procColors[pIdx % procColors.length] },
                         barMaxWidth: 32,
                         label: {
@@ -2502,7 +2595,7 @@ function onSeriesCompanyChange() {
                         grid: { top: '35px', left: '3%', right: '4%', bottom: '15%', containLabel: true },
                         xAxis: {
                             type: 'category',
-                            data: names,
+                            data: (isSeriesCombineProjects && activeProjects.length > 1) ? [...names] : names,
                             axisLabel: { interval: 0, rotate: 30, fontSize: 10, fontWeight: 'bold', color: '#334155' }
                         },
                         yAxis: {
@@ -2590,6 +2683,39 @@ function onSeriesCompanyChange() {
                     </thead>
                     <tbody class="divide-y divide-slate-100 font-bold text-slate-700">
             `;
+
+            // 동시진행 합산 모드 시 최상단에 [동시진행 합계] 강조 행 추가
+            if (isSeriesCombineProjects && projects.length > 1) {
+                let sumTotalH = 0; let sumRegH = 0; let sumOverH = 0; let sumCost = 0;
+                const sumWorkers = new Set(); const sumDates = new Set();
+                projects.forEach(p => {
+                    sumTotalH += p.totalH; sumRegH += p.regH; sumOverH += p.overH; sumCost += p.cost;
+                    if (p.workers) p.workers.forEach(w => sumWorkers.add(w));
+                    if (p.dates) p.dates.forEach(d => sumDates.add(d));
+                });
+                const sumOverRate = sumTotalH > 0 ? (sumOverH / sumTotalH) * 100 : 0;
+                const sumWage = sumTotalH > 0 ? (sumCost / sumTotalH) : 0;
+
+                html += `
+                    <tr class="bg-emerald-50/90 border-y-2 border-emerald-400 font-black text-emerald-950 text-sm">
+                        <td class="p-3">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-black">📦 동시진행 합계</span>
+                                <span class="font-black text-emerald-900">${projects.length}개 제품 묶음 전체 총계</span>
+                            </div>
+                        </td>
+                        <td class="p-3 text-emerald-700 text-base font-black">${Math.round(sumTotalH).toLocaleString()} h</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-xs font-black">1개 세트 합산</span></td>
+                        <td class="p-3">${Math.round(sumRegH).toLocaleString()}h / <span class="text-emerald-700 font-black">${Math.round(sumOverH).toLocaleString()}h</span></td>
+                        <td class="p-3 text-emerald-800 font-black">${sumOverRate.toFixed(1)}%</td>
+                        <td class="p-3 text-emerald-950 font-black">₩ ${(sumCost/10000).toLocaleString(undefined, {maximumFractionDigits:0})}만</td>
+                        <td class="p-3 text-emerald-700 font-black">₩ ${Math.round(sumWage).toLocaleString()}</td>
+                        <td class="p-3 text-emerald-900 font-black">${sumWorkers.size}명</td>
+                        <td class="p-3 text-emerald-900 font-black">${sumDates.size}일</td>
+                        <td class="p-3 text-center text-xs text-emerald-600 font-bold">동시진행 합산치</td>
+                    </tr>
+                `;
+            }
 
             projects.forEach((p, idx) => {
                 const diff = p.totalH - avgH;

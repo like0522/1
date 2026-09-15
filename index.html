@@ -450,7 +450,6 @@
             </div>
         </div>
 
-                <!-- 탭 2: 작업장 종합 시각화 (Enterprise Production & Cost Intelligence) -->
         <div id="tabTreeMapMode" class="hidden space-y-6 animate-in fade-in duration-500">
             <!-- 1. 상단 경영진 통합 필터 바 -->
             <section class="dashboard-card p-5 border-t-4 border-t-indigo-600 bg-slate-50">
@@ -488,7 +487,6 @@
 
             <!-- 2. 대기업 경영진 6대 핵심 KPI Executive Summary 카드 그리드 -->
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4" id="tmExecutiveKpiGrid">
-                <!-- JS 동적 렌더링 (공수, 비용, 임율, 잔업률, 가동인력, 인당공수) -->
             </div>
 
             <!-- 3. 스마트 경영 인사이트 자동 진단 배너 (Executive Actionable Insights) -->
@@ -501,7 +499,6 @@
                         <span id="tmRiskBadge" class="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">정상 가동</span>
                     </div>
                     <div id="tmDiagnosisBullets" class="text-xs font-bold text-slate-700 space-y-1 pt-1">
-                        <!-- 진단 문장 4줄 자동 생성 -->
                     </div>
                 </div>
             </div>
@@ -532,13 +529,9 @@
                 </div>
             </div>
 
-            <!-- ============================================================== -->
             <!-- [VIEW 1]: 총괄 현황 & 리스크 매트릭스 -->
-            <!-- ============================================================== -->
             <div id="tmViewPanel_overview" class="space-y-6">
-                <!-- 복합 차트 & 버블 리스크 차트 2단 그리드 -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- 차트 1: 월별 생산 공수(정규+잔업) & 잔업률 복합 추세 -->
                     <div class="dashboard-card p-5 flex flex-col min-h-[460px]">
                         <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
                             <div>
@@ -552,7 +545,6 @@
                         <div id="chartTmMonthlyTrend" class="flex-1 w-full h-80"></div>
                     </div>
 
-                    <!-- 차트 2: 사업부/공정 리스크 4분면 버블 매트릭스 -->
                     <div class="dashboard-card p-5 flex flex-col min-h-[460px]">
                         <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
                             <div>
@@ -567,7 +559,6 @@
                     </div>
                 </div>
 
-                <!-- 실시간 리더보드 순위 테이블 -->
                 <div class="dashboard-card p-5">
                     <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
                         <h4 class="text-sm font-black text-slate-800 flex items-center gap-1.5">
@@ -579,16 +570,11 @@
                 </div>
             </div>
 
-            <!-- ============================================================== -->
-            <!-- [VIEW 2]: 사업부간 종합 벤치마킹 (Workplace Benchmark) -->
-            <!-- ============================================================== -->
+            <!-- [VIEW 2]: 사업부간 종합 벤치마킹 -->
             <div id="tmViewPanel_workplace" class="hidden space-y-6">
-                <!-- 사업부 카드 3개 나란히 -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="tmWorkplaceBenchmarkCards">
-                    <!-- A 작업장, B 작업장, C 작업장 카드 -->
                 </div>
 
-                <!-- 사업부별 공정 믹스 구성 바 차트 -->
                 <div class="dashboard-card p-5 flex flex-col">
                     <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
                         <div>
@@ -603,11 +589,8 @@
                 </div>
             </div>
 
-            <!-- ============================================================== -->
-            <!-- [VIEW 3]: 공정 병목 & 원가 파레토 분석 (Process Pareto) -->
-            <!-- ============================================================== -->
+            <!-- [VIEW 3]: 공정 병목 & 파레토 분석 -->
             <div id="tmViewPanel_process" class="hidden space-y-6">
-                <!-- 파레토 분석 차트 -->
                 <div class="dashboard-card p-5 flex flex-col">
                     <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
                         <div>
@@ -621,7 +604,6 @@
                     <div id="chartTmProcessPareto" class="w-full h-80"></div>
                 </div>
 
-                <!-- 공정별 병목 & 단가 리스크 정밀 표 -->
                 <div class="dashboard-card p-5">
                     <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
                         <h4 class="text-sm font-black text-slate-800 flex items-center gap-1.5">
@@ -633,12 +615,9 @@
                 </div>
             </div>
 
-            <!-- ============================================================== -->
-            <!-- [VIEW 4]: 고객사/업체 채산성 포트폴리오 (Client Portfolio) -->
-            <!-- ============================================================== -->
+            <!-- [VIEW 4]: 고객사 채산성 포트폴리오 -->
             <div id="tmViewPanel_client" class="hidden space-y-6">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Top 10 고객사 공수 집중도 바 차트 -->
                     <div class="dashboard-card p-5 flex flex-col">
                         <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
                             <h4 class="text-sm font-black text-slate-800 flex items-center gap-1.5">
@@ -649,7 +628,6 @@
                         <div id="chartTmTopClients" class="w-full h-80"></div>
                     </div>
 
-                    <!-- 고객사별 채산성 산점도 (단가 vs 잔업률) -->
                     <div class="dashboard-card p-5 flex flex-col">
                         <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
                             <div>
@@ -664,7 +642,6 @@
                     </div>
                 </div>
 
-                <!-- 고객사 채산성 종합 평가 표 -->
                 <div class="dashboard-card p-5">
                     <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
                         <h4 class="text-sm font-black text-slate-800 flex items-center gap-1.5">
@@ -676,11 +653,8 @@
                 </div>
             </div>
 
-            <!-- ============================================================== -->
-            <!-- [VIEW 5]: 정밀 1:1 비교 분석실 (Deep Comparative Lab) -->
-            <!-- ============================================================== -->
+            <!-- [VIEW 5]: 정밀 1:1 비교 분석실 -->
             <div id="tmViewPanel_compare" class="hidden space-y-6">
-                <!-- ⚖️ 데이터 정밀 다각 비교 분석실 컴포넌트 -->
                 <section id="sectionComparisonLab" class="dashboard-card p-6 border-t-4 border-t-purple-600 bg-slate-50 space-y-6">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
                         <div>
@@ -715,12 +689,11 @@
                         </div>
                     </div>
 
-                    <!-- 대상 선택 바 (공백 구분 복수 키워드 AND 검색 탑재) -->
                     <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                         <div class="flex items-center justify-between flex-wrap gap-2 text-xs font-bold text-slate-500">
                             <div class="flex items-center gap-2">
                                 <span class="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse"></span>
-                                <span id="compDescText">비교할 두 대상을 검색창이나 드롭다운에서 선택하세요. (공백으로 여러 단어 입력 가능)</span>
+                                <span id="compDescText">비교할 두 대상을 검색창이나 드롭다운에서 선택하세요. (공백으로 여러 단어 검색 가능)</span>
                             </div>
                             <label class="flex items-center gap-2 cursor-pointer hover:text-slate-800 transition-colors bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
                                 <input type="checkbox" id="chkCompSyncPeriod" onchange="runComparison()" class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
@@ -780,14 +753,10 @@
                         </div>
                     </div>
 
-                    <!-- 1:1 비교 결과 컨테이너 -->
                     <div id="compResultContainer" class="space-y-6">
-                        <!-- KPI 카드 그리드 -->
                         <div id="compKpiGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
 
-                        <!-- 6각 레이더 벤치마크 & 공정별 투입 비교 -->
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <!-- 6각 레이더 차트 -->
                             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
                                 <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
                                     <h5 class="text-sm font-black text-slate-800 flex items-center gap-1.5">
@@ -798,7 +767,6 @@
                                 <div id="chartCompRadar" class="w-full h-72"></div>
                             </div>
 
-                            <!-- 공정별 투입 비교 바 -->
                             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
                                 <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
                                     <h5 class="text-sm font-black text-slate-800 flex items-center gap-1.5">
@@ -810,7 +778,6 @@
                             </div>
                         </div>
 
-                        <!-- 월별 추이 비교 차트 -->
                         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
                             <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
                                 <h5 class="text-sm font-black text-slate-800 flex items-center gap-1.5">
@@ -821,7 +788,6 @@
                             <div id="compTimelineChart" class="w-full h-72"></div>
                         </div>
 
-                        <!-- AI 인사이트 요약 -->
                         <div id="compInsightBox" class="p-5 rounded-2xl bg-gradient-to-r from-purple-50 via-indigo-50 to-slate-50 border border-purple-200 shadow-sm space-y-2">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2 text-purple-900 font-black text-sm">
@@ -833,7 +799,6 @@
                             <div id="compInsightContent" class="text-xs font-bold text-slate-700 leading-relaxed space-y-1 pt-1"></div>
                         </div>
 
-                        <!-- 정밀 세부 표 -->
                         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                             <div class="p-4 bg-slate-50/80 border-b border-slate-200 flex flex-wrap gap-3 items-center justify-between">
                                 <div class="flex items-center gap-3">
@@ -855,7 +820,6 @@
                 </section>
             </div>
         </div>
-
         <div id="tabWorkerAttendance" class="hidden space-y-6 animate-in fade-in duration-500">
             <section class="dashboard-card p-6 border-t-4 border-t-rose-500 bg-slate-50">
                 <div class="flex justify-between items-center mb-4">
@@ -1471,7 +1435,6 @@
                 }
             });
 
-            // 차트 리사이즈
             setTimeout(() => {
                 Object.values(chartInstances).forEach(c => { if (c) c.resize(); });
                 if (view === 'compare' && typeof runComparison === 'function') {
@@ -1486,7 +1449,6 @@
             const yr = document.getElementById('tmSelYear')?.value || '';
             const period = document.getElementById('tmSelPeriod')?.value || '';
 
-            // 필터링 데이터
             let viewData = rawData;
             if (!currentWorkplace.includes('ALL')) {
                 viewData = viewData.filter(d => currentWorkplace.includes(d.workplace));
@@ -1508,33 +1470,20 @@
                 });
             }
 
-            lastViewData = viewData; // 모달 및 드릴다운 전역 변수 유지
+            lastViewData = viewData;
 
-            // 1. 전사 6대 KPI 연산 및 렌더링
             renderEnterpriseKpis(viewData);
-
-            // 2. 스마트 경영진 진단서 생성
             renderEnterpriseDiagnosis(viewData);
-
-            // 3. View 1: 총괄 현황 & 4분면 매트릭스 렌더링
             renderOverviewCharts(viewData);
-
-            // 4. View 2: 사업부간 벤치마킹 렌더링
             renderWorkplaceBenchmark(viewData);
-
-            // 5. View 3: 공정 병목 & 파레토 렌더링
             renderProcessPareto(viewData);
-
-            // 6. View 4: 고객사 채산성 포트폴리오 렌더링
             renderClientPortfolio(viewData);
 
-            // 7. View 5: 1:1 비교 랩 업데이트
             if (typeof updateComparisonPeriodSync === 'function') {
                 updateComparisonPeriodSync();
             }
         }
 
-        // --- 1. 6대 핵심 KPI 렌더링 ---
         function renderEnterpriseKpis(data) {
             const grid = document.getElementById('tmExecutiveKpiGrid');
             if (!grid) return;
@@ -1576,14 +1525,13 @@
 
             grid.innerHTML = [
                 makeCard('총 투입 공수', `${Math.round(totalH).toLocaleString()}h`, `정규 ${Math.round(regH).toLocaleString()}h | 잔업 ${Math.round(overH).toLocaleString()}h`, null, 'text-indigo-950'),
-                makeCard('총 집행 비용', `₩${(totalC / 100000000).toFixed(2)}억`, `실집행액: ₩${(totalC/10000).toLocaleString(undefined, {maximumFractionDigits:0})}만원`, null, 'text-sky-950'),
-                makeCard('평균 시간당 임율', `₩${Math.round(wageRate).toLocaleString()}/h`, `정상임율 범위: ₩2.8만~3.5만`, null, 'text-purple-950'),
+                makeCard('총 집행 비용', `₩${(totalC / 100000000).toFixed(2)}억`, `실집행: ₩${(totalC/10000).toLocaleString(undefined, {maximumFractionDigits:0})}만원`, null, 'text-sky-950'),
+                makeCard('평균 시간당 임율', `₩${Math.round(wageRate).toLocaleString()}/h`, `정상임율: ₩2.8만~3.5만`, null, 'text-purple-950'),
                 makeCard('잔업/특근 의존도', `${overRate.toFixed(1)}%`, overRiskLabel, overRiskBadge, overRate > 20 ? 'text-rose-600' : 'text-slate-800'),
                 makeCard('가동 인력 규모', `${activeWorkers}명`, `등록 작업일수: ${dates.size}일`, null, 'text-slate-900'),
                 makeCard('인당 평균 공수', `${Math.round(hPerWorker).toLocaleString()}h/인`, `1인당 일평균 ${(dates.size > 0 ? (totalH / activeWorkers / dates.size).toFixed(1) : 0)}h`, null, 'text-emerald-950')
             ].join('');
 
-            // 상단 리스크 뱃지 갱신
             const riskBadge = document.getElementById('tmRiskBadge');
             if (riskBadge) {
                 riskBadge.className = `text-[10px] font-black px-2.5 py-0.5 rounded-full border ${overRiskBadge}`;
@@ -1591,7 +1539,6 @@
             }
         }
 
-        // --- 2. 스마트 경영진 진단서 생성 ---
         function renderEnterpriseDiagnosis(data) {
             const container = document.getElementById('tmDiagnosisBullets');
             if (!container) return;
@@ -1624,7 +1571,6 @@
             const topProc = sortedProc[0] || '-';
             const topProcPct = totalH > 0 ? ((procH[topProc] || 0) / totalH * 100).toFixed(1) : 0;
 
-            // 최고 잔업률 공정
             let maxOverProc = '-'; let maxOverProcRate = 0;
             sortedProc.forEach(p => {
                 const r = procH[p] > 50 ? ((procOver[p] || 0) / procH[p] * 100) : 0;
@@ -1634,7 +1580,6 @@
                 }
             });
 
-            // 최고 수주 고객사
             const sortedClient = Object.keys(clientH).sort((a, b) => clientH[b] - clientH[a]);
             const topClient = sortedClient[0] || '-';
             const topClientPct = totalH > 0 ? ((clientH[topClient] || 0) / totalH * 100).toFixed(1) : 0;
@@ -1649,9 +1594,7 @@
             container.innerHTML = bullets.map(b => `<div class="flex items-start gap-2"><span>•</span><div>${b}</div></div>`).join('');
         }
 
-        // --- 3. View 1: 총괄 차트 & 버블 매트릭스 ---
         function renderOverviewCharts(data) {
-            // 차트 1: 월별 추세선
             const chartDom1 = document.getElementById('chartTmMonthlyTrend');
             if (chartDom1) {
                 if (!chartInstances.monthlyTrend) {
@@ -1694,7 +1637,6 @@
                 chartInstances.monthlyTrend.setOption(opt1, true);
             }
 
-            // 차트 2: 4분면 리스크 버블
             const chartDom2 = document.getElementById('chartTmRiskBubble');
             if (chartDom2) {
                 if (!chartInstances.riskBubble) {
@@ -1707,7 +1649,6 @@
                     });
                 }
 
-                // 사업부/공정별 집계
                 const catMap = {};
                 data.forEach(d => {
                     const key = `${d.workplace} - ${d.type}`;
@@ -1721,10 +1662,10 @@
                     const totalH = c.h_reg + c.h_over;
                     const r = totalH > 0 ? (c.h_over / totalH) * 100 : 0;
                     return [
-                        Math.round(totalH), // X: 공수
-                        parseFloat(r.toFixed(1)), // Y: 잔업률
-                        Math.round(c.cost), // 크기: 비용
-                        c.name // 이름
+                        Math.round(totalH),
+                        parseFloat(r.toFixed(1)),
+                        Math.round(c.cost),
+                        c.name
                     ];
                 }).filter(b => b[0] > 10);
 
@@ -1770,7 +1711,6 @@
                 chartInstances.riskBubble.setOption(opt2, true);
             }
 
-            // 실적 요약 테이블 렌더링
             renderOverviewTable(data);
         }
 
@@ -1842,7 +1782,6 @@
             container.innerHTML = html;
         }
 
-        // --- 4. View 2: 사업부간 종합 벤치마킹 ---
         function renderWorkplaceBenchmark(data) {
             const cardsContainer = document.getElementById('tmWorkplaceBenchmarkCards');
             if (!cardsContainer) return;
@@ -1908,7 +1847,6 @@
             });
             cardsContainer.innerHTML = cardsHtml;
 
-            // 사업부별 공정 포트폴리오 믹스 차트
             const chartDom = document.getElementById('chartTmWorkplaceMix');
             if (chartDom) {
                 if (!chartInstances.workplaceMix) {
@@ -1945,7 +1883,6 @@
             }
         }
 
-        // --- 5. View 3: 공정 병목 & 파레토 분석 ---
         function renderProcessPareto(data) {
             const chartDom = document.getElementById('chartTmProcessPareto');
             const tableDom = document.getElementById('tmProcessTableContainer');
@@ -2008,7 +1945,6 @@
             };
             chartInstances.processPareto.setOption(opt, true);
 
-            // 공정 세부 표
             let html = `
                 <table class="w-full text-left text-xs border-collapse">
                     <thead>
@@ -2056,7 +1992,6 @@
             tableDom.innerHTML = html;
         }
 
-        // --- 6. View 4: 고객사 채산성 포트폴리오 ---
         function renderClientPortfolio(data) {
             const chartDom1 = document.getElementById('chartTmTopClients');
             const chartDom2 = document.getElementById('chartTmClientScatter');
@@ -2079,7 +2014,6 @@
             const sortedClients = Object.keys(cMap).sort((a, b) => cMap[b].hours - cMap[a].hours);
             const top10 = sortedClients.slice(0, 10);
 
-            // 차트 1: Top 10 바
             if (!chartInstances.topClients) {
                 chartInstances.topClients = echarts.init(chartDom1);
                 window.addEventListener('resize', () => { if (chartInstances.topClients) chartInstances.topClients.resize(); });
@@ -2097,7 +2031,6 @@
             };
             chartInstances.topClients.setOption(opt1, true);
 
-            // 차트 2: 채산성 산점도 (X: 임율, Y: 잔업률, 크기: 공수)
             if (!chartInstances.clientScatter) {
                 chartInstances.clientScatter = echarts.init(chartDom2);
                 window.addEventListener('resize', () => { if (chartInstances.clientScatter) chartInstances.clientScatter.resize(); });
@@ -2107,9 +2040,9 @@
                 const wage = item.hours > 0 ? (item.cost / item.hours) : 0;
                 const r = item.hours > 0 ? (item.over / item.hours) * 100 : 0;
                 return [
-                    Math.round(wage), // X: 임율
-                    parseFloat(r.toFixed(1)), // Y: 잔업률
-                    Math.round(item.hours), // 크기: 공수
+                    Math.round(wage),
+                    parseFloat(r.toFixed(1)),
+                    Math.round(item.hours),
                     c
                 ];
             });
@@ -2140,7 +2073,6 @@
             };
             chartInstances.clientScatter.setOption(opt2, true);
 
-            // 고객사 채산성 표
             let html = `
                 <table class="w-full text-left text-xs border-collapse">
                     <thead>
@@ -2194,7 +2126,6 @@
             tableDom.innerHTML = html;
         }
 
-        // --- 전사 리포트 CSV 내보내기 ---
         function exportEnterpriseReportCSV() {
             if (!lastViewData || lastViewData.length === 0) {
                 alert('데이터가 없습니다.');
@@ -4633,339 +4564,6 @@
             renderCompTable(metricsA, metricsB, labelA, labelB);
         }
 
-        // --- 6각 레이더 벤치마크 렌더링 ---
-        function renderCompRadar(mA, mB, labelA, labelB) {
-            const chartDom = document.getElementById('chartCompRadar');
-            if (!chartDom) return;
-
-            if (!compRadarChartInstance) {
-                compRadarChartInstance = echarts.init(chartDom);
-                window.addEventListener('resize', () => { if (compRadarChartInstance) compRadarChartInstance.resize(); });
-            }
-
-            // 6개 축 100점 상대점수 산출
-            const maxH = Math.max(mA.totalHours, mB.totalHours, 1);
-            const maxC = Math.max(mA.totalCost, mB.totalCost, 1);
-            const maxW = Math.max(mA.workerCount, mB.workerCount, 1);
-            const maxD = Math.max(mA.activeDays, mB.activeDays, 1);
-
-            const scoreA = [
-                Math.round((mA.totalHours / maxH) * 100), // 투입 규모
-                Math.round(Math.max(10, 100 - mA.overRate * 2.5)), // 잔업 건전성 (잔업 낮을수록 고득점)
-                Math.round(Math.max(10, 100 - (mA.costPerHour / 500))), // 임율 효율성
-                Math.round(Math.min(100, Object.keys(mA.processMap).length * 15)), // 공정 다양성
-                Math.round((mA.workerCount / maxW) * 100), // 인력 집중도
-                Math.round((mA.activeDays / maxD) * 100) // 가동 지속성
-            ];
-
-            const scoreB = [
-                Math.round((mB.totalHours / maxH) * 100),
-                Math.round(Math.max(10, 100 - mB.overRate * 2.5)),
-                Math.round(Math.max(10, 100 - (mB.costPerHour / 500))),
-                Math.round(Math.min(100, Object.keys(mB.processMap).length * 15)),
-                Math.round((mB.workerCount / maxW) * 100),
-                Math.round((mB.activeDays / maxD) * 100)
-            ];
-
-            const opt = {
-                tooltip: {},
-                legend: { data: [`[A] ${labelA.slice(0, 10)}`, `[B] ${labelB.slice(0, 10)}`], top: 0, textStyle: { fontWeight: 'bold' } },
-                radar: {
-                    indicator: [
-                        { name: '투입 규모(MH)', max: 100 },
-                        { name: '잔업 건전성', max: 100 },
-                        { name: '원가 임율 효율', max: 100 },
-                        { name: '공정 다양성', max: 100 },
-                        { name: '인력 집중도', max: 100 },
-                        { name: '가동 지속성', max: 100 }
-                    ],
-                    radius: '65%'
-                },
-                series: [{
-                    type: 'radar',
-                    data: [
-                        {
-                            value: scoreA,
-                            name: `[A] ${labelA.slice(0, 10)}`,
-                            itemStyle: { color: '#6366f1' },
-                            areaStyle: { color: 'rgba(99, 102, 241, 0.3)' }
-                        },
-                        {
-                            value: scoreB,
-                            name: `[B] ${labelB.slice(0, 10)}`,
-                            itemStyle: { color: '#10b981' },
-                            areaStyle: { color: 'rgba(16, 185, 129, 0.3)' }
-                        }
-                    ]
-                }]
-            };
-            compRadarChartInstance.setOption(opt, true);
-        }
-
-        
-        // =====================================================================
-        let compMode = 'client'; // 'client' or 'project'
-        let compTargetA = '';
-        let compTargetB = '';
-        let compSubTab = 'process'; // 'process', 'worker', 'monthly'
-        let compProcessChartInstance = null;
-        let compTimelineChartInstance = null;
-        let compLastReportData = null;
-
-        function initComparisonLab() {
-            if (!rawData || rawData.length === 0) return;
-            populateCompDropdowns();
-            if (compTargetA && compTargetB) {
-                runComparison();
-            }
-        }
-
-        function setComparisonMode(mode) {
-            compMode = mode;
-            const btnClient = document.getElementById('btnCompModeClient');
-            const btnProject = document.getElementById('btnCompModeProject');
-            const desc = document.getElementById('compDescText');
-
-            if (mode === 'client') {
-                btnClient.className = 'px-4 py-2 text-xs font-black rounded-lg transition-all bg-purple-600 text-white shadow-sm';
-                btnProject.className = 'px-4 py-2 text-xs font-black rounded-lg transition-all text-slate-500 hover:text-slate-800';
-                if (desc) desc.innerText = '비교할 두 업체를 검색창이나 드롭다운에서 선택하세요.';
-                document.getElementById('compLabelA').innerText = '기준 업체 [A]';
-                document.getElementById('compLabelB').innerText = '비교 업체 [B]';
-            } else {
-                btnClient.className = 'px-4 py-2 text-xs font-black rounded-lg transition-all text-slate-500 hover:text-slate-800';
-                btnProject.className = 'px-4 py-2 text-xs font-black rounded-lg transition-all bg-purple-600 text-white shadow-sm';
-                if (desc) desc.innerText = '비교할 두 프로젝트를 검색창이나 드롭다운에서 선택하세요.';
-                document.getElementById('compLabelA').innerText = '기준 프로젝트 [A]';
-                document.getElementById('compLabelB').innerText = '비교 프로젝트 [B]';
-            }
-
-            // 검색창 초기화
-            clearCompSearch('A', false);
-            clearCompSearch('B', false);
-
-            compTargetA = '';
-            compTargetB = '';
-            populateCompDropdowns();
-            runComparison();
-        }
-
-        function populateCompDropdowns() {
-            const selA = document.getElementById('compSelA');
-            const selB = document.getElementById('compSelB');
-            if (!selA || !selB) return;
-
-            const searchA = (document.getElementById('compSearchInputA')?.value || '').trim().toLowerCase();
-            const searchB = (document.getElementById('compSearchInputB')?.value || '').trim().toLowerCase();
-
-            if (compMode === 'client') {
-                // 업체 목록 추출 및 총 시간 기준 정렬
-                const clientHoursMap = {};
-                rawData.forEach(d => {
-                    if (!clientHoursMap[d.client]) clientHoursMap[d.client] = 0;
-                    clientHoursMap[d.client] += (d.h_reg + d.h_over);
-                });
-                let allClients = Object.keys(clientHoursMap).filter(Boolean).sort((a, b) => clientHoursMap[b] - clientHoursMap[a]);
-
-                // 기본 타겟 선정 (처음 실행 시 상위 2개 자동 선택)
-                if (!compTargetA && allClients.length > 0) compTargetA = allClients[0];
-                if (!compTargetB && allClients.length > 1) compTargetB = allClients[1] || allClients[0];
-
-                // 드롭다운 A 옵션 생성
-                let listA = allClients;
-                if (searchA) listA = listA.filter(c => c.toLowerCase().includes(searchA));
-                selA.innerHTML = '';
-                listA.forEach(c => {
-                    const h = Math.round(clientHoursMap[c] || 0);
-                    selA.add(new Option(`${c} (${h.toLocaleString()}h)`, c));
-                });
-                if (allClients.includes(compTargetA)) selA.value = compTargetA;
-
-                // 드롭다운 B 옵션 생성
-                let listB = allClients;
-                if (searchB) listB = listB.filter(c => c.toLowerCase().includes(searchB));
-                selB.innerHTML = '';
-                listB.forEach(c => {
-                    const h = Math.round(clientHoursMap[c] || 0);
-                    selB.add(new Option(`${c} (${h.toLocaleString()}h)`, c));
-                });
-                if (allClients.includes(compTargetB)) selB.value = compTargetB;
-
-            } else {
-                // 프로젝트 목록 추출 및 총 시간 기준 정렬
-                const projMap = {};
-                rawData.forEach(d => {
-                    const key = `${d.client}|${d.project}`;
-                    if (!projMap[key]) projMap[key] = { client: d.client, project: d.project, hours: 0 };
-                    projMap[key].hours += (d.h_reg + d.h_over);
-                });
-                let allProjs = Object.keys(projMap).filter(Boolean).sort((a, b) => projMap[b].hours - projMap[a].hours);
-
-                // 기본 타겟 선정
-                if (!compTargetA && allProjs.length > 0) compTargetA = allProjs[0];
-                if (!compTargetB && allProjs.length > 1) compTargetB = allProjs[1] || allProjs[0];
-
-                // 드롭다운 A 옵션 생성
-                let listA = allProjs;
-                if (searchA) listA = listA.filter(k => k.toLowerCase().includes(searchA));
-                selA.innerHTML = '';
-                listA.forEach(k => {
-                    const item = projMap[k];
-                    const h = Math.round(item.hours || 0);
-                    selA.add(new Option(`[${item.client}] ${item.project} (${h.toLocaleString()}h)`, k));
-                });
-                if (allProjs.includes(compTargetA)) selA.value = compTargetA;
-
-                // 드롭다운 B 옵션 생성
-                let listB = allProjs;
-                if (searchB) listB = listB.filter(k => k.toLowerCase().includes(searchB));
-                selB.innerHTML = '';
-                listB.forEach(k => {
-                    const item = projMap[k];
-                    const h = Math.round(item.hours || 0);
-                    selB.add(new Option(`[${item.client}] ${item.project} (${h.toLocaleString()}h)`, k));
-                });
-                if (allProjs.includes(compTargetB)) selB.value = compTargetB;
-            }
-        }
-
-        function onCompSearchInput(side) {
-            const input = document.getElementById(`compSearchInput${side}`);
-            const btnClear = document.getElementById(`btnClearComp${side}`);
-            if (btnClear) btnClear.classList.toggle('hidden', !input.value);
-
-            populateCompDropdowns();
-            const sel = document.getElementById(`compSel${side}`);
-            if (sel && sel.options.length > 0) {
-                if (side === 'A') compTargetA = sel.value;
-                else compTargetB = sel.value;
-                runComparison();
-            }
-        }
-
-        function clearCompSearch(side, trigger = true) {
-            const input = document.getElementById(`compSearchInput${side}`);
-            if (input) input.value = '';
-            const btnClear = document.getElementById(`btnClearComp${side}`);
-            if (btnClear) btnClear.classList.add('hidden');
-            if (trigger) {
-                populateCompDropdowns();
-                runComparison();
-            }
-        }
-
-        function onCompSelectChange(side) {
-            const sel = document.getElementById(`compSel${side}`);
-            if (side === 'A') compTargetA = sel.value;
-            else compTargetB = sel.value;
-            runComparison();
-        }
-
-        function swapComparisonTargets() {
-            const temp = compTargetA;
-            compTargetA = compTargetB;
-            compTargetB = temp;
-
-            populateCompDropdowns();
-            runComparison();
-        }
-
-        function updateComparisonPeriodSync() {
-            const syncChk = document.getElementById('chkCompSyncPeriod');
-            if (syncChk && syncChk.checked) {
-                runComparison();
-            }
-        }
-
-        // =====================================================================
-        // 핵심 비교 연산 및 렌더링
-        // =====================================================================
-        function runComparison() {
-            const selA = document.getElementById('compSelA');
-            const selB = document.getElementById('compSelB');
-            if (selA && selA.value) compTargetA = selA.value;
-            if (selB && selB.value) compTargetB = selB.value;
-
-            const isSync = document.getElementById('chkCompSyncPeriod')?.checked;
-            const syncLabel = document.getElementById('compSyncPeriodLabel');
-            if (syncLabel) {
-                if (isSync) {
-                    const yr = document.getElementById('tmSelYear')?.value;
-                    const period = document.getElementById('tmSelPeriod')?.value;
-                    syncLabel.innerText = `${yr ? yr + '년' : '전체년도'} / ${period || '전체구간'} 적용중`;
-                } else {
-                    syncLabel.innerText = '전체 누적 이력 비교';
-                }
-            }
-
-            // 데이터 필터링 기본셋
-            let baseData = rawData;
-            if (isSync) {
-                const yr = document.getElementById('tmSelYear')?.value;
-                const period = document.getElementById('tmSelPeriod')?.value;
-                if (!currentWorkplace.includes('ALL')) {
-                    baseData = baseData.filter(d => currentWorkplace.includes(d.workplace));
-                }
-                if (yr) baseData = baseData.filter(d => d.year === yr);
-                if (period && period !== 'ALL') {
-                    baseData = baseData.filter(d => {
-                        let m = parseInt(d.month);
-                        if (period === 'H1') return m >= 1 && m <= 6;
-                        if (period === 'H2') return m >= 7 && m <= 12;
-                        if (period.startsWith('Q')) {
-                            let q = parseInt(period.replace('Q', ''));
-                            return m >= (q - 1) * 3 + 1 && m <= q * 3;
-                        }
-                        if (period.startsWith('M')) {
-                            return m === parseInt(period.replace('M', ''));
-                        }
-                        return true;
-                    });
-                }
-            }
-
-            // Target A / B 데이터 추출
-            let dataA = [];
-            let dataB = [];
-            let labelA = compTargetA;
-            let labelB = compTargetB;
-
-            if (compMode === 'client') {
-                dataA = baseData.filter(d => d.client === compTargetA);
-                dataB = baseData.filter(d => d.client === compTargetB);
-            } else {
-                const [cNameA, pNameA] = (compTargetA || '').split('|');
-                const [cNameB, pNameB] = (compTargetB || '').split('|');
-                dataA = baseData.filter(d => d.client === cNameA && d.project === pNameA);
-                dataB = baseData.filter(d => d.client === cNameB && d.project === pNameB);
-                labelA = pNameA ? `[${cNameA}] ${pNameA}` : compTargetA;
-                labelB = pNameB ? `[${cNameB}] ${pNameB}` : compTargetB;
-            }
-
-            const metricsA = calculateDatasetMetrics(dataA);
-            const metricsB = calculateDatasetMetrics(dataB);
-
-            // 뱃지 업데이트
-            const badgeA = document.getElementById('compBadgeA');
-            const badgeB = document.getElementById('compBadgeB');
-            if (badgeA) badgeA.innerText = `${Math.round(metricsA.totalHours).toLocaleString()}h (${metricsA.records}건)`;
-            if (badgeB) badgeB.innerText = `${Math.round(metricsB.totalHours).toLocaleString()}h (${metricsB.records}건)`;
-
-            compLastReportData = { metricsA, metricsB, labelA, labelB, mode: compMode };
-
-            // 1. KPI 카드 렌더링
-            renderCompKpiCards(metricsA, metricsB, labelA, labelB);
-
-            // 2. AI 인사이트 렌더링
-            renderCompInsight(metricsA, metricsB, labelA, labelB);
-
-            // 3. 차트 렌더링
-            renderCompCharts(metricsA, metricsB, labelA, labelB);
-
-            // 4. 테이블 렌더링
-            renderCompTable(metricsA, metricsB, labelA, labelB);
-        }
-
         function calculateDatasetMetrics(dataset) {
             let totalHours = 0;
             let regHours = 0;
@@ -4987,14 +4585,12 @@
                 if (d.worker) workers.add(d.worker);
                 if (d.date) dates.add(d.date);
 
-                // 공정별 집계
                 const pType = d.type || '기타';
                 if (!processMap[pType]) processMap[pType] = { hours: 0, cost: 0, count: 0 };
                 processMap[pType].hours += h;
                 processMap[pType].cost += (d.cost || 0);
                 processMap[pType].count++;
 
-                // 작업자별 집계
                 if (d.worker) {
                     if (!workerMap[d.worker]) workerMap[d.worker] = { hours: 0, cost: 0, types: new Set() };
                     workerMap[d.worker].hours += h;
@@ -5002,7 +4598,6 @@
                     workerMap[d.worker].types.add(pType);
                 }
 
-                // 월별 집계 (YYYY-MM)
                 const ym = (d.year && d.month) ? `${d.year}.${d.month.padStart(2, '0')}` : '기타';
                 if (!monthlyMap[ym]) monthlyMap[ym] = { hours: 0, cost: 0 };
                 monthlyMap[ym].hours += h;
@@ -5031,9 +4626,6 @@
             };
         }
 
-        // =====================================================================
-        // 1. KPI 지표 카드 렌더링
-        // =====================================================================
         function renderCompKpiCards(mA, mB, labelA, labelB) {
             const container = document.getElementById('compKpiGrid');
             if (!container) return;
@@ -5044,8 +4636,6 @@
                 const pct = valB > 0 ? ((diff / valB) * 100).toFixed(1) : (diff > 0 ? '+100' : '0');
                 const isHigher = diff > 0;
                 const sign = isHigher ? '+' : '';
-                
-                // 잔업률 등은 낮을수록 좋은 지표
                 const isGood = isPositiveGood ? isHigher : !isHigher;
                 const colorCls = diff === 0 ? 'text-slate-400' : (isGood ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-rose-600 bg-rose-50 border-rose-200');
 
@@ -5080,8 +4670,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- 듀얼 미니 바 게이지 -->
                         <div class="mt-3 pt-2 border-t border-slate-100">
                             <div class="flex items-center justify-between text-[9px] font-extrabold text-slate-400 mb-1">
                                 <span>A ${pctA}%</span>
@@ -5125,7 +4713,7 @@
                     `${mB.overRate.toFixed(1)}%`,
                     mA.overRate,
                     mB.overRate,
-                    formatDiff(mA.overRate, mB.overRate, '%p', false), // 잔업률은 낮을수록 좋음
+                    formatDiff(mA.overRate, mB.overRate, '%p', false),
                     `잔업 ${Math.round(mA.overHours)}h vs ${Math.round(mB.overHours)}h`
                 ),
                 makeCard(
@@ -5183,56 +4771,72 @@
             container.innerHTML = cards.join('');
         }
 
-        // =====================================================================
-        // 2. AI 인사이트 자동 진단 텍스트 생성
-        // =====================================================================
-        function renderCompInsight(mA, mB, labelA, labelB) {
-            const container = document.getElementById('compInsightContent');
-            if (!container) return;
+        function renderCompRadar(mA, mB, labelA, labelB) {
+            const chartDom = document.getElementById('chartCompRadar');
+            if (!chartDom) return;
 
-            const insights = [];
-
-            // 1) 총 공수 비교
-            const hDiff = mA.totalHours - mB.totalHours;
-            const hPct = mB.totalHours > 0 ? Math.abs((hDiff / mB.totalHours) * 100).toFixed(1) : 0;
-            if (Math.abs(hDiff) > 1) {
-                const targetMore = hDiff > 0 ? labelA : labelB;
-                const targetLess = hDiff > 0 ? labelB : labelA;
-                insights.push(`⏱️ <strong>총 투입 공수:</strong> <strong>[${targetMore}]</strong>이(가) [${targetLess}] 대비 <span class="text-indigo-700 font-black">${Math.abs(Math.round(hDiff)).toLocaleString()}시간 (${hPct}%)</span> 더 많은 인력이 집중 투입되었습니다.`);
-            } else {
-                insights.push(`⏱️ <strong>총 투입 공수:</strong> 두 대상의 총 투입 공수가 약 ${Math.round(mA.totalHours)}시간으로 거의 대등한 수준입니다.`);
+            if (!compRadarChartInstance) {
+                compRadarChartInstance = echarts.init(chartDom);
+                window.addEventListener('resize', () => { if (compRadarChartInstance) compRadarChartInstance.resize(); });
             }
 
-            // 2) 잔업률 비교
-            const otDiff = mA.overRate - mB.overRate;
-            if (Math.abs(otDiff) >= 1.0) {
-                const otBetter = otDiff < 0 ? labelA : labelB;
-                const otHigher = otDiff < 0 ? labelB : labelA;
-                insights.push(`🌙 <strong>야간/잔업 의존도:</strong> <strong>[${otBetter}]</strong>의 잔업률(${Math.min(mA.overRate, mB.overRate).toFixed(1)}%)이 [${otHigher}](${Math.max(mA.overRate, mB.overRate).toFixed(1)}%)보다 <span class="text-emerald-700 font-black">${Math.abs(otDiff).toFixed(1)}%p 낮아</span> 정규 근무 집중도 및 피로도 관리 측면에서 효율적입니다.`);
-            }
+            const maxH = Math.max(mA.totalHours, mB.totalHours, 1);
+            const maxW = Math.max(mA.workerCount, mB.workerCount, 1);
+            const maxD = Math.max(mA.activeDays, mB.activeDays, 1);
 
-            // 3) 시간당 단가 효율
-            const costDiff = mA.costPerHour - mB.costPerHour;
-            if (Math.abs(costDiff) > 500) {
-                const lowerCost = costDiff < 0 ? labelA : labelB;
-                const higherCost = costDiff < 0 ? labelB : labelA;
-                insights.push(`💰 <strong>비용 효율성:</strong> 시간당 집행 단가는 <strong>[${lowerCost}]</strong>이(가) 시간당 ₩${Math.round(Math.min(mA.costPerHour, mB.costPerHour)).toLocaleString()}으로 [${higherCost}] 대비 <span class="text-purple-700 font-black">시간당 ₩${Math.abs(Math.round(costDiff)).toLocaleString()}</span> 더 경제적으로 집행되었습니다.`);
-            }
+            const scoreA = [
+                Math.round((mA.totalHours / maxH) * 100),
+                Math.round(Math.max(10, 100 - mA.overRate * 2.5)),
+                Math.round(Math.max(10, 100 - (mA.costPerHour / 500))),
+                Math.round(Math.min(100, Object.keys(mA.processMap).length * 15)),
+                Math.round((mA.workerCount / maxW) * 100),
+                Math.round((mA.activeDays / maxD) * 100)
+            ];
 
-            // 4) 최대 공정 비교
-            const topProcA = Object.keys(mA.processMap).sort((x, y) => mA.processMap[y].hours - mA.processMap[x].hours)[0] || '-';
-            const topProcB = Object.keys(mB.processMap).sort((x, y) => mB.processMap[y].hours - mB.processMap[x].hours)[0] || '-';
-            const pctProcA = mA.totalHours > 0 ? ((mA.processMap[topProcA]?.hours || 0) / mA.totalHours * 100).toFixed(1) : 0;
-            const pctProcB = mB.totalHours > 0 ? ((mB.processMap[topProcB]?.hours || 0) / mB.totalHours * 100).toFixed(1) : 0;
+            const scoreB = [
+                Math.round((mB.totalHours / maxH) * 100),
+                Math.round(Math.max(10, 100 - mB.overRate * 2.5)),
+                Math.round(Math.max(10, 100 - (mB.costPerHour / 500))),
+                Math.round(Math.min(100, Object.keys(mB.processMap).length * 15)),
+                Math.round((mB.workerCount / maxW) * 100),
+                Math.round((mB.activeDays / maxD) * 100)
+            ];
 
-            insights.push(`🔧 <strong>주력 공정 분석:</strong> [${labelA}]의 최다 투입 공정은 <strong>[${topProcA}]</strong>(${pctProcA}%), [${labelB}]의 최다 투입 공정은 <strong>[${topProcB}]</strong>(${pctProcB}%)입니다.`);
-
-            container.innerHTML = insights.map(i => `<div class="p-1.5 bg-white/70 rounded-lg border border-purple-100 flex items-start gap-1.5"><span>•</span><div>${i}</div></div>`).join('');
+            const opt = {
+                tooltip: {},
+                legend: { data: [`[A] ${labelA.slice(0, 10)}`, `[B] ${labelB.slice(0, 10)}`], top: 0, textStyle: { fontWeight: 'bold' } },
+                radar: {
+                    indicator: [
+                        { name: '투입 규모(MH)', max: 100 },
+                        { name: '잔업 건전성', max: 100 },
+                        { name: '원가 임율 효율', max: 100 },
+                        { name: '공정 다양성', max: 100 },
+                        { name: '인력 집중도', max: 100 },
+                        { name: '가동 지속성', max: 100 }
+                    ],
+                    radius: '65%'
+                },
+                series: [{
+                    type: 'radar',
+                    data: [
+                        {
+                            value: scoreA,
+                            name: `[A] ${labelA.slice(0, 10)}`,
+                            itemStyle: { color: '#6366f1' },
+                            areaStyle: { color: 'rgba(99, 102, 241, 0.3)' }
+                        },
+                        {
+                            value: scoreB,
+                            name: `[B] ${labelB.slice(0, 10)}`,
+                            itemStyle: { color: '#10b981' },
+                            areaStyle: { color: 'rgba(16, 185, 129, 0.3)' }
+                        }
+                    ]
+                }]
+            };
+            compRadarChartInstance.setOption(opt, true);
         }
 
-        // =====================================================================
-        // 3. 차트 2종 렌더링 (ECharts)
-        // =====================================================================
         function renderCompCharts(mA, mB, labelA, labelB) {
             const chartDom1 = document.getElementById('compProcessChart');
             const chartDom2 = document.getElementById('compTimelineChart');
@@ -5247,12 +4851,11 @@
                 window.addEventListener('resize', () => { if (compTimelineChartInstance) compTimelineChartInstance.resize(); });
             }
 
-            // --- 1) 공정별 투입 비교 바 차트 ---
             const allProcesses = [...new Set([...Object.keys(mA.processMap), ...Object.keys(mB.processMap)])].sort((x, y) => {
                 const totalX = (mA.processMap[x]?.hours || 0) + (mB.processMap[x]?.hours || 0);
                 const totalY = (mA.processMap[y]?.hours || 0) + (mB.processMap[y]?.hours || 0);
                 return totalY - totalX;
-            }).slice(0, 10); // 상위 10개 공정
+            }).slice(0, 10);
 
             const seriesA_Proc = allProcesses.map(p => Math.round(mA.processMap[p]?.hours || 0));
             const seriesB_Proc = allProcesses.map(p => Math.round(mB.processMap[p]?.hours || 0));
@@ -5308,7 +4911,6 @@
             };
             compProcessChartInstance.setOption(optProcess, true);
 
-            // --- 2) 월별 투입 추이 라인 차트 ---
             const allMonths = [...new Set([...Object.keys(mA.monthlyMap), ...Object.keys(mB.monthlyMap)])].sort();
             const seriesA_Time = allMonths.map(m => Math.round(mA.monthlyMap[m]?.hours || 0));
             const seriesB_Time = allMonths.map(m => Math.round(mB.monthlyMap[m]?.hours || 0));
@@ -5384,9 +4986,45 @@
             compTimelineChartInstance.setOption(optTimeline, true);
         }
 
-        // =====================================================================
-        // 4. 정밀 세부 비교 표 렌더링
-        // =====================================================================
+        function renderCompInsight(mA, mB, labelA, labelB) {
+            const container = document.getElementById('compInsightContent');
+            if (!container) return;
+
+            const insights = [];
+            const hDiff = mA.totalHours - mB.totalHours;
+            const hPct = mB.totalHours > 0 ? Math.abs((hDiff / mB.totalHours) * 100).toFixed(1) : 0;
+            if (Math.abs(hDiff) > 1) {
+                const targetMore = hDiff > 0 ? labelA : labelB;
+                const targetLess = hDiff > 0 ? labelB : labelA;
+                insights.push(`⏱️ <strong>총 투입 공수:</strong> <strong>[${targetMore}]</strong>이(가) [${targetLess}] 대비 <span class="text-indigo-700 font-black">${Math.abs(Math.round(hDiff)).toLocaleString()}시간 (${hPct}%)</span> 더 많은 인력이 집중 투입되었습니다.`);
+            } else {
+                insights.push(`⏱️ <strong>총 투입 공수:</strong> 두 대상의 총 투입 공수가 약 ${Math.round(mA.totalHours)}시간으로 거의 대등한 수준입니다.`);
+            }
+
+            const otDiff = mA.overRate - mB.overRate;
+            if (Math.abs(otDiff) >= 1.0) {
+                const otBetter = otDiff < 0 ? labelA : labelB;
+                const otHigher = otDiff < 0 ? labelB : labelA;
+                insights.push(`🌙 <strong>야간/잔업 의존도:</strong> <strong>[${otBetter}]</strong>의 잔업률(${Math.min(mA.overRate, mB.overRate).toFixed(1)}%)이 [${otHigher}](${Math.max(mA.overRate, mB.overRate).toFixed(1)}%)보다 <span class="text-emerald-700 font-black">${Math.abs(otDiff).toFixed(1)}%p 낮아</span> 정규 근무 집중도 및 피로도 관리 측면에서 효율적입니다.`);
+            }
+
+            const costDiff = mA.costPerHour - mB.costPerHour;
+            if (Math.abs(costDiff) > 500) {
+                const lowerCost = costDiff < 0 ? labelA : labelB;
+                const higherCost = costDiff < 0 ? labelB : labelA;
+                insights.push(`💰 <strong>비용 효율성:</strong> 시간당 집행 단가는 <strong>[${lowerCost}]</strong>이(가) 시간당 ₩${Math.round(Math.min(mA.costPerHour, mB.costPerHour)).toLocaleString()}으로 [${higherCost}] 대비 <span class="text-purple-700 font-black">시간당 ₩${Math.abs(Math.round(costDiff)).toLocaleString()}</span> 더 경제적으로 집행되었습니다.`);
+            }
+
+            const topProcA = Object.keys(mA.processMap).sort((x, y) => mA.processMap[y].hours - mA.processMap[x].hours)[0] || '-';
+            const topProcB = Object.keys(mB.processMap).sort((x, y) => mB.processMap[y].hours - mB.processMap[x].hours)[0] || '-';
+            const pctProcA = mA.totalHours > 0 ? ((mA.processMap[topProcA]?.hours || 0) / mA.totalHours * 100).toFixed(1) : 0;
+            const pctProcB = mB.totalHours > 0 ? ((mB.processMap[topProcB]?.hours || 0) / mB.totalHours * 100).toFixed(1) : 0;
+
+            insights.push(`🔧 <strong>주력 공정 분석:</strong> [${labelA}]의 최다 투입 공정은 <strong>[${topProcA}]</strong>(${pctProcA}%), [${labelB}]의 최다 투입 공정은 <strong>[${topProcB}]</strong>(${pctProcB}%)입니다.`);
+
+            container.innerHTML = insights.map(i => `<div class="p-1.5 bg-white/70 rounded-lg border border-purple-100 flex items-start gap-1.5"><span>•</span><div>${i}</div></div>`).join('');
+        }
+
         function switchCompSubTab(tab) {
             compSubTab = tab;
             ['process', 'worker', 'monthly'].forEach(t => {
@@ -5519,7 +5157,6 @@
                 html += `</tbody></table>`;
 
             } else {
-                // 월별 추이
                 const allMonths = [...new Set([...Object.keys(mA.monthlyMap), ...Object.keys(mB.monthlyMap)])].sort();
 
                 html = `
@@ -5569,9 +5206,6 @@
             container.innerHTML = html;
         }
 
-        // =====================================================================
-        // 5. 부가 도구 (CSV 다운로드 & 요약 복사)
-        // =====================================================================
         function exportComparisonCSV() {
             if (!compLastReportData) {
                 alert('비교 데이터가 존재하지 않습니다.');

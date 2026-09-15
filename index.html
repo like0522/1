@@ -293,33 +293,44 @@
                     <div class="flex-grow border-t border-slate-200"></div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black text-slate-400 uppercase italic">연도</label>
-                        <select id="selYear" onchange="updateProjectList()"
-                            class="w-full h-11 px-3 bg-white border-2 border-slate-200 rounded-xl text-base font-black outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-sm">
-                            <option value="">전체 연도</option>
-                        </select>
+                <!-- 📅 기간 정밀 선택: 연도 & 월 체크란 (체크박스로 복수 기간 자유 선택) -->
+                <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <!-- 연도 체크란 -->
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                            <span class="text-xs font-black text-slate-700">연도 체크</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 flex-wrap" id="yearCheckboxesArea">
+                            <!-- JS 동적 생성 -->
+                        </div>
                     </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black text-slate-400 uppercase italic">월</label>
-                        <select id="selMonth" onchange="updateProjectList()"
-                            class="w-full h-11 px-3 bg-white border-2 border-slate-200 rounded-xl text-base font-black outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-sm">
-                            <option value="">전체 월</option>
-                            <option value="1">1월</option>
-                            <option value="2">2월</option>
-                            <option value="3">3월</option>
-                            <option value="4">4월</option>
-                            <option value="5">5월</option>
-                            <option value="6">6월</option>
-                            <option value="7">7월</option>
-                            <option value="8">8월</option>
-                            <option value="9">9월</option>
-                            <option value="10">10월</option>
-                            <option value="11">11월</option>
-                            <option value="12">12월</option>
-                        </select>
+
+                    <!-- 월 체크란 (1월 ~ 12월) -->
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 pt-2.5 border-t border-slate-100">
+                        <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0">
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                            <span class="text-xs font-black text-slate-700">월 체크</span>
+                        </div>
+                        <div class="flex items-center gap-1 flex-wrap" id="monthCheckboxesArea">
+                            <!-- JS 동적 생성 -->
+                        </div>
                     </div>
+
+                    <!-- 선택된 기간 실시간 요약 바 -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-bold text-slate-500 pt-1 border-t border-slate-100">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span>📅 선택된 기간:</span>
+                            <span id="selectedPeriodSummary" class="text-emerald-700 font-black bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">전체 연도 / 전체 월</span>
+                        </div>
+                        <button type="button" onclick="resetPeriodCheckboxes()" class="text-slate-400 hover:text-slate-700 underline text-[11px] self-end sm:self-auto">전체 기간으로 초기화</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                    <!-- 드롭다운 호환 보존 (체크박스와 양방향 연동) -->
+                    <select id="selYear" onchange="updateProjectList()" class="hidden"><option value="">전체 연도</option></select>
+                    <select id="selMonth" onchange="updateProjectList()" class="hidden"><option value="">전체 월</option></select>
                     <div class="space-y-1">
                         <div class="flex items-center justify-between">
                             <label class="text-[10px] font-black text-slate-400 uppercase italic">업체명</label>
@@ -670,30 +681,58 @@
                         <div id="chartSeriesHoursBar" class="flex-1 w-full h-80"></div>
                     </div>
 
-                    <!-- 차트 2: 공정별 작업시간 분해 비교 (가공, 제관, 조립 등) -->
+                    <!-- 차트 2: 공정별 작업시간 분해 및 나란히 비교 (가공, 제관, 조립 등) -->
                     <div class="dashboard-card p-5 flex flex-col min-h-[460px]">
-                        <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 border-b border-slate-100 pb-2">
                             <div>
                                 <h4 class="text-sm font-black text-slate-800 flex items-center gap-1.5">
-                                    <span>⚙️</span> 프로젝트별 공정 투입 시간 비교 (Process Breakdown)
+                                    <span>⚙️</span> 프로젝트간 공정별 작업시간 비교 (Process Benchmark)
                                 </h4>
-                                <p class="text-[11px] text-slate-400 font-bold mt-0.5">어느 호기/부품에서 가공·제관·조립 시간이 늘어났는지 분석</p>
+                                <p class="text-[11px] text-slate-400 font-bold mt-0.5" id="seriesProcChartDesc">어느 호기/부품에서 가공·제관·조립 시간이 늘어났는지 분석</p>
                             </div>
-                            <span class="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">공정별 부하</span>
+                            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl flex-shrink-0 self-start sm:self-auto">
+                                <button type="button" id="btnSeriesProcChartStack" onclick="setSeriesProcessChartMode('stack')"
+                                    class="px-2.5 py-1 text-xs font-black rounded-lg transition-all bg-indigo-600 text-white shadow-xs">
+                                    스택(누적)
+                                </button>
+                                <button type="button" id="btnSeriesProcChartGroup" onclick="setSeriesProcessChartMode('group')"
+                                    class="px-2.5 py-1 text-xs font-black rounded-lg transition-all text-slate-600 hover:text-slate-900">
+                                    공정기준 나란히(Grouped)
+                                </button>
+                            </div>
                         </div>
                         <div id="chartSeriesProcessBar" class="flex-1 w-full h-80"></div>
                     </div>
                 </div>
 
-                <!-- 상세 나열 일람표 (정렬 가능) -->
+                <!-- 상세 나열 일람표: 호기별 총괄 요약 vs 공정별 정밀 비교 매트릭스 -->
                 <div class="dashboard-card p-5">
-                    <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
-                        <h4 class="text-sm font-black text-slate-800 flex items-center gap-1.5">
-                            <span>📋</span> 기종 내 프로젝트 세부 실적 및 기종 평균 대비 편차 일람표
-                        </h4>
-                        <span class="text-[10px] text-slate-400 font-bold">프로젝트별 공수, 비용, 단가 및 기종 평균 대비 편차(±h)</span>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 border-b border-slate-100 pb-2">
+                        <div>
+                            <h4 class="text-sm font-black text-slate-800 flex items-center gap-1.5">
+                                <span>📋</span> 기종 내 프로젝트 비교 데이터 일람표
+                            </h4>
+                            <p class="text-[11px] text-slate-400 font-bold mt-0.5" id="seriesTableDescText">호기별 총 소요 공수, 금액, 단가 및 기종 평균 대비 편차</p>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+                                <button type="button" id="btnSeriesTableSummary" onclick="setSeriesTableView('summary')"
+                                    class="px-3 py-1.5 text-xs font-black rounded-lg transition-all bg-purple-600 text-white shadow-xs">
+                                    📋 호기별 총괄 요약표
+                                </button>
+                                <button type="button" id="btnSeriesTableProcess" onclick="setSeriesTableView('process')"
+                                    class="px-3 py-1.5 text-xs font-black rounded-lg transition-all text-slate-600 hover:text-slate-900">
+                                    ⚙️ 공정별 정밀 비교 매트릭스
+                                </button>
+                            </div>
+                            <button type="button" onclick="exportSeriesCSV()"
+                                class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-black rounded-xl shadow-xs transition-all flex items-center gap-1.5">
+                                <span>📥</span> <span>엑셀(CSV)</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto custom-scroll" id="seriesTableContainer"></div>
+                    <div class="overflow-x-auto custom-scroll hidden" id="seriesProcessMatrixContainer"></div>
                 </div>
             </div>
 
@@ -837,12 +876,16 @@
                         <div class="flex items-center gap-2 flex-wrap">
                             <div class="bg-white p-1 rounded-xl border border-slate-200 shadow-sm flex items-center">
                                 <button type="button" id="btnCompModeClient" onclick="setComparisonMode('client')"
-                                    class="px-4 py-2 text-xs font-black rounded-lg transition-all bg-purple-600 text-white shadow-sm">
-                                    🏢 업체 vs 업체 비교
+                                    class="px-3.5 py-2 text-xs font-black rounded-lg transition-all bg-purple-600 text-white shadow-sm">
+                                    🏢 업체 vs 업체
                                 </button>
                                 <button type="button" id="btnCompModeProject" onclick="setComparisonMode('project')"
-                                    class="px-4 py-2 text-xs font-black rounded-lg transition-all text-slate-500 hover:text-slate-800">
-                                    📁 프로젝트 vs 프로젝트 비교
+                                    class="px-3.5 py-2 text-xs font-black rounded-lg transition-all text-slate-500 hover:text-slate-800">
+                                    📁 프로젝트 vs 프로젝트
+                                </button>
+                                <button type="button" id="btnCompModeProcess" onclick="setComparisonMode('process')"
+                                    class="px-3.5 py-2 text-xs font-black rounded-lg transition-all text-slate-500 hover:text-slate-800">
+                                    ⚙️ 공정 vs 공정 비교
                                 </button>
                             </div>
                             <button type="button" onclick="exportComparisonCSV()" title="CSV 엑셀 다운로드"
@@ -1507,6 +1550,7 @@
         }
 
         function populateFilters() {
+            initPeriodCheckboxes();
             const yearSel = document.getElementById('selYear');
             const years = [...new Set(rawData.map(i => i.year))].filter(y => y !== 'Unknown').sort((a, b) => b - a);
             yearSel.innerHTML = '<option value="">전체 연도</option>';
@@ -1933,27 +1977,122 @@ function onSeriesCompanyChange() {
                     };
                 });
 
-                const opt2 = {
-                    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-                    legend: { data: topProcs, top: 0, textStyle: { fontWeight: 'bold', fontSize: 11 } },
-                    grid: { top: '35px', left: '3%', right: '4%', bottom: '15%', containLabel: true },
-                    xAxis: {
-                        type: 'category',
-                        data: names,
-                        axisLabel: { interval: 0, rotate: 30, fontSize: 10, fontWeight: 'bold', color: '#334155' }
-                    },
-                    yAxis: {
-                        type: 'value',
-                        name: '공정별 시간 (h)',
-                        splitLine: { lineStyle: { type: 'dashed' } }
-                    },
-                    series: procSeries
-                };
+                let opt2;
+                if (seriesProcessChartMode === 'group') {
+                    // [공정 기준 나란히 비교]: X축 = 공정명 (가공, 제관, 조립 등), 범례 = 각 프로젝트
+                    const projLegends = activeProjects.map(p => p.project.length > 12 ? p.project.slice(0, 10) + '..' : p.project);
+                    const groupColors = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6', '#f97316', '#64748b', '#a855f7'];
+
+                    const groupedSeries = activeProjects.map((p, pIdx) => {
+                        return {
+                            name: projLegends[pIdx],
+                            type: 'bar',
+                            data: topProcs.map(proc => Math.round(p.processMap[proc] || 0)),
+                            itemStyle: { color: groupColors[pIdx % groupColors.length], borderRadius: [3, 3, 0, 0] },
+                            barMaxWidth: 24
+                        };
+                    });
+
+                    opt2 = {
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: { type: 'shadow' },
+                            formatter: function(params) {
+                                const procName = params[0].axisValue;
+                                let tip = `<div class="font-black text-xs pb-1 border-b border-slate-200">⚙️ [공정] ${procName} 호기별 비교</div><div class="text-xs pt-1 space-y-1">`;
+                                params.forEach(pr => {
+                                    tip += `<div>• <strong style="color:${pr.color}">${pr.seriesName}:</strong> <strong>${pr.value} h</strong></div>`;
+                                });
+                                tip += `</div>`;
+                                return tip;
+                            }
+                        },
+                        legend: { data: projLegends, top: 0, textStyle: { fontWeight: 'bold', fontSize: 10 }, type: 'scroll' },
+                        grid: { top: '40px', left: '3%', right: '4%', bottom: '15%', containLabel: true },
+                        xAxis: {
+                            type: 'category',
+                            data: topProcs,
+                            axisLabel: { interval: 0, fontSize: 11, fontWeight: 'bold', color: '#1e293b' }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: '공정 투입 시간 (h)',
+                            splitLine: { lineStyle: { type: 'dashed' } }
+                        },
+                        series: groupedSeries
+                    };
+                } else {
+                    // [스택 누적형]: X축 = 프로젝트명, 시리즈 = 공정 스택
+                    opt2 = {
+                        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+                        legend: { data: topProcs, top: 0, textStyle: { fontWeight: 'bold', fontSize: 11 } },
+                        grid: { top: '35px', left: '3%', right: '4%', bottom: '15%', containLabel: true },
+                        xAxis: {
+                            type: 'category',
+                            data: names,
+                            axisLabel: { interval: 0, rotate: 30, fontSize: 10, fontWeight: 'bold', color: '#334155' }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: '공정별 시간 (h)',
+                            splitLine: { lineStyle: { type: 'dashed' } }
+                        },
+                        series: procSeries
+                    };
+                }
                 chartSeriesProcessInstance.setOption(opt2, true);
             }
 
-            // 6. 상세 일람표 렌더링
+            // 6. 상세 일람표 렌더링 (선택된 뷰에 맞춰 렌더)
             renderSeriesTable(activeProjects, avgH);
+            renderSeriesProcessMatrix(activeProjects, avgH);
+        }
+
+        let seriesTableView = 'summary'; // 'summary' or 'process'
+        let seriesProcessChartMode = 'stack'; // 'stack' or 'group'
+
+        function setSeriesProcessChartMode(mode) {
+            seriesProcessChartMode = mode;
+            const btnStack = document.getElementById('btnSeriesProcChartStack');
+            const btnGroup = document.getElementById('btnSeriesProcChartGroup');
+            const desc = document.getElementById('seriesProcChartDesc');
+
+            if (mode === 'stack') {
+                if (btnStack) btnStack.className = 'px-2.5 py-1 text-xs font-black rounded-lg transition-all bg-indigo-600 text-white shadow-xs';
+                if (btnGroup) btnGroup.className = 'px-2.5 py-1 text-xs font-black rounded-lg transition-all text-slate-600 hover:text-slate-900';
+                if (desc) desc.innerText = '각 호기별 전체 작업시간 대비 공정별(가공·제관·조립 등) 비중 누적 분석';
+            } else {
+                if (btnStack) btnStack.className = 'px-2.5 py-1 text-xs font-black rounded-lg transition-all text-slate-600 hover:text-slate-900';
+                if (btnGroup) btnGroup.className = 'px-2.5 py-1 text-xs font-black rounded-lg transition-all bg-indigo-600 text-white shadow-xs';
+                if (desc) desc.innerText = '공정(가공·제관·조립 등) 기준으로 각 호기들의 투입시간을 나란히 배치하여 호기별 편차 직접 비교';
+            }
+
+            calculateAndRenderSeriesCharts();
+        }
+
+        function setSeriesTableView(view) {
+            seriesTableView = view;
+            const btnSum = document.getElementById('btnSeriesTableSummary');
+            const btnProc = document.getElementById('btnSeriesTableProcess');
+            const sumContainer = document.getElementById('seriesTableContainer');
+            const procContainer = document.getElementById('seriesProcessMatrixContainer');
+            const desc = document.getElementById('seriesTableDescText');
+
+            if (view === 'summary') {
+                if (btnSum) btnSum.className = 'px-3 py-1.5 text-xs font-black rounded-lg transition-all bg-purple-600 text-white shadow-xs';
+                if (btnProc) btnProc.className = 'px-3 py-1.5 text-xs font-black rounded-lg transition-all text-slate-600 hover:text-slate-900';
+                if (sumContainer) sumContainer.classList.remove('hidden');
+                if (procContainer) procContainer.classList.add('hidden');
+                if (desc) desc.innerText = '호기별 총 소요 공수, 금액, 단가 및 기종 평균 대비 편차';
+            } else {
+                if (btnSum) btnSum.className = 'px-3 py-1.5 text-xs font-black rounded-lg transition-all text-slate-600 hover:text-slate-900';
+                if (btnProc) btnProc.className = 'px-3 py-1.5 text-xs font-black rounded-lg transition-all bg-purple-600 text-white shadow-xs';
+                if (sumContainer) sumContainer.classList.add('hidden');
+                if (procContainer) procContainer.classList.remove('hidden');
+                if (desc) desc.innerText = '모든 공정(가공·제관·조립 등)에 대해 호기별 투입 공수, 기종 평균, 최대 편차 및 병목 위험도 정밀 분석';
+            }
+
+            calculateAndRenderSeriesCharts();
         }
 
         function renderSeriesTable(projects, avgH) {
@@ -2021,6 +2160,149 @@ function onSeriesCompanyChange() {
             container.innerHTML = html;
         }
 
+        // =====================================================================
+        // ⚙️ 공정별 정밀 비교 매트릭스 렌더링 (Series Process Comparison Matrix)
+        // =====================================================================
+        function renderSeriesProcessMatrix(projects, avgH) {
+            const container = document.getElementById('seriesProcessMatrixContainer');
+            if (!container) return;
+
+            // 1. 전체 공정 목록 수집 및 총 공수순 정렬
+            const allProcHours = {};
+            projects.forEach(p => {
+                Object.keys(p.processMap).forEach(proc => {
+                    allProcHours[proc] = (allProcHours[proc] || 0) + p.processMap[proc];
+                });
+            });
+            const processList = Object.keys(allProcHours).sort((a, b) => allProcHours[b] - allProcHours[a]);
+
+            if (processList.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-slate-400 font-bold text-xs">등록된 공정 데이터가 없습니다.</div>`;
+                return;
+            }
+
+            let html = `
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 text-[11px] font-black uppercase">
+                            <th class="p-3 sticky left-0 bg-slate-100 z-10 min-w-[120px] shadow-xs">공정명</th>
+            `;
+
+            // 호기별 헤더
+            projects.forEach(p => {
+                const safeName = (p.project || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const shortName = safeName.length > 14 ? safeName.slice(0, 12) + '..' : safeName;
+                html += `
+                    <th class="p-3 text-center min-w-[110px] bg-slate-50 border-l border-slate-200" title="${safeName}">
+                        <div class="font-black text-slate-800">${shortName}</div>
+                        <div class="text-[10px] text-slate-400 font-bold font-mono">${Math.round(p.totalH)}h</div>
+                    </th>
+                `;
+            });
+
+            html += `
+                            <th class="p-3 text-center min-w-[100px] bg-indigo-50/70 text-indigo-900 border-l border-slate-200 font-black">기종 평균(h)</th>
+                            <th class="p-3 text-center min-w-[100px] bg-rose-50/70 text-rose-900 font-black">최대 편차(h)</th>
+                            <th class="p-3 text-center min-w-[130px] bg-amber-50/70 text-amber-900 font-black">최다 투입 호기</th>
+                            <th class="p-3 text-center min-w-[100px] bg-slate-100 font-black">공정 진단 상태</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 font-bold text-slate-700">
+            `;
+
+            processList.forEach(proc => {
+                let procSum = 0;
+                let maxH = -1;
+                let minH = 999999;
+                let peakProj = '';
+
+                projects.forEach(p => {
+                    const h = p.processMap[proc] || 0;
+                    procSum += h;
+                    if (h > maxH) { maxH = h; peakProj = p.project; }
+                    if (h < minH) { minH = h; }
+                });
+
+                const procAvg = procSum / projects.length;
+                const variance = maxH - minH;
+                const varRatio = procAvg > 0 ? (variance / procAvg * 100) : 0;
+
+                // 진단 상태 뱃지
+                let badgeHtml = '';
+                if (variance > 25 && varRatio > 50) {
+                    badgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-700 border border-rose-200">🚨 편차 심각</span>`;
+                } else if (variance > 10 && varRatio > 25) {
+                    badgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-200">⚠️ 주의 요망</span>`;
+                } else {
+                    badgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">✅ 균일 안정</span>`;
+                }
+
+                html += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-3 sticky left-0 bg-white hover:bg-slate-50 z-10 font-black text-slate-900 shadow-xs border-r border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                                <span class="text-sm">${proc}</span>
+                            </div>
+                        </td>
+                `;
+
+                // 각 프로젝트별 공수 & 비중
+                projects.forEach(p => {
+                    const h = p.processMap[proc] || 0;
+                    const pct = p.totalH > 0 ? (h / p.totalH * 100) : 0;
+                    const isPeak = (h === maxH && maxH > 0 && projects.length > 1);
+
+                    html += `
+                        <td class="p-3 text-center border-l border-slate-100 ${isPeak ? 'bg-rose-50/50' : ''}">
+                            <div class="font-black text-slate-900 text-sm">${Math.round(h).toLocaleString()} h</div>
+                            <div class="text-[10px] text-slate-400 font-bold">${pct.toFixed(1)}%</div>
+                            ${isPeak ? '<span class="text-[9px] font-black text-rose-600 bg-rose-100 px-1 py-0.2 rounded mt-0.5 inline-block">최다부하</span>' : ''}
+                        </td>
+                    `;
+                });
+
+                const safePeak = (peakProj || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const shortPeak = safePeak.length > 14 ? safePeak.slice(0, 12) + '..' : safePeak;
+
+                html += `
+                        <td class="p-3 text-center font-black text-indigo-950 bg-indigo-50/30 border-l border-slate-200">${Math.round(procAvg).toLocaleString()} h</td>
+                        <td class="p-3 text-center font-black ${variance > 25 ? 'text-rose-600' : 'text-slate-700'} bg-rose-50/30">${Math.round(variance).toLocaleString()} h</td>
+                        <td class="p-3 text-center font-bold text-slate-700 bg-amber-50/30" title="${safePeak}">${shortPeak}</td>
+                        <td class="p-3 text-center">${badgeHtml}</td>
+                    </tr>
+                `;
+            });
+
+            // 합계 행
+            html += `
+                    <tr class="bg-slate-100 font-black text-slate-900 border-t-2 border-slate-300">
+                        <td class="p-3 sticky left-0 bg-slate-100 z-10 shadow-xs border-r border-slate-200">합계 (Total h)</td>
+            `;
+
+            let grandTotal = 0;
+            projects.forEach(p => {
+                grandTotal += p.totalH;
+                html += `
+                    <td class="p-3 text-center border-l border-slate-200 font-black text-indigo-900">
+                        ${Math.round(p.totalH).toLocaleString()} h
+                    </td>
+                `;
+            });
+
+            const grandAvg = grandTotal / projects.length;
+            html += `
+                        <td class="p-3 text-center bg-indigo-100/50 text-indigo-950 border-l border-slate-200">${Math.round(grandAvg).toLocaleString()} h</td>
+                        <td class="p-3 text-center text-slate-400">-</td>
+                        <td class="p-3 text-center text-slate-400">-</td>
+                        <td class="p-3 text-center text-slate-400">-</td>
+                    </tr>
+                </tbody></table>
+            `;
+
+            container.innerHTML = html;
+        }
+
         function exportSeriesCSV() {
             const activeProjects = seriesLastProjectsList.filter(p => seriesSelectedProjects.has(p.key));
             if (activeProjects.length === 0) {
@@ -2028,20 +2310,65 @@ function onSeriesCompanyChange() {
                 return;
             }
 
-            let csv = "\uFEFF[기종 프로젝트 시리즈 비교 리포트]\n";
-            csv += "업체명,프로젝트(호기),총시간(h),정규시간(h),잔업시간(h),잔업률(%),총비용(원),시간당단가(원),작업자수,작업일수\n";
+            let csv = "\uFEFF";
+            let filename = '';
 
-            activeProjects.forEach(p => {
-                const overRate = p.totalH > 0 ? (p.overH / p.totalH) * 100 : 0;
-                const wage = p.totalH > 0 ? (p.cost / p.totalH) : 0;
-                csv += `"${p.client}","${p.project}",${Math.round(p.totalH)},${Math.round(p.regH)},${Math.round(p.overH)},${overRate.toFixed(1)}%,${Math.round(p.cost)},${Math.round(wage)},${p.workers.size},${p.dates.size}\n`;
-            });
+            if (seriesTableView === 'process') {
+                // 공정별 정밀 비교 매트릭스 CSV
+                csv += "[기종 내 호기별 공정 비교 정밀 매트릭스 리포트]\n";
+                csv += "공정명," + activeProjects.map(p => `"${(p.project||'').replace(/"/g, '""')}(h)",` + `"${(p.project||'').replace(/"/g, '""')}(%)"`).join(',') + ",기종평균(h),최대편차(h),최다투입호기,진단상태\n";
+
+                const allProcHours = {};
+                activeProjects.forEach(p => {
+                    Object.keys(p.processMap).forEach(proc => {
+                        allProcHours[proc] = (allProcHours[proc] || 0) + p.processMap[proc];
+                    });
+                });
+                const processList = Object.keys(allProcHours).sort((a, b) => allProcHours[b] - allProcHours[a]);
+
+                processList.forEach(proc => {
+                    let procSum = 0; let maxH = -1; let minH = 999999; let peakProj = '';
+                    activeProjects.forEach(p => {
+                        const h = p.processMap[proc] || 0;
+                        procSum += h;
+                        if (h > maxH) { maxH = h; peakProj = p.project; }
+                        if (h < minH) minH = h;
+                    });
+                    const procAvg = (procSum / activeProjects.length).toFixed(1);
+                    const variance = (maxH - minH).toFixed(1);
+                    const varRatio = procAvg > 0 ? (variance / procAvg * 100) : 0;
+                    const status = (variance > 25 && varRatio > 50) ? '편차심각' : ((variance > 10 && varRatio > 25) ? '주의요망' : '균일안정');
+
+                    let line = `"${proc.replace(/"/g, '""')}",`;
+                    activeProjects.forEach(p => {
+                        const h = p.processMap[proc] || 0;
+                        const pct = p.totalH > 0 ? (h / p.totalH * 100).toFixed(1) : '0';
+                        line += `${Math.round(h)},${pct}%,`;
+                    });
+                    line += `${procAvg},${variance},"${(peakProj || '').replace(/"/g, '""')}",${status}\n`;
+                    csv += line;
+                });
+
+                filename = `공정별정밀비교매트릭스_${new Date().toISOString().slice(0,10)}.csv`;
+
+            } else {
+                csv += "[기종 프로젝트 시리즈 비교 리포트]\n";
+                csv += "업체명,프로젝트(호기),총시간(h),정규시간(h),잔업시간(h),잔업률(%),총비용(원),시간당단가(원),작업자수,작업일수\n";
+
+                activeProjects.forEach(p => {
+                    const overRate = p.totalH > 0 ? (p.overH / p.totalH) * 100 : 0;
+                    const wage = p.totalH > 0 ? (p.cost / p.totalH) : 0;
+                    csv += `"${p.client}","${p.project}",${Math.round(p.totalH)},${Math.round(p.regH)},${Math.round(p.overH)},${overRate.toFixed(1)}%,${Math.round(p.cost)},${Math.round(wage)},${p.workers.size},${p.dates.size}\n`;
+                });
+
+                filename = `기종시리즈비교_${new Date().toISOString().slice(0,10)}.csv`;
+            }
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `기종시리즈비교_${new Date().toISOString().slice(0,10)}.csv`;
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -2782,7 +3109,182 @@ function switchTmView(view) {
             URL.revokeObjectURL(url);
         }
 
-        function updateProjectList() {
+        
+        // =====================================================================
+        // 📅 연도 및 월 기간 선택 체크박스 엔진 (Period Checkbox Engine)
+        // =====================================================================
+        let selectedFilterYears = new Set(['ALL']);
+        let selectedFilterMonths = new Set(['ALL']);
+
+        function initPeriodCheckboxes() {
+            if (!rawData || rawData.length === 0) return;
+
+            // 1. 연도 체크박스 생성
+            const yrContainer = document.getElementById('yearCheckboxesArea');
+            if (yrContainer) {
+                const years = [...new Set(rawData.map(i => i.year))].filter(y => y !== 'Unknown').sort((a, b) => b - a);
+                let yrHtml = `
+                    <label class="cursor-pointer">
+                        <input type="checkbox" id="chkPeriodYr_ALL" onchange="handlePeriodYearToggle('ALL')" class="hidden peer" checked>
+                        <span class="px-3 py-1.5 rounded-xl text-xs font-black border transition-all peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 shadow-xs inline-block">
+                            🌐 전체 연도
+                        </span>
+                    </label>
+                `;
+                years.forEach(y => {
+                    yrHtml += `
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="chkPeriodYr" value="${y}" onchange="handlePeriodYearToggle('${y}')" class="hidden peer">
+                            <span class="px-3 py-1.5 rounded-xl text-xs font-black border transition-all peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 shadow-xs inline-block">
+                                ${y}년
+                            </span>
+                        </label>
+                    `;
+                });
+                yrContainer.innerHTML = yrHtml;
+            }
+
+            // 2. 월 체크박스 생성
+            const moContainer = document.getElementById('monthCheckboxesArea');
+            if (moContainer) {
+                let moHtml = `
+                    <label class="cursor-pointer">
+                        <input type="checkbox" id="chkPeriodMo_ALL" onchange="handlePeriodMonthToggle('ALL')" class="hidden peer" checked>
+                        <span class="px-2.5 py-1.5 rounded-xl text-xs font-black border transition-all peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 shadow-xs inline-block">
+                            전체 월
+                        </span>
+                    </label>
+                    <button type="button" onclick="applyPeriodMonthPreset('H1')" class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200 hover:bg-slate-100 text-slate-600 shadow-xs">
+                        🌱 상반기 (1~6월)
+                    </button>
+                    <button type="button" onclick="applyPeriodMonthPreset('H2')" class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200 hover:bg-slate-100 text-slate-600 shadow-xs">
+                        🍂 하반기 (7~12월)
+                    </button>
+                    <div class="w-px h-5 bg-slate-200 mx-1 hidden sm:block"></div>
+                `;
+                for (let m = 1; m <= 12; m++) {
+                    moHtml += `
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="chkPeriodMo" value="${m}" onchange="handlePeriodMonthToggle('${m}')" class="hidden peer">
+                            <span class="w-9 h-8 rounded-xl text-xs font-black border transition-all peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 shadow-xs inline-flex items-center justify-center">
+                                ${m}월
+                            </span>
+                        </label>
+                    `;
+                }
+                moContainer.innerHTML = moHtml;
+            }
+
+            updatePeriodSummaryText();
+        }
+
+        function handlePeriodYearToggle(yr) {
+            const chkAll = document.getElementById('chkPeriodYr_ALL');
+            const chks = document.querySelectorAll('input[name="chkPeriodYr"]');
+
+            if (yr === 'ALL') {
+                chks.forEach(c => c.checked = false);
+                chkAll.checked = true;
+                selectedFilterYears = new Set(['ALL']);
+            } else {
+                if (chkAll) chkAll.checked = false;
+                const checkedList = Array.from(chks).filter(c => c.checked).map(c => c.value);
+                if (checkedList.length === 0) {
+                    if (chkAll) chkAll.checked = true;
+                    selectedFilterYears = new Set(['ALL']);
+                } else {
+                    selectedFilterYears = new Set(checkedList);
+                }
+            }
+
+            // selYear 드롭다운과 동기화
+            const selYr = document.getElementById('selYear');
+            if (selYr) {
+                selYr.value = selectedFilterYears.has('ALL') ? '' : Array.from(selectedFilterYears)[0];
+            }
+
+            updatePeriodSummaryText();
+            updateProjectList();
+        }
+
+        function handlePeriodMonthToggle(mo) {
+            const chkAll = document.getElementById('chkPeriodMo_ALL');
+            const chks = document.querySelectorAll('input[name="chkPeriodMo"]');
+
+            if (mo === 'ALL') {
+                chks.forEach(c => c.checked = false);
+                chkAll.checked = true;
+                selectedFilterMonths = new Set(['ALL']);
+            } else {
+                if (chkAll) chkAll.checked = false;
+                const checkedList = Array.from(chks).filter(c => c.checked).map(c => c.value);
+                if (checkedList.length === 0) {
+                    if (chkAll) chkAll.checked = true;
+                    selectedFilterMonths = new Set(['ALL']);
+                } else {
+                    selectedFilterMonths = new Set(checkedList);
+                }
+            }
+
+            // selMonth 드롭다운과 동기화
+            const selMo = document.getElementById('selMonth');
+            if (selMo) {
+                selMo.value = selectedFilterMonths.has('ALL') ? '' : Array.from(selectedFilterMonths)[0];
+            }
+
+            updatePeriodSummaryText();
+            updateProjectList();
+        }
+
+        function applyPeriodMonthPreset(preset) {
+            const chkAll = document.getElementById('chkPeriodMo_ALL');
+            if (chkAll) chkAll.checked = false;
+
+            const chks = document.querySelectorAll('input[name="chkPeriodMo"]');
+            selectedFilterMonths.clear();
+
+            chks.forEach(c => {
+                const m = parseInt(c.value);
+                if (preset === 'H1' && m >= 1 && m <= 6) {
+                    c.checked = true;
+                    selectedFilterMonths.add(String(m));
+                } else if (preset === 'H2' && m >= 7 && m <= 12) {
+                    c.checked = true;
+                    selectedFilterMonths.add(String(m));
+                } else {
+                    c.checked = false;
+                }
+            });
+
+            updatePeriodSummaryText();
+            updateProjectList();
+        }
+
+        function resetPeriodCheckboxes() {
+            handlePeriodYearToggle('ALL');
+            handlePeriodMonthToggle('ALL');
+        }
+
+        function updatePeriodSummaryText() {
+            const label = document.getElementById('selectedPeriodSummary');
+            if (!label) return;
+
+            let yrText = '전체 연도';
+            if (!selectedFilterYears.has('ALL')) {
+                const arr = Array.from(selectedFilterYears).sort((a, b) => b - a);
+                yrText = arr.map(y => y + '년').join(', ');
+            }
+
+            let moText = '전체 월';
+            if (!selectedFilterMonths.has('ALL')) {
+                const arr = Array.from(selectedFilterMonths).map(Number).sort((a, b) => a - b);
+                moText = arr.map(m => m + '월').join(', ');
+            }
+
+            label.innerText = `${yrText} / ${moText}`;
+        }
+
+function updateProjectList() {
             const year = document.getElementById('selYear').value;
             const month = document.getElementById('selMonth').value;
             const compSel = document.getElementById('selCompany');
@@ -2800,8 +3302,19 @@ function switchTmView(view) {
             if (!currentWorkplace.includes('ALL')) {
                 filtered = filtered.filter(i => currentWorkplace.includes(i.workplace));
             }
-            if (year) filtered = filtered.filter(i => i.year === year);
-            if (month) filtered = filtered.filter(i => i.month === month);
+            // 연도 체크박스 필터 적용
+            if (typeof selectedFilterYears !== 'undefined' && !selectedFilterYears.has('ALL') && selectedFilterYears.size > 0) {
+                filtered = filtered.filter(i => selectedFilterYears.has(i.year));
+            } else if (year) {
+                filtered = filtered.filter(i => i.year === year);
+            }
+
+            // 월 체크박스 필터 적용
+            if (typeof selectedFilterMonths !== 'undefined' && !selectedFilterMonths.has('ALL') && selectedFilterMonths.size > 0) {
+                filtered = filtered.filter(i => selectedFilterMonths.has(String(parseInt(i.month))));
+            } else if (month) {
+                filtered = filtered.filter(i => i.month === month);
+            }
 
             // 전체 업체 목록
             let companies = [...new Set(filtered.map(i => i.client))].sort();
@@ -5031,17 +5544,25 @@ function switchTmView(view) {
             compMode = mode;
             const btnClient = document.getElementById('btnCompModeClient');
             const btnProject = document.getElementById('btnCompModeProject');
+            const btnProcess = document.getElementById('btnCompModeProcess');
             const desc = document.getElementById('compDescText');
 
+            const actCls = 'px-3.5 py-2 text-xs font-black rounded-lg transition-all bg-purple-600 text-white shadow-sm';
+            const idlCls = 'px-3.5 py-2 text-xs font-black rounded-lg transition-all text-slate-500 hover:text-slate-800';
+
+            if (btnClient) btnClient.className = (mode === 'client') ? actCls : idlCls;
+            if (btnProject) btnProject.className = (mode === 'project') ? actCls : idlCls;
+            if (btnProcess) btnProcess.className = (mode === 'process') ? actCls : idlCls;
+
             if (mode === 'client') {
-                if (btnClient) btnClient.className = 'px-4 py-2 text-xs font-black rounded-lg transition-all bg-purple-600 text-white shadow-sm';
-                if (btnProject) btnProject.className = 'px-4 py-2 text-xs font-black rounded-lg transition-all text-slate-500 hover:text-slate-800';
                 if (desc) desc.innerText = '비교할 두 업체를 검색창이나 드롭다운에서 선택하세요. (공백으로 여러 단어 검색 가능)';
                 document.getElementById('compLabelA').innerText = '기준 업체 [A]';
                 document.getElementById('compLabelB').innerText = '비교 업체 [B]';
+            } else if (mode === 'process') {
+                if (desc) desc.innerText = '비교할 두 공정을 검색창이나 드롭다운에서 선택하세요. (예: 가공 vs 조립, 제관 vs 도장)';
+                document.getElementById('compLabelA').innerText = '기준 공정 [A]';
+                document.getElementById('compLabelB').innerText = '비교 공정 [B]';
             } else {
-                if (btnClient) btnClient.className = 'px-4 py-2 text-xs font-black rounded-lg transition-all text-slate-500 hover:text-slate-800';
-                if (btnProject) btnProject.className = 'px-4 py-2 text-xs font-black rounded-lg transition-all bg-purple-600 text-white shadow-sm';
                 if (desc) desc.innerText = '비교할 두 프로젝트를 검색창이나 드롭다운에서 선택하세요. (공백으로 여러 단어 검색 가능)';
                 document.getElementById('compLabelA').innerText = '기준 프로젝트 [A]';
                 document.getElementById('compLabelB').innerText = '비교 프로젝트 [B]';
@@ -5065,7 +5586,36 @@ function switchTmView(view) {
             const kwA = searchA.split(/\s+/).filter(k => k.length > 0);
             const kwB = searchB.split(/\s+/).filter(k => k.length > 0);
 
-            if (compMode === 'client') {
+            if (compMode === 'process') {
+                const procHoursMap = {};
+                rawData.forEach(d => {
+                    const proc = d.type || '기타';
+                    procHoursMap[proc] = (procHoursMap[proc] || 0) + ((d.h_reg + d.h_over) || 0);
+                });
+                let allProcs = Object.keys(procHoursMap).filter(Boolean).sort((a, b) => procHoursMap[b] - procHoursMap[a]);
+
+                if (!compTargetA && allProcs.length > 0) compTargetA = allProcs[0];
+                if (!compTargetB && allProcs.length > 1) compTargetB = allProcs[1] || allProcs[0];
+
+                let listA = allProcs;
+                if (kwA.length > 0) listA = listA.filter(p => kwA.every(k => p.toLowerCase().includes(k)));
+                selA.innerHTML = '';
+                listA.forEach(p => {
+                    const h = Math.round(procHoursMap[p] || 0);
+                    selA.add(new Option(`${p} (${h.toLocaleString()}h)`, p));
+                });
+                if (allProcs.includes(compTargetA)) selA.value = compTargetA;
+
+                let listB = allProcs;
+                if (kwB.length > 0) listB = listB.filter(p => kwB.every(k => p.toLowerCase().includes(k)));
+                selB.innerHTML = '';
+                listB.forEach(p => {
+                    const h = Math.round(procHoursMap[p] || 0);
+                    selB.add(new Option(`${p} (${h.toLocaleString()}h)`, p));
+                });
+                if (allProcs.includes(compTargetB)) selB.value = compTargetB;
+
+            } else if (compMode === 'client') {
                 const clientHoursMap = {};
                 rawData.forEach(d => {
                     if (!clientHoursMap[d.client]) clientHoursMap[d.client] = 0;
@@ -5233,7 +5783,12 @@ function switchTmView(view) {
             let dataA = []; let dataB = [];
             let labelA = compTargetA; let labelB = compTargetB;
 
-            if (compMode === 'client') {
+            if (compMode === 'process') {
+                dataA = baseData.filter(d => (d.type || '기타') === compTargetA);
+                dataB = baseData.filter(d => (d.type || '기타') === compTargetB);
+                labelA = `[공정] ${compTargetA}`;
+                labelB = `[공정] ${compTargetB}`;
+            } else if (compMode === 'client') {
                 dataA = baseData.filter(d => d.client === compTargetA);
                 dataB = baseData.filter(d => d.client === compTargetB);
             } else {
@@ -5272,6 +5827,7 @@ function switchTmView(view) {
             const processMap = {};
             const workerMap = {};
             const monthlyMap = {};
+            const projectMap = {};
 
             dataset.forEach(d => {
                 const h = (d.h_reg + d.h_over) || 0;
@@ -5300,6 +5856,11 @@ function switchTmView(view) {
                 if (!monthlyMap[ym]) monthlyMap[ym] = { hours: 0, cost: 0 };
                 monthlyMap[ym].hours += h;
                 monthlyMap[ym].cost += (d.cost || 0);
+
+                const pKey = `${d.client} - ${d.project}`;
+                if (!projectMap[pKey]) projectMap[pKey] = { client: d.client, project: d.project, hours: 0, cost: 0 };
+                projectMap[pKey].hours += h;
+                projectMap[pKey].cost += (d.cost || 0);
             });
 
             const overRate = totalHours > 0 ? (overHours / totalHours) * 100 : 0;
@@ -5320,7 +5881,8 @@ function switchTmView(view) {
                 dailyHours,
                 processMap,
                 workerMap,
-                monthlyMap
+                monthlyMap,
+                projectMap
             };
         }
 
@@ -5549,14 +6111,30 @@ function switchTmView(view) {
                 window.addEventListener('resize', () => { if (compTimelineChartInstance) compTimelineChartInstance.resize(); });
             }
 
-            const allProcesses = [...new Set([...Object.keys(mA.processMap), ...Object.keys(mB.processMap)])].sort((x, y) => {
-                const totalX = (mA.processMap[x]?.hours || 0) + (mB.processMap[x]?.hours || 0);
-                const totalY = (mA.processMap[y]?.hours || 0) + (mB.processMap[y]?.hours || 0);
-                return totalY - totalX;
-            }).slice(0, 10);
+            let chartCategories = [];
+            let seriesA_Proc = [];
+            let seriesB_Proc = [];
 
-            const seriesA_Proc = allProcesses.map(p => Math.round(mA.processMap[p]?.hours || 0));
-            const seriesB_Proc = allProcesses.map(p => Math.round(mB.processMap[p]?.hours || 0));
+            if (compMode === 'process') {
+                // 공정 1:1 비교 시: 해당 두 공정이 가장 많이 투입된 상위 프로젝트 Top 8 비교
+                chartCategories = [...new Set([...Object.keys(mA.projectMap || {}), ...Object.keys(mB.projectMap || {})])].sort((x, y) => {
+                    const totalX = (mA.projectMap[x]?.hours || 0) + (mB.projectMap[x]?.hours || 0);
+                    const totalY = (mA.projectMap[y]?.hours || 0) + (mB.projectMap[y]?.hours || 0);
+                    return totalY - totalX;
+                }).slice(0, 8);
+
+                seriesA_Proc = chartCategories.map(k => Math.round(mA.projectMap[k]?.hours || 0));
+                seriesB_Proc = chartCategories.map(k => Math.round(mB.projectMap[k]?.hours || 0));
+            } else {
+                chartCategories = [...new Set([...Object.keys(mA.processMap), ...Object.keys(mB.processMap)])].sort((x, y) => {
+                    const totalX = (mA.processMap[x]?.hours || 0) + (mB.processMap[x]?.hours || 0);
+                    const totalY = (mA.processMap[y]?.hours || 0) + (mB.processMap[y]?.hours || 0);
+                    return totalY - totalX;
+                }).slice(0, 10);
+
+                seriesA_Proc = chartCategories.map(p => Math.round(mA.processMap[p]?.hours || 0));
+                seriesB_Proc = chartCategories.map(p => Math.round(mB.processMap[p]?.hours || 0));
+            }
 
             const optProcess = {
                 tooltip: {
@@ -5581,7 +6159,7 @@ function switchTmView(view) {
                 grid: { top: '35px', left: '3%', right: '4%', bottom: '5%', containLabel: true },
                 xAxis: {
                     type: 'category',
-                    data: allProcesses,
+                    data: chartCategories.map(c => c.length > 14 ? c.slice(0, 12) + '..' : c),
                     axisLabel: { interval: 0, rotate: 25, fontSize: 11, fontWeight: 'bold', color: '#475569' }
                 },
                 yAxis: {
@@ -5755,6 +6333,66 @@ function switchTmView(view) {
             let html = '';
 
             if (compSubTab === 'process') {
+                if (compMode === 'process') {
+                    // 공정 vs 공정 비교 시: 두 공정이 투입된 주요 프로젝트별 상세 일람표
+                    const allProjs = [...new Set([...Object.keys(mA.projectMap || {}), ...Object.keys(mB.projectMap || {})])].sort((x, y) => {
+                        const tX = (mA.projectMap[x]?.hours || 0) + (mB.projectMap[x]?.hours || 0);
+                        const tY = (mA.projectMap[y]?.hours || 0) + (mB.projectMap[y]?.hours || 0);
+                        return tY - tX;
+                    });
+
+                    html = `
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 text-[11px] font-black uppercase">
+                                    <th class="p-3">프로젝트 구분</th>
+                                    <th class="p-3 text-indigo-700 bg-indigo-50/50">[A: ${labelA}] 시간 (h)</th>
+                                    <th class="p-3 text-indigo-700 bg-indigo-50/50">[A] 비중 (%)</th>
+                                    <th class="p-3 text-emerald-700 bg-emerald-50/50">[B: ${labelB}] 시간 (h)</th>
+                                    <th class="p-3 text-emerald-700 bg-emerald-50/50">[B] 비중 (%)</th>
+                                    <th class="p-3 text-purple-700">격차 (A - B)</th>
+                                    <th class="p-3" style="min-width: 160px;">비중 비교 바</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 font-bold text-slate-700">
+                    `;
+
+                    allProjs.forEach(k => {
+                        const hA = mA.projectMap[k]?.hours || 0;
+                        const hB = mB.projectMap[k]?.hours || 0;
+                        const pctA = mA.totalHours > 0 ? (hA / mA.totalHours) * 100 : 0;
+                        const pctB = mB.totalHours > 0 ? (hB / mB.totalHours) * 100 : 0;
+                        const diff = hA - hB;
+                        const diffCls = diff > 0 ? 'text-indigo-600' : (diff < 0 ? 'text-emerald-600' : 'text-slate-400');
+                        const diffSign = diff > 0 ? '+' : '';
+                        const safeK = (k || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+                        html += `
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="p-3 font-black text-slate-900 flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                                    <span>${safeK}</span>
+                                </td>
+                                <td class="p-3 bg-indigo-50/20 font-black text-indigo-950">${Math.round(hA).toLocaleString()} h</td>
+                                <td class="p-3 bg-indigo-50/20 text-indigo-700">${pctA.toFixed(1)}%</td>
+                                <td class="p-3 bg-emerald-50/20 font-black text-emerald-950">${Math.round(hB).toLocaleString()} h</td>
+                                <td class="p-3 bg-emerald-50/20 text-emerald-700">${pctB.toFixed(1)}%</td>
+                                <td class="p-3 font-black ${diffCls}">${diffSign}${Math.round(diff).toLocaleString()} h</td>
+                                <td class="p-3">
+                                    <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden flex">
+                                        <div style="width: ${pctA}%" class="bg-indigo-500 h-full" title="A: ${pctA.toFixed(1)}%"></div>
+                                        <div style="width: ${pctB}%" class="bg-emerald-500 h-full" title="B: ${pctB.toFixed(1)}%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    html += `</tbody></table>`;
+                    container.innerHTML = html;
+                    return;
+                }
+
                 const allProcesses = [...new Set([...Object.keys(mA.processMap), ...Object.keys(mB.processMap)])].sort((x, y) => {
                     const tX = (mA.processMap[x]?.hours || 0) + (mB.processMap[x]?.hours || 0);
                     const tY = (mA.processMap[y]?.hours || 0) + (mB.processMap[y]?.hours || 0);

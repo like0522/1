@@ -691,6 +691,37 @@
                         </div>
                     </div>
 
+                    <!-- 📅 [기종 비교 전용] 기간 정밀 선택: 연도 & 월 체크란 -->
+                    <div class="p-4 bg-white rounded-2xl border border-purple-200 shadow-xs space-y-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0">
+                                <span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
+                                <span class="text-xs font-black text-slate-700">기종 연도 체크</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 flex-wrap" id="seriesYearCheckboxesArea">
+                                <!-- JS 동적 생성 -->
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 pt-2.5 border-t border-slate-100">
+                            <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0">
+                                <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                                <span class="text-xs font-black text-slate-700">기종 월 체크</span>
+                            </div>
+                            <div class="flex items-center gap-1 flex-wrap" id="seriesMonthCheckboxesArea">
+                                <!-- JS 동적 생성 -->
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-bold text-slate-500 pt-1 border-t border-slate-100">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span>📅 기종 비교 분석 대상 기간:</span>
+                                <span id="seriesSelectedPeriodSummary" class="text-purple-700 font-black bg-purple-50 px-2.5 py-0.5 rounded-md border border-purple-200">전체 연도 / 전체 월</span>
+                            </div>
+                            <button type="button" onclick="resetSeriesPeriodCheckboxes()" class="text-slate-400 hover:text-purple-700 underline text-[11px] self-end sm:self-auto">전체 기간으로 초기화</button>
+                        </div>
+                    </div>
+
                     <!-- 컨트롤 바: 업체 선택 + 기종 검색어 입력 + 빠른 프리셋 -->
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
                         <div class="md:col-span-4 space-y-1">
@@ -1271,6 +1302,78 @@
 
     </main>
 
+
+    <!-- 🔍 대기업 경영진 6대 핵심 KPI 원인 분석 드릴다운 모달 (Root-Cause Drilldown Modal) -->
+    <div id="tmKpiDrilldownModal"
+        class="hidden fixed inset-0 bg-slate-900/60 z-[110] flex items-center justify-center backdrop-blur-md p-2 sm:p-4">
+        <div class="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full sm:w-[1100px] sm:max-w-[96%] max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200">
+            <!-- 모달 헤더 -->
+            <div class="p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex justify-between items-center border-b border-indigo-800/40">
+                <div class="flex items-center gap-3">
+                    <span id="tmDrilldownIcon" class="w-10 h-10 rounded-2xl bg-indigo-600 text-white text-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">📊</span>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 id="tmDrilldownTitle" class="text-base sm:text-lg font-black tracking-tight text-white">KPI 원인 분석 리포트</h3>
+                            <span id="tmDrilldownValueBadge" class="text-xs font-black px-2.5 py-0.5 rounded-full bg-indigo-500 text-white">현재값</span>
+                        </div>
+                        <p id="tmDrilldownSubtitle" class="text-xs font-bold text-indigo-200 mt-0.5">이 수치가 산출된 세부 근거와 주요 기여 요인을 시각적으로 분해합니다.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeEnterpriseKpiDrilldown()"
+                    class="w-9 h-9 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full font-black text-sm transition-colors">✕</button>
+            </div>
+
+            <!-- 모달 바디 (스크롤) -->
+            <div class="p-4 sm:p-6 overflow-y-auto custom-scroll flex-1 space-y-5 bg-slate-50">
+                <!-- 1. 핵심 원인 요약 인사이트 박스 -->
+                <div id="tmDrilldownInsightBox" class="p-4 rounded-2xl bg-indigo-50/80 border border-indigo-200 text-xs font-bold text-slate-700 flex items-start gap-2.5">
+                    <span class="text-lg animate-pulse">💡</span>
+                    <div id="tmDrilldownInsightText" class="space-y-1 leading-relaxed">
+                        산출 근거 분석 중...
+                    </div>
+                </div>
+
+                <!-- 2. 시각적 원인 분해 차트 (ECharts) -->
+                <div class="dashboard-card p-4 bg-white border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                        <h4 id="tmDrilldownChartTitle" class="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1.5">
+                            <span>📈</span> <span>항목별 원인 분해 시각화</span>
+                        </h4>
+                        <span class="text-[10px] font-bold text-slate-400">마우스 오버 시 세부 수치 표시</span>
+                    </div>
+                    <div id="tmKpiDrilldownChart" class="w-full h-72 sm:h-80"></div>
+                </div>
+
+                <!-- 3. 상세 기여도 파레토 테이블 -->
+                <div class="dashboard-card p-4 bg-white border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                        <h4 id="tmDrilldownTableTitle" class="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1.5">
+                            <span>📋</span> <span>상위 기여 내역 상세 테이블</span>
+                        </h4>
+                        <span id="tmDrilldownTableCount" class="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">0개 항목</span>
+                    </div>
+                    <div class="overflow-x-auto max-h-64 custom-scroll">
+                        <table class="w-full text-xs text-left border-collapse">
+                            <thead class="bg-slate-100 text-slate-600 font-black uppercase text-[10px] sticky top-0" id="tmDrilldownThead">
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 font-bold text-slate-700" id="tmDrilldownTbody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 모달 풋터 -->
+            <div class="p-3.5 px-6 border-t border-slate-200 bg-white flex justify-between items-center text-xs">
+                <span class="text-slate-400 font-bold">※ 현재 선택된 기간 및 필터링 조건이 실시간 반영된 분석 결과입니다.</span>
+                <button type="button" onclick="closeEnterpriseKpiDrilldown()"
+                    class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-black rounded-xl transition-all shadow-sm">
+                    확인 닫기
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- 추천 모달 -->
     <div id="recommendModal"
         class="hidden fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center backdrop-blur-sm p-0 sm:p-4">
@@ -1731,28 +1834,236 @@
         let chartSeriesHoursInstance = null;
         let chartSeriesProcessInstance = null;
 
-        function initSeriesBenchmark() {
+
+        // =====================================================================
+        // 📅 [동일 기종 벤치마크] 연도 및 월 기간 선택 체크박스 엔진
+        // =====================================================================
+        let seriesSelectedFilterYears = new Set(['ALL']);
+        let seriesSelectedFilterMonths = new Set(['ALL']);
+
+        function initSeriesPeriodCheckboxes() {
             if (!rawData || rawData.length === 0) return;
 
-            // 1. 업체 드롭다운 채우기
-            const compSel = document.getElementById('seriesSelCompany');
-            if (compSel && compSel.options.length <= 1) {
-                const clientMap = {};
-                rawData.forEach(d => {
-                    if (d.client) {
-                        clientMap[d.client] = (clientMap[d.client] || 0) + ((d.h_reg + d.h_over) || 0);
-                    }
-                });
-                const sortedClients = Object.keys(clientMap).sort((a, b) => clientMap[b] - clientMap[a]);
-                compSel.innerHTML = '<option value="">🏢 전체 업체 (통합 검색)</option>';
-                sortedClients.forEach(c => {
-                    compSel.add(new Option(`${c} (${Math.round(clientMap[c]).toLocaleString()}h)`, c));
-                });
+            // 상단 Tab2의 선택 상태를 초기값으로 연동
+            if (typeof tmSelectedFilterYears !== 'undefined' && !tmSelectedFilterYears.has('ALL')) {
+                seriesSelectedFilterYears = new Set(tmSelectedFilterYears);
+            }
+            if (typeof tmSelectedFilterMonths !== 'undefined' && !tmSelectedFilterMonths.has('ALL')) {
+                seriesSelectedFilterMonths = new Set(tmSelectedFilterMonths);
+            }
 
-                // 기본 선택: '한일'이 포함된 업체 우선 선택
+            // 1. 연도 체크박스 생성
+            const yrContainer = document.getElementById('seriesYearCheckboxesArea');
+            if (yrContainer) {
+                const years = [...new Set(rawData.map(i => i.year))].filter(y => y !== 'Unknown').sort((a, b) => b - a);
+                const isAll = seriesSelectedFilterYears.has('ALL');
+                let yrHtml = `
+                    <label class="cursor-pointer">
+                        <input type="checkbox" id="chkSeriesYr_ALL" onchange="handleSeriesPeriodYearToggle('ALL')" class="hidden peer" ${isAll ? 'checked' : ''}>
+                        <span class="px-3 py-1.5 rounded-xl text-xs font-black border transition-all peer-checked:bg-purple-600 peer-checked:text-white peer-checked:border-purple-600 bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 shadow-xs inline-block">
+                            🌐 전체 연도
+                        </span>
+                    </label>
+                `;
+                years.forEach(y => {
+                    const chked = !isAll && seriesSelectedFilterYears.has(String(y));
+                    yrHtml += `
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="chkSeriesYr" value="${y}" onchange="handleSeriesPeriodYearToggle('${y}')" class="hidden peer" ${chked ? 'checked' : ''}>
+                            <span class="px-3 py-1.5 rounded-xl text-xs font-black border transition-all peer-checked:bg-purple-600 peer-checked:text-white peer-checked:border-purple-600 bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 shadow-xs inline-block">
+                                ${y}년
+                            </span>
+                        </label>
+                    `;
+                });
+                yrContainer.innerHTML = yrHtml;
+            }
+
+            // 2. 월 체크박스 생성
+            const moContainer = document.getElementById('seriesMonthCheckboxesArea');
+            if (moContainer) {
+                const isAllMo = seriesSelectedFilterMonths.has('ALL');
+                let moHtml = `
+                    <label class="cursor-pointer">
+                        <input type="checkbox" id="chkSeriesMo_ALL" onchange="handleSeriesPeriodMonthToggle('ALL')" class="hidden peer" ${isAllMo ? 'checked' : ''}>
+                        <span class="px-2.5 py-1.5 rounded-xl text-xs font-black border transition-all peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 shadow-xs inline-block">
+                            전체 월
+                        </span>
+                    </label>
+                    <button type="button" onclick="applySeriesPeriodMonthPreset('H1')" class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200 hover:bg-slate-100 text-slate-600 shadow-xs">
+                        🌱 상반기 (1~6월)
+                    </button>
+                    <button type="button" onclick="applySeriesPeriodMonthPreset('H2')" class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200 hover:bg-slate-100 text-slate-600 shadow-xs">
+                        🍂 하반기 (7~12월)
+                    </button>
+                    <div class="w-px h-5 bg-slate-200 mx-1 hidden sm:block"></div>
+                `;
+                for (let m = 1; m <= 12; m++) {
+                    const chked = !isAllMo && seriesSelectedFilterMonths.has(String(m));
+                    moHtml += `
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="chkSeriesMo" value="${m}" onchange="handleSeriesPeriodMonthToggle('${m}')" class="hidden peer" ${chked ? 'checked' : ''}>
+                            <span class="w-9 h-8 rounded-xl text-xs font-black border transition-all peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 shadow-xs inline-flex items-center justify-center">
+                                ${m}월
+                            </span>
+                        </label>
+                    `;
+                }
+                moContainer.innerHTML = moHtml;
+            }
+
+            updateSeriesPeriodSummaryText();
+            populateSeriesCompanyFilter();
+        }
+
+        function handleSeriesPeriodYearToggle(yr) {
+            const chkAll = document.getElementById('chkSeriesYr_ALL');
+            const chks = document.querySelectorAll('input[name="chkSeriesYr"]');
+
+            if (yr === 'ALL') {
+                chks.forEach(c => c.checked = false);
+                chkAll.checked = true;
+                seriesSelectedFilterYears = new Set(['ALL']);
+            } else {
+                if (chkAll) chkAll.checked = false;
+                const checkedList = Array.from(chks).filter(c => c.checked).map(c => c.value);
+                if (checkedList.length === 0) {
+                    if (chkAll) chkAll.checked = true;
+                    seriesSelectedFilterYears = new Set(['ALL']);
+                } else {
+                    seriesSelectedFilterYears = new Set(checkedList);
+                }
+            }
+
+            updateSeriesPeriodSummaryText();
+            populateSeriesCompanyFilter();
+            renderSeriesCohort();
+        }
+
+        function handleSeriesPeriodMonthToggle(mo) {
+            const chkAll = document.getElementById('chkSeriesMo_ALL');
+            const chks = document.querySelectorAll('input[name="chkSeriesMo"]');
+
+            if (mo === 'ALL') {
+                chks.forEach(c => c.checked = false);
+                chkAll.checked = true;
+                seriesSelectedFilterMonths = new Set(['ALL']);
+            } else {
+                if (chkAll) chkAll.checked = false;
+                const checkedList = Array.from(chks).filter(c => c.checked).map(c => c.value);
+                if (checkedList.length === 0) {
+                    if (chkAll) chkAll.checked = true;
+                    seriesSelectedFilterMonths = new Set(['ALL']);
+                } else {
+                    seriesSelectedFilterMonths = new Set(checkedList);
+                }
+            }
+
+            updateSeriesPeriodSummaryText();
+            populateSeriesCompanyFilter();
+            renderSeriesCohort();
+        }
+
+        function applySeriesPeriodMonthPreset(preset) {
+            const chkAll = document.getElementById('chkSeriesMo_ALL');
+            if (chkAll) chkAll.checked = false;
+
+            const chks = document.querySelectorAll('input[name="chkSeriesMo"]');
+            seriesSelectedFilterMonths.clear();
+
+            chks.forEach(c => {
+                const m = parseInt(c.value);
+                if (preset === 'H1' && m >= 1 && m <= 6) {
+                    c.checked = true;
+                    seriesSelectedFilterMonths.add(String(m));
+                } else if (preset === 'H2' && m >= 7 && m <= 12) {
+                    c.checked = true;
+                    seriesSelectedFilterMonths.add(String(m));
+                } else {
+                    c.checked = false;
+                }
+            });
+
+            updateSeriesPeriodSummaryText();
+            populateSeriesCompanyFilter();
+            renderSeriesCohort();
+        }
+
+        function resetSeriesPeriodCheckboxes() {
+            seriesSelectedFilterYears = new Set(['ALL']);
+            seriesSelectedFilterMonths = new Set(['ALL']);
+            const chkAllYr = document.getElementById('chkSeriesYr_ALL');
+            if (chkAllYr) chkAllYr.checked = true;
+            document.querySelectorAll('input[name="chkSeriesYr"]').forEach(c => c.checked = false);
+
+            const chkAllMo = document.getElementById('chkSeriesMo_ALL');
+            if (chkAllMo) chkAllMo.checked = true;
+            document.querySelectorAll('input[name="chkSeriesMo"]').forEach(c => c.checked = false);
+
+            updateSeriesPeriodSummaryText();
+            populateSeriesCompanyFilter();
+            renderSeriesCohort();
+        }
+
+        function updateSeriesPeriodSummaryText() {
+            const label = document.getElementById('seriesSelectedPeriodSummary');
+            if (!label) return;
+
+            let yrText = '전체 연도';
+            if (!seriesSelectedFilterYears.has('ALL')) {
+                const arr = Array.from(seriesSelectedFilterYears).sort((a, b) => b - a);
+                yrText = arr.map(y => y + '년').join(', ');
+            }
+
+            let moText = '전체 월';
+            if (!seriesSelectedFilterMonths.has('ALL')) {
+                const arr = Array.from(seriesSelectedFilterMonths).map(Number).sort((a, b) => a - b);
+                moText = arr.map(m => m + '월').join(', ');
+            }
+
+            label.innerText = `${yrText} / ${moText}`;
+        }
+
+        function populateSeriesCompanyFilter() {
+            if (!rawData || rawData.length === 0) return;
+            const compSel = document.getElementById('seriesSelCompany');
+            if (!compSel) return;
+
+            let periodData = rawData;
+            if (typeof seriesSelectedFilterYears !== 'undefined' && !seriesSelectedFilterYears.has('ALL')) {
+                periodData = periodData.filter(d => seriesSelectedFilterYears.has(String(d.year)));
+            }
+            if (typeof seriesSelectedFilterMonths !== 'undefined' && !seriesSelectedFilterMonths.has('ALL')) {
+                periodData = periodData.filter(d => seriesSelectedFilterMonths.has(String(parseInt(d.month))));
+            }
+
+            const clientMap = {};
+            periodData.forEach(d => {
+                if (d.client) {
+                    clientMap[d.client] = (clientMap[d.client] || 0) + ((d.h_reg + d.h_over) || 0);
+                }
+            });
+            const sortedClients = Object.keys(clientMap).sort((a, b) => clientMap[b] - clientMap[a]);
+
+            const curVal = compSel.value;
+            compSel.innerHTML = '<option value="">🏢 전체 업체 (통합 검색)</option>';
+            sortedClients.forEach(c => {
+                compSel.add(new Option(`${c} (${Math.round(clientMap[c]).toLocaleString()}h)`, c));
+            });
+
+            if (curVal && sortedClients.includes(curVal)) {
+                compSel.value = curVal;
+            } else if (!curVal || !sortedClients.includes(curVal)) {
                 const hanil = sortedClients.find(c => c.includes('한일'));
                 if (hanil) compSel.value = hanil;
             }
+        }
+
+        function initSeriesBenchmark() {
+            if (!rawData || rawData.length === 0) return;
+
+            // 1. 기간 체크박스 초기화
+            initSeriesPeriodCheckboxes();
 
             renderSeriesCohort();
         }
@@ -1822,9 +2133,18 @@ function onSeriesCompanyChange() {
             const kw = (document.getElementById('seriesKeywordInput')?.value || '').trim().toLowerCase();
             const keywords = kw.split(/\s+/).filter(k => k.length > 0);
 
-            // 프로젝트별 집계
+            // 프로젝트별 집계 (선택된 기간 필터링 적용)
             const projMap = {};
             rawData.forEach(d => {
+                // 연도 체크박스 필터링
+                if (typeof seriesSelectedFilterYears !== 'undefined' && !seriesSelectedFilterYears.has('ALL')) {
+                    if (!seriesSelectedFilterYears.has(String(d.year))) return;
+                }
+                // 월 체크박스 필터링
+                if (typeof seriesSelectedFilterMonths !== 'undefined' && !seriesSelectedFilterMonths.has('ALL')) {
+                    if (!seriesSelectedFilterMonths.has(String(parseInt(d.month)))) return;
+                }
+
                 if (company && d.client !== company) return;
                 const pName = d.project || '';
                 const cName = d.client || '';
@@ -2602,26 +2922,33 @@ function switchTmView(view) {
             let overRiskBadge = overRate > 20 ? 'text-rose-600 bg-rose-50 border-rose-200' : (overRate > 12 ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-emerald-600 bg-emerald-50 border-emerald-200');
             let overRiskLabel = overRate > 20 ? '과부하 경고' : (overRate > 12 ? '주의 관리' : '안정적 정상');
 
-            function makeCard(title, val, sub, badge, colorCls = 'text-slate-800') {
+            function makeCard(key, title, val, sub, badge, colorCls = 'text-slate-800') {
                 return `
-                    <div class="dashboard-card p-3.5 sm:p-4 flex flex-col justify-between border-t-2 border-t-indigo-500 shadow-sm">
+                    <div onclick="openEnterpriseKpiDrilldown('${key}')"
+                        class="dashboard-card p-3.5 sm:p-4 flex flex-col justify-between border-t-4 border-t-indigo-500 shadow-sm hover:shadow-lg hover:border-t-indigo-600 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group bg-white relative">
                         <div class="flex items-center justify-between mb-1">
-                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-tight">${title}</span>
-                            ${badge ? `<span class="text-[9px] font-black px-1.5 py-0.5 rounded border ${badge}">${badge.includes('과부하') || badge.includes('rose') ? '▲ 경고' : '●'}</span>` : ''}
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-tight group-hover:text-indigo-600 transition-colors">${title}</span>
+                            <div class="flex items-center gap-1">
+                                ${badge ? `<span class="text-[9px] font-black px-1.5 py-0.5 rounded border ${badge}">${badge.includes('과부하') || badge.includes('rose') ? '▲ 경고' : '●'}</span>` : ''}
+                                <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-200 group-hover:bg-indigo-600 group-hover:text-white transition-colors">🔍 원인분석</span>
+                            </div>
                         </div>
                         <div class="text-base sm:text-xl font-black ${colorCls} my-0.5 truncate">${val}</div>
-                        <div class="text-[10px] font-bold text-slate-400 truncate">${sub}</div>
+                        <div class="text-[10px] font-bold text-slate-400 truncate flex items-center justify-between">
+                            <span>${sub}</span>
+                            <span class="text-[9px] text-indigo-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity">클릭하여 분석 ➔</span>
+                        </div>
                     </div>
                 `;
             }
 
             grid.innerHTML = [
-                makeCard('총 투입 공수', `${Math.round(totalH).toLocaleString()}h`, `정규 ${Math.round(regH).toLocaleString()}h | 잔업 ${Math.round(overH).toLocaleString()}h`, null, 'text-indigo-950'),
-                makeCard('총 집행 비용', `₩${(totalC / 100000000).toFixed(2)}억`, `실집행: ₩${(totalC/10000).toLocaleString(undefined, {maximumFractionDigits:0})}만원`, null, 'text-sky-950'),
-                makeCard('평균 시간당 임율', `₩${Math.round(wageRate).toLocaleString()}/h`, `정상임율: ₩2.8만~3.5만`, null, 'text-purple-950'),
-                makeCard('잔업/특근 의존도', `${overRate.toFixed(1)}%`, overRiskLabel, overRiskBadge, overRate > 20 ? 'text-rose-600' : 'text-slate-800'),
-                makeCard('가동 인력 규모', `${activeWorkers}명`, `등록 작업일수: ${dates.size}일`, null, 'text-slate-900'),
-                makeCard('인당 평균 공수', `${Math.round(hPerWorker).toLocaleString()}h/인`, `1인당 일평균 ${(dates.size > 0 ? (totalH / activeWorkers / dates.size).toFixed(1) : 0)}h`, null, 'text-emerald-950')
+                makeCard('hours', '총 투입 공수', `${Math.round(totalH).toLocaleString()}h`, `정규 ${Math.round(regH).toLocaleString()}h | 잔업 ${Math.round(overH).toLocaleString()}h`, null, 'text-indigo-950'),
+                makeCard('cost', '총 집행 비용', `₩${(totalC / 100000000).toFixed(2)}억`, `실집행: ₩${(totalC/10000).toLocaleString(undefined, {maximumFractionDigits:0})}만원`, null, 'text-sky-950'),
+                makeCard('wage', '평균 시간당 임율', `₩${Math.round(wageRate).toLocaleString()}/h`, `정상임율: ₩2.8만~3.5만`, null, 'text-purple-950'),
+                makeCard('overtime', '잔업/특근 의존도', `${overRate.toFixed(1)}%`, overRiskLabel, overRiskBadge, overRate > 20 ? 'text-rose-600' : 'text-slate-800'),
+                makeCard('workers', '가동 인력 규모', `${activeWorkers}명`, `등록 작업일수: ${dates.size}일`, null, 'text-slate-900'),
+                makeCard('perWorker', '인당 평균 공수', `${Math.round(hPerWorker).toLocaleString()}h/인`, `1인당 일평균 ${(dates.size > 0 ? (totalH / activeWorkers / dates.size).toFixed(1) : 0)}h`, null, 'text-emerald-950')
             ].join('');
 
             const riskBadge = document.getElementById('tmRiskBadge');
@@ -3516,8 +3843,454 @@ function switchTmView(view) {
             }
 
             updateTmPeriodSummaryText();
+            populateTmCompanyFilter();
             runTreeMap();
         }
+
+        // =====================================================================
+        // 🔍 [TAB 2] 6대 핵심 KPI 원인 분석 드릴다운 엔진 (Root-Cause Drilldown Engine)
+        // =====================================================================
+        let tmKpiDrilldownChartInstance = null;
+
+        function closeEnterpriseKpiDrilldown() {
+            const modal = document.getElementById('tmKpiDrilldownModal');
+            if (modal) modal.classList.add('hidden');
+            if (tmKpiDrilldownChartInstance) {
+                tmKpiDrilldownChartInstance.dispose();
+                tmKpiDrilldownChartInstance = null;
+            }
+        }
+
+        function openEnterpriseKpiDrilldown(kpiType) {
+            const modal = document.getElementById('tmKpiDrilldownModal');
+            if (!modal || !lastViewData || lastViewData.length === 0) {
+                alert('분석할 데이터가 없습니다.');
+                return;
+            }
+
+            const data = lastViewData;
+            modal.classList.remove('hidden');
+
+            const iconEl = document.getElementById('tmDrilldownIcon');
+            const titleEl = document.getElementById('tmDrilldownTitle');
+            const valBadgeEl = document.getElementById('tmDrilldownValueBadge');
+            const subEl = document.getElementById('tmDrilldownSubtitle');
+            const insightTextEl = document.getElementById('tmDrilldownInsightText');
+            const chartTitleEl = document.getElementById('tmDrilldownChartTitle');
+            const tableTitleEl = document.getElementById('tmDrilldownTableTitle');
+            const tableCountEl = document.getElementById('tmDrilldownTableCount');
+            const theadEl = document.getElementById('tmDrilldownThead');
+            const tbodyEl = document.getElementById('tmDrilldownTbody');
+
+            // 기본 집계
+            let totalH = 0; let regH = 0; let overH = 0; let totalC = 0;
+            const procH = {}; const procC = {}; const procOver = {};
+            const projH = {}; const projC = {}; const projOver = {};
+            const workerH = {}; const workerDates = {}; const workerProcs = {};
+            const dateH = {};
+
+            data.forEach(d => {
+                const h = (d.h_reg + d.h_over) || 0;
+                totalH += h;
+                regH += (d.h_reg || 0);
+                overH += (d.h_over || 0);
+                totalC += (d.cost || 0);
+
+                const p = d.type || '기타';
+                procH[p] = (procH[p] || 0) + h;
+                procC[p] = (procC[p] || 0) + (d.cost || 0);
+                procOver[p] = (procOver[p] || 0) + (d.h_over || 0);
+
+                const prj = d.project || '미지정';
+                if (!projH[prj]) { projH[prj] = 0; projC[prj] = 0; projOver[prj] = 0; }
+                projH[prj] += h;
+                projC[prj] += (d.cost || 0);
+                projOver[prj] += (d.h_over || 0);
+
+                const w = d.worker || '미지정';
+                if (!workerH[w]) { workerH[w] = 0; workerDates[w] = new Set(); workerProcs[w] = new Set(); }
+                workerH[w] += h;
+                if (d.date) workerDates[w].add(d.date);
+                if (d.type) workerProcs[w].add(d.type);
+
+                if (d.date) {
+                    dateH[d.date] = (dateH[d.date] || 0) + h;
+                }
+            });
+
+            const overRate = totalH > 0 ? (overH / totalH) * 100 : 0;
+            const wageRate = totalH > 0 ? (totalC / totalH) : 0;
+            const activeWorkers = Object.keys(workerH).length;
+            const hPerWorker = activeWorkers > 0 ? (totalH / activeWorkers) : 0;
+
+            let chartOption = {};
+
+            if (kpiType === 'hours') {
+                iconEl.innerText = '⏱️';
+                titleEl.innerText = '총 투입 공수(Man-Hours) 원인 분석';
+                valBadgeEl.innerText = `총 ${Math.round(totalH).toLocaleString()}시간`;
+                subEl.innerText = `정규 작업 ${Math.round(regH).toLocaleString()}h + 잔업 ${Math.round(overH).toLocaleString()}h 투입 원인 분해`;
+
+                const sortedProcs = Object.keys(procH).sort((a, b) => procH[b] - procH[a]);
+                const topProc = sortedProcs[0] || '-';
+                const topProcPct = totalH > 0 ? ((procH[topProc] / totalH) * 100).toFixed(1) : 0;
+
+                const sortedProjs = Object.keys(projH).sort((a, b) => projH[b] - projH[a]);
+                const topProj = sortedProjs[0] || '-';
+
+                insightTextEl.innerHTML = `
+                    <p>• <strong>최대 공수 투입 공정:</strong> [${topProc}] 공정에 총 <strong>${Math.round(procH[topProc] || 0).toLocaleString()}h</strong>가 투입되어 전체의 <strong>${topProcPct}%</strong>를 차지했습니다.</p>
+                    <p>• <strong>최대 공수 투입 프로젝트:</strong> [${topProj}]에 총 <strong>${Math.round(projH[topProj] || 0).toLocaleString()}h</strong>가 소요되었습니다.</p>
+                    <p>• 정규근무 대비 잔업 비중은 <strong>${overRate.toFixed(1)}%</strong>로 집계되었습니다.</p>
+                `;
+
+                chartTitleEl.innerHTML = '<span>📊</span> <span>공정별 투입 공수(h) 및 잔업 비중 파레토 분석</span>';
+                chartOption = {
+                    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+                    legend: { data: ['정규 공수(h)', '잔업 공수(h)'] },
+                    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                    xAxis: { type: 'category', data: sortedProcs.slice(0, 10), axisLabel: { interval: 0, rotate: 25 } },
+                    yAxis: { type: 'value', name: '공수(h)' },
+                    series: [
+                        { name: '정규 공수(h)', type: 'bar', stack: 'total', itemStyle: { color: '#4f46e5' }, data: sortedProcs.slice(0, 10).map(p => Math.round((procH[p] || 0) - (procOver[p] || 0))) },
+                        { name: '잔업 공수(h)', type: 'bar', stack: 'total', itemStyle: { color: '#f59e0b' }, data: sortedProcs.slice(0, 10).map(p => Math.round(procOver[p] || 0)) }
+                    ]
+                };
+
+                theadEl.innerHTML = `
+                    <tr>
+                        <th class="p-2.5">순위</th>
+                        <th class="p-2.5">공정명</th>
+                        <th class="p-2.5 text-right">정규시간</th>
+                        <th class="p-2.5 text-right">잔업시간</th>
+                        <th class="p-2.5 text-right">총 투입시간</th>
+                        <th class="p-2.5 text-right">점유 비중</th>
+                    </tr>
+                `;
+                tbodyEl.innerHTML = sortedProcs.map((p, idx) => {
+                    const h = procH[p] || 0;
+                    const o = procOver[p] || 0;
+                    const r = h - o;
+                    const pct = totalH > 0 ? ((h / totalH) * 100).toFixed(1) : '0.0';
+                    return `
+                        <tr class="hover:bg-slate-100 transition-colors">
+                            <td class="p-2.5 text-slate-400 font-mono">${idx + 1}</td>
+                            <td class="p-2.5 font-black text-slate-800">${p}</td>
+                            <td class="p-2.5 text-right font-mono">${Math.round(r).toLocaleString()}h</td>
+                            <td class="p-2.5 text-right font-mono text-amber-600">${Math.round(o).toLocaleString()}h</td>
+                            <td class="p-2.5 text-right font-mono font-black text-indigo-700">${Math.round(h).toLocaleString()}h</td>
+                            <td class="p-2.5 text-right font-mono text-slate-500">${pct}%</td>
+                        </tr>
+                    `;
+                }).join('');
+                tableCountEl.innerText = `${sortedProcs.length}개 공정`;
+
+            } else if (kpiType === 'cost') {
+                iconEl.innerText = '💰';
+                titleEl.innerText = '총 집행 비용 원인 분석';
+                valBadgeEl.innerText = `₩${(totalC / 100000000).toFixed(2)}억원`;
+                subEl.innerText = `실집행 ₩${Math.round(totalC).toLocaleString()}원 발생 원인 분해`;
+
+                const sortedProjs = Object.keys(projC).sort((a, b) => projC[b] - projC[a]);
+                const top5Cost = sortedProjs.slice(0, 5).reduce((acc, p) => acc + projC[p], 0);
+                const top5Pct = totalC > 0 ? ((top5Cost / totalC) * 100).toFixed(1) : 0;
+
+                insightTextEl.innerHTML = `
+                    <p>• <strong>비용 집중도:</strong> 상위 5개 프로젝트가 전체 집행 비용의 <strong>${top5Pct}%</strong>(₩${Math.round(top5Cost/10000).toLocaleString()}만원)를 차지합니다.</p>
+                    <p>• <strong>최대 지출 프로젝트:</strong> [${sortedProjs[0] || '-'}]에 <strong>₩${Math.round((projC[sortedProjs[0]]||0)/10000).toLocaleString()}만원</strong>이 집행되었습니다.</p>
+                `;
+
+                chartTitleEl.innerHTML = '<span>📊</span> <span>상위 7대 프로젝트별 비용 집행액(만원) 비교</span>';
+                chartOption = {
+                    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: '{b}: ₩{c}만원' },
+                    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                    xAxis: { type: 'value', name: '집행액 (만원)' },
+                    yAxis: { type: 'category', data: sortedProjs.slice(0, 7).reverse(), axisLabel: { width: 140, overflow: 'truncate' } },
+                    series: [{
+                        type: 'bar',
+                        data: sortedProjs.slice(0, 7).reverse().map(p => Math.round((projC[p] || 0) / 10000)),
+                        itemStyle: { color: '#0284c7', borderRadius: [0, 6, 6, 0] }
+                    }]
+                };
+
+                theadEl.innerHTML = `
+                    <tr>
+                        <th class="p-2.5">순위</th>
+                        <th class="p-2.5">프로젝트명</th>
+                        <th class="p-2.5 text-right">집행 금액 (원)</th>
+                        <th class="p-2.5 text-right">금액 (만원)</th>
+                        <th class="p-2.5 text-right">투입 공수</th>
+                        <th class="p-2.5 text-right">비용 비중</th>
+                    </tr>
+                `;
+                tbodyEl.innerHTML = sortedProjs.slice(0, 15).map((p, idx) => {
+                    const c = projC[p] || 0;
+                    const h = projH[p] || 0;
+                    const pct = totalC > 0 ? ((c / totalC) * 100).toFixed(1) : '0.0';
+                    return `
+                        <tr class="hover:bg-slate-100 transition-colors">
+                            <td class="p-2.5 text-slate-400 font-mono">${idx + 1}</td>
+                            <td class="p-2.5 font-black text-slate-800">${p}</td>
+                            <td class="p-2.5 text-right font-mono font-black text-sky-700">₩${c.toLocaleString()}</td>
+                            <td class="p-2.5 text-right font-mono text-slate-700">₩${Math.round(c / 10000).toLocaleString()}만원</td>
+                            <td class="p-2.5 text-right font-mono text-slate-500">${Math.round(h).toLocaleString()}h</td>
+                            <td class="p-2.5 text-right font-mono text-slate-500">${pct}%</td>
+                        </tr>
+                    `;
+                }).join('');
+                tableCountEl.innerText = `상위 ${Math.min(15, sortedProjs.length)}개 프로젝트`;
+
+            } else if (kpiType === 'wage') {
+                iconEl.innerText = '🏷️';
+                titleEl.innerText = '평균 시간당 임율 산출 원인 분석';
+                valBadgeEl.innerText = `₩${Math.round(wageRate).toLocaleString()}/h`;
+                subEl.innerText = `총집행비용(₩${Math.round(totalC).toLocaleString()}) ÷ 총투입공수(${Math.round(totalH).toLocaleString()}h) = ₩${Math.round(wageRate).toLocaleString()}/h`;
+
+                // 공정별 임율 산출
+                const procWage = {};
+                Object.keys(procH).forEach(p => {
+                    if (procH[p] > 0) {
+                        procWage[p] = procC[p] / procH[p];
+                    }
+                });
+                const sortedWageProcs = Object.keys(procWage).sort((a, b) => procWage[b] - procWage[a]);
+
+                insightTextEl.innerHTML = `
+                    <p>• <strong>임율 산출 공식:</strong> 총 집행비용(₩${Math.round(totalC).toLocaleString()})을 총 투입시간(${Math.round(totalH).toLocaleString()}h)으로 나눈 가중평균 임율입니다.</p>
+                    <p>• <strong>최고 임율 공정:</strong> [${sortedWageProcs[0] || '-'}] 공정이 <strong>₩${Math.round(procWage[sortedWageProcs[0]] || 0).toLocaleString()}/h</strong>로 가장 높습니다.</p>
+                    <p>• 잔업 가산금 및 고단가 정밀 공정 투입 비중에 따라 전사 임율이 변동됩니다.</p>
+                `;
+
+                chartTitleEl.innerHTML = '<span>📊</span> <span>공정별 시간당 임율 비교 (원/h)</span>';
+                chartOption = {
+                    tooltip: { trigger: 'axis', formatter: '{b}: ₩{c}/h' },
+                    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                    xAxis: { type: 'category', data: sortedWageProcs, axisLabel: { interval: 0, rotate: 25 } },
+                    yAxis: { type: 'value', name: '임율 (₩/h)' },
+                    series: [{
+                        type: 'bar',
+                        data: sortedWageProcs.map(p => Math.round(procWage[p])),
+                        itemStyle: { color: '#9333ea' },
+                        markLine: {
+                            data: [{ yAxis: Math.round(wageRate), name: '전사 평균 임율' }],
+                            lineStyle: { color: '#ef4444', type: 'dashed', width: 2 }
+                        }
+                    }]
+                };
+
+                theadEl.innerHTML = `
+                    <tr>
+                        <th class="p-2.5">순위</th>
+                        <th class="p-2.5">공정명</th>
+                        <th class="p-2.5 text-right">투입 공수</th>
+                        <th class="p-2.5 text-right">집행 비용</th>
+                        <th class="p-2.5 text-right">시간당 임율</th>
+                        <th class="p-2.5 text-right">전사평균 대비</th>
+                    </tr>
+                `;
+                tbodyEl.innerHTML = sortedWageProcs.map((p, idx) => {
+                    const w = procWage[p] || 0;
+                    const diff = wageRate > 0 ? (((w - wageRate) / wageRate) * 100).toFixed(1) : 0;
+                    const diffCls = diff > 0 ? 'text-rose-600' : 'text-emerald-600';
+                    return `
+                        <tr class="hover:bg-slate-100 transition-colors">
+                            <td class="p-2.5 text-slate-400 font-mono">${idx + 1}</td>
+                            <td class="p-2.5 font-black text-slate-800">${p}</td>
+                            <td class="p-2.5 text-right font-mono">${Math.round(procH[p]).toLocaleString()}h</td>
+                            <td class="p-2.5 text-right font-mono">₩${Math.round(procC[p]).toLocaleString()}</td>
+                            <td class="p-2.5 text-right font-mono font-black text-purple-700">₩${Math.round(w).toLocaleString()}/h</td>
+                            <td class="p-2.5 text-right font-mono font-bold ${diffCls}">${diff > 0 ? '+' : ''}${diff}%</td>
+                        </tr>
+                    `;
+                }).join('');
+                tableCountEl.innerText = `${sortedWageProcs.length}개 공정`;
+
+            } else if (kpiType === 'overtime') {
+                iconEl.innerText = '⚠️';
+                titleEl.innerText = '잔업/특근 의존도 원인 분석';
+                valBadgeEl.innerText = `${overRate.toFixed(1)}%`;
+                subEl.innerText = `총 투입 ${Math.round(totalH).toLocaleString()}h 중 야간/휴일 잔업 ${Math.round(overH).toLocaleString()}h 소요`;
+
+                const sortedOverProcs = Object.keys(procOver).sort((a, b) => procOver[b] - procOver[a]);
+                const sortedOverProjs = Object.keys(projOver).sort((a, b) => projOver[b] - projOver[a]);
+
+                insightTextEl.innerHTML = `
+                    <p>• <strong>잔업 최다 발생 공정:</strong> [${sortedOverProcs[0] || '-'}] 공정에서 <strong>${Math.round(procOver[sortedOverProcs[0]] || 0).toLocaleString()}h</strong>의 잔업이 발생했습니다.</p>
+                    <p>• <strong>잔업 최다 유발 프로젝트:</strong> [${sortedOverProjs[0] || '-'}]에 <strong>${Math.round(projOver[sortedOverProjs[0]] || 0).toLocaleString()}h</strong>의 잔업이 집중되었습니다.</p>
+                    <p>• 잔업 비중이 20%를 초과할 경우 납기 지연 방지용 인력 재배치 또는 공정 외주 전환을 검토해야 합니다.</p>
+                `;
+
+                chartTitleEl.innerHTML = '<span>📊</span> <span>공정별 잔업 시간(h) 및 잔업률(%) 비교</span>';
+                chartOption = {
+                    tooltip: { trigger: 'axis' },
+                    legend: { data: ['잔업 시간(h)', '잔업률(%)'] },
+                    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                    xAxis: { type: 'category', data: sortedOverProcs.slice(0, 8), axisLabel: { interval: 0, rotate: 20 } },
+                    yAxis: [
+                        { type: 'value', name: '잔업(h)' },
+                        { type: 'value', name: '잔업률(%)', max: 100 }
+                    ],
+                    series: [
+                        { name: '잔업 시간(h)', type: 'bar', itemStyle: { color: '#f43f5e' }, data: sortedOverProcs.slice(0, 8).map(p => Math.round(procOver[p])) },
+                        {
+                            name: '잔업률(%)', type: 'line', yAxisIndex: 1, itemStyle: { color: '#f59e0b' },
+                            data: sortedOverProcs.slice(0, 8).map(p => procH[p] > 0 ? parseFloat(((procOver[p] / procH[p]) * 100).toFixed(1)) : 0)
+                        }
+                    ]
+                };
+
+                theadEl.innerHTML = `
+                    <tr>
+                        <th class="p-2.5">순위</th>
+                        <th class="p-2.5">프로젝트명</th>
+                        <th class="p-2.5 text-right">정규시간</th>
+                        <th class="p-2.5 text-right">잔업시간</th>
+                        <th class="p-2.5 text-right">총시간</th>
+                        <th class="p-2.5 text-right">잔업 비중</th>
+                    </tr>
+                `;
+                tbodyEl.innerHTML = sortedOverProjs.slice(0, 10).map((p, idx) => {
+                    const o = projOver[p] || 0;
+                    const tot = projH[p] || 0;
+                    const r = tot - o;
+                    const pct = tot > 0 ? ((o / tot) * 100).toFixed(1) : 0;
+                    return `
+                        <tr class="hover:bg-slate-100 transition-colors">
+                            <td class="p-2.5 text-slate-400 font-mono">${idx + 1}</td>
+                            <td class="p-2.5 font-black text-slate-800">${p}</td>
+                            <td class="p-2.5 text-right font-mono">${Math.round(r).toLocaleString()}h</td>
+                            <td class="p-2.5 text-right font-mono font-black text-rose-600">${Math.round(o).toLocaleString()}h</td>
+                            <td class="p-2.5 text-right font-mono text-slate-700">${Math.round(tot).toLocaleString()}h</td>
+                            <td class="p-2.5 text-right font-mono font-bold text-rose-600">${pct}%</td>
+                        </tr>
+                    `;
+                }).join('');
+                tableCountEl.innerText = `상위 ${Math.min(10, sortedOverProjs.length)}개 프로젝트`;
+
+            } else if (kpiType === 'workers') {
+                iconEl.innerText = '👥';
+                titleEl.innerText = '가동 인력 규모 및 투입 현황 원인 분석';
+                valBadgeEl.innerText = `총 ${activeWorkers}명 가동`;
+                subEl.innerText = `등록 작업자 ${activeWorkers}명의 공수 투입 및 출근 일수 분해`;
+
+                const sortedWorkers = Object.keys(workerH).sort((a, b) => workerH[b] - workerH[a]);
+                const topWorker = sortedWorkers[0] || '-';
+
+                insightTextEl.innerHTML = `
+                    <p>• <strong>최다 투입 작업자:</strong> [${topWorker}] 작업자가 총 <strong>${Math.round(workerH[topWorker] || 0).toLocaleString()}h</strong> (${workerDates[topWorker]?.size || 0}일 출근)를 투입했습니다.</p>
+                    <p>• 전체 작업자 <strong>${activeWorkers}명</strong> 중 상위 3명이 전체 작업량의 상당 부분을 분담하고 있습니다.</p>
+                `;
+
+                chartTitleEl.innerHTML = '<span>📊</span> <span>상위 10대 작업자별 투입 공수(h) 비교</span>';
+                chartOption = {
+                    tooltip: { trigger: 'axis', formatter: '{b}: {c}시간' },
+                    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                    xAxis: { type: 'value', name: '공수 (h)' },
+                    yAxis: { type: 'category', data: sortedWorkers.slice(0, 10).reverse() },
+                    series: [{
+                        type: 'bar',
+                        data: sortedWorkers.slice(0, 10).reverse().map(w => Math.round(workerH[w])),
+                        itemStyle: { color: '#059669', borderRadius: [0, 6, 6, 0] }
+                    }]
+                };
+
+                theadEl.innerHTML = `
+                    <tr>
+                        <th class="p-2.5">순위</th>
+                        <th class="p-2.5">작업자명</th>
+                        <th class="p-2.5 text-right">출근 일수</th>
+                        <th class="p-2.5 text-right">담당 공정</th>
+                        <th class="p-2.5 text-right">총 투입시간</th>
+                        <th class="p-2.5 text-right">공수 비중</th>
+                    </tr>
+                `;
+                tbodyEl.innerHTML = sortedWorkers.map((w, idx) => {
+                    const h = workerH[w] || 0;
+                    const dCnt = workerDates[w]?.size || 0;
+                    const procs = Array.from(workerProcs[w] || []).join(', ');
+                    const pct = totalH > 0 ? ((h / totalH) * 100).toFixed(1) : 0;
+                    return `
+                        <tr class="hover:bg-slate-100 transition-colors">
+                            <td class="p-2.5 text-slate-400 font-mono">${idx + 1}</td>
+                            <td class="p-2.5 font-black text-slate-800">${w}</td>
+                            <td class="p-2.5 text-right font-mono">${dCnt}일</td>
+                            <td class="p-2.5 text-right text-slate-500 truncate max-w-[150px]">${procs}</td>
+                            <td class="p-2.5 text-right font-mono font-black text-emerald-700">${Math.round(h).toLocaleString()}h</td>
+                            <td class="p-2.5 text-right font-mono text-slate-500">${pct}%</td>
+                        </tr>
+                    `;
+                }).join('');
+                tableCountEl.innerText = `${sortedWorkers.length}명 전체 작업자`;
+
+            } else if (kpiType === 'perWorker') {
+                iconEl.innerText = '⚡';
+                titleEl.innerText = '인당 평균 공수 및 업무 부하 편차 분석';
+                valBadgeEl.innerText = `${Math.round(hPerWorker).toLocaleString()}h/인`;
+                subEl.innerText = `총 ${Math.round(totalH).toLocaleString()}시간 ÷ ${activeWorkers}명 = 1인당 평균 ${Math.round(hPerWorker).toLocaleString()}h`;
+
+                const sortedWorkers = Object.keys(workerH).sort((a, b) => workerH[b] - workerH[a]);
+                const overLoaded = sortedWorkers.filter(w => workerH[w] > hPerWorker * 1.25);
+
+                insightTextEl.innerHTML = `
+                    <p>• <strong>평균 기준:</strong> 1인당 평균 투입 시간은 <strong>${Math.round(hPerWorker).toLocaleString()}시간</strong>입니다.</p>
+                    <p>• <strong>업무 과중자(평균 대비 125% 초과):</strong> 총 <strong>${overLoaded.length}명</strong>이 평균보다 훨씬 많은 공수를 담당하고 있습니다.</p>
+                `;
+
+                chartTitleEl.innerHTML = '<span>📊</span> <span>작업자별 평균 공수 대비 부하율 (%)</span>';
+                chartOption = {
+                    tooltip: { trigger: 'axis', formatter: '{b}: {c}%' },
+                    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                    xAxis: { type: 'category', data: sortedWorkers.slice(0, 12), axisLabel: { interval: 0, rotate: 25 } },
+                    yAxis: { type: 'value', name: '부하율 (%)', markLine: { data: [{ yAxis: 100 }] } },
+                    series: [{
+                        type: 'bar',
+                        data: sortedWorkers.slice(0, 12).map(w => hPerWorker > 0 ? Math.round((workerH[w] / hPerWorker) * 100) : 0),
+                        itemStyle: {
+                            color: function(param) {
+                                return param.value > 125 ? '#ef4444' : '#10b981';
+                            }
+                        }
+                    }]
+                };
+
+                theadEl.innerHTML = `
+                    <tr>
+                        <th class="p-2.5">순위</th>
+                        <th class="p-2.5">작업자명</th>
+                        <th class="p-2.5 text-right">투입 공수</th>
+                        <th class="p-2.5 text-right">평균 대비</th>
+                        <th class="p-2.5 text-right">부하 진단</th>
+                    </tr>
+                `;
+                tbodyEl.innerHTML = sortedWorkers.map((w, idx) => {
+                    const h = workerH[w] || 0;
+                    const ratio = hPerWorker > 0 ? Math.round((h / hPerWorker) * 100) : 100;
+                    const isHigh = ratio > 125;
+                    return `
+                        <tr class="hover:bg-slate-100 transition-colors">
+                            <td class="p-2.5 text-slate-400 font-mono">${idx + 1}</td>
+                            <td class="p-2.5 font-black text-slate-800">${w}</td>
+                            <td class="p-2.5 text-right font-mono font-black">${Math.round(h).toLocaleString()}h</td>
+                            <td class="p-2.5 text-right font-mono ${isHigh ? 'text-rose-600 font-black' : 'text-slate-600'}">${ratio}%</td>
+                            <td class="p-2.5 text-right"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${isHigh ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}">${isHigh ? '과중 부하' : '적정'}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+                tableCountEl.innerText = `${sortedWorkers.length}명 전체 작업자`;
+            }
+
+            // ECharts 렌더링
+            setTimeout(() => {
+                const chartDom = document.getElementById('tmKpiDrilldownChart');
+                if (chartDom) {
+                    if (tmKpiDrilldownChartInstance) tmKpiDrilldownChartInstance.dispose();
+                    tmKpiDrilldownChartInstance = echarts.init(chartDom);
+                    tmKpiDrilldownChartInstance.setOption(chartOption);
+                    tmKpiDrilldownChartInstance.resize();
+                }
+            }, 100);
+        }
+
 
         function handleTmPeriodMonthToggle(mo) {
             const chkAll = document.getElementById('chkTmPeriodMo_ALL');
@@ -3554,6 +4327,7 @@ function switchTmView(view) {
             }
 
             updateTmPeriodSummaryText();
+            populateTmCompanyFilter();
             runTreeMap();
         }
 
@@ -3578,6 +4352,7 @@ function switchTmView(view) {
             });
 
             updateTmPeriodSummaryText();
+            populateTmCompanyFilter();
             runTreeMap();
         }
 
@@ -3638,17 +4413,45 @@ function switchTmView(view) {
         // =====================================================================
         // 🏢 [TAB 2] 업체 필터 드롭다운 엔진
         // =====================================================================
+        function getTmPeriodFilteredData() {
+            if (!rawData || rawData.length === 0) return [];
+            let data = rawData;
+            if (!currentWorkplace.includes('ALL')) {
+                data = data.filter(d => currentWorkplace.includes(d.workplace));
+            }
+            if (typeof tmSelectedFilterYears !== 'undefined' && !tmSelectedFilterYears.has('ALL')) {
+                data = data.filter(d => tmSelectedFilterYears.has(String(d.year)));
+            }
+            if (typeof tmSelectedFilterMonths !== 'undefined' && !tmSelectedFilterMonths.has('ALL')) {
+                data = data.filter(d => tmSelectedFilterMonths.has(String(parseInt(d.month))));
+            }
+            return data;
+        }
+
         function populateTmCompanyFilter() {
             if (!rawData || rawData.length === 0) return;
             const sel = document.getElementById('tmSelCompany');
             if (!sel) return;
 
-            const companies = [...new Set(rawData.map(i => i.client))].filter(c => c).sort();
+            const periodData = getTmPeriodFilteredData();
+            const companies = [...new Set(periodData.map(i => i.client))].filter(c => c).sort();
+
+            const curVal = sel.value;
             sel.innerHTML = '<option value="">업체 선택 (전체)</option>';
             companies.forEach(c => sel.add(new Option(c, c)));
 
+            // 기존 선택값이 현재 기간에도 유효하면 유지, 없으면 전체로 초기화
+            if (curVal && companies.includes(curVal)) {
+                sel.value = curVal;
+            } else if (curVal && !companies.includes(curVal)) {
+                sel.value = '';
+            }
+
             const badge = document.getElementById('tmBadgeCompanyCount');
-            if (badge) badge.innerText = `총 ${companies.length}개 업체`;
+            if (badge) {
+                const totalComp = [...new Set(rawData.map(i => i.client))].filter(c => c).length;
+                badge.innerText = `${companies.length} / 전체 ${totalComp}개 업체 (선택기간 기준)`;
+            }
         }
 
         function onTmCompanySearchInput() {
@@ -3659,7 +4462,10 @@ function switchTmView(view) {
             const sel = document.getElementById('tmSelCompany');
             if (!sel || !rawData) return;
 
-            const companies = [...new Set(rawData.map(i => i.client))].filter(c => c).sort();
+            const periodData = getTmPeriodFilteredData();
+            const companies = [...new Set(periodData.map(i => i.client))].filter(c => c).sort();
+            const curVal = sel.value;
+
             sel.innerHTML = '<option value="">업체 선택 (전체)</option>';
 
             const keywords = searchVal.split(/\s+/).filter(k => k.length > 0);
@@ -3668,9 +4474,10 @@ function switchTmView(view) {
                 : companies;
 
             filtered.forEach(c => sel.add(new Option(c, c)));
+            if (curVal && filtered.includes(curVal)) sel.value = curVal;
 
             const badge = document.getElementById('tmBadgeCompanyCount');
-            if (badge) badge.innerText = `${filtered.length} / ${companies.length}개`;
+            if (badge) badge.innerText = `${filtered.length} / ${companies.length}개 (검색 결과)`;
         }
 
         function clearTmCompanyFilter() {

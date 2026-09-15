@@ -798,7 +798,13 @@
                                 </h4>
                                 <p class="text-[11px] text-slate-400 font-bold mt-0.5">정규 시간(남색) + 잔업 시간(주황색) 스택 및 기종 평균선(빨간 점선)</p>
                             </div>
-                            <span class="text-[10px] font-black text-purple-600 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">호기별 편차</span>
+                            <div class="flex items-center gap-2">
+                                <label class="flex items-center gap-1.5 text-xs font-black text-purple-700 bg-purple-50 px-2.5 py-1 rounded-xl border border-purple-200 cursor-pointer select-none hover:bg-purple-100 transition-colors shadow-2xs">
+                                    <input type="checkbox" id="chkSeriesHoursShowValues" onchange="toggleSeriesChartValues(this.checked)" class="w-3.5 h-3.5 accent-purple-600 rounded cursor-pointer" checked>
+                                    <span>수치 표현</span>
+                                </label>
+                                <span class="text-[10px] font-black text-purple-600 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">호기별 편차</span>
+                            </div>
                         </div>
                         <div id="chartSeriesHoursBar" class="flex-1 w-full h-80"></div>
                     </div>
@@ -812,15 +818,21 @@
                                 </h4>
                                 <p class="text-[11px] text-slate-400 font-bold mt-0.5" id="seriesProcChartDesc">어느 호기/부품에서 가공·제관·조립 시간이 늘어났는지 분석</p>
                             </div>
-                            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl flex-shrink-0 self-start sm:self-auto">
-                                <button type="button" id="btnSeriesProcChartStack" onclick="setSeriesProcessChartMode('stack')"
-                                    class="px-2.5 py-1 text-xs font-black rounded-lg transition-all bg-indigo-600 text-white shadow-xs">
-                                    스택(누적)
-                                </button>
-                                <button type="button" id="btnSeriesProcChartGroup" onclick="setSeriesProcessChartMode('group')"
-                                    class="px-2.5 py-1 text-xs font-black rounded-lg transition-all text-slate-600 hover:text-slate-900">
-                                    공정기준 나란히(Grouped)
-                                </button>
+                            <div class="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+                                <label class="flex items-center gap-1.5 text-xs font-black text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-xl border border-indigo-200 cursor-pointer select-none hover:bg-indigo-100 transition-colors shadow-2xs">
+                                    <input type="checkbox" id="chkSeriesProcessShowValues" onchange="toggleSeriesChartValues(this.checked)" class="w-3.5 h-3.5 accent-indigo-600 rounded cursor-pointer" checked>
+                                    <span>수치 표현</span>
+                                </label>
+                                <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl flex-shrink-0">
+                                    <button type="button" id="btnSeriesProcChartStack" onclick="setSeriesProcessChartMode('stack')"
+                                        class="px-2.5 py-1 text-xs font-black rounded-lg transition-all bg-indigo-600 text-white shadow-xs">
+                                        스택(누적)
+                                    </button>
+                                    <button type="button" id="btnSeriesProcChartGroup" onclick="setSeriesProcessChartMode('group')"
+                                        class="px-2.5 py-1 text-xs font-black rounded-lg transition-all text-slate-600 hover:text-slate-900">
+                                        공정기준 나란히(Grouped)
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div id="chartSeriesProcessBar" class="flex-1 w-full h-80"></div>
@@ -1833,6 +1845,16 @@
         let seriesLastProjectsList = [];
         let chartSeriesHoursInstance = null;
         let chartSeriesProcessInstance = null;
+        let isSeriesShowChartValues = true;
+
+        function toggleSeriesChartValues(checked) {
+            isSeriesShowChartValues = checked;
+            const c1 = document.getElementById('chkSeriesHoursShowValues');
+            const c2 = document.getElementById('chkSeriesProcessShowValues');
+            if (c1) c1.checked = checked;
+            if (c2) c2.checked = checked;
+            calculateAndRenderSeriesCharts();
+        }
 
 
         // =====================================================================
@@ -2340,10 +2362,18 @@ function onSeriesCompanyChange() {
                             stack: 'total',
                             data: regData,
                             itemStyle: { color: '#6366f1' },
-                            barMaxWidth: 30,
+                            barMaxWidth: 32,
+                            label: {
+                                show: isSeriesShowChartValues,
+                                position: 'inside',
+                                formatter: function(p) { return p.value > 20 ? Math.round(p.value) + 'h' : ''; },
+                                fontSize: 10,
+                                fontWeight: 'bold',
+                                color: '#ffffff'
+                            },
                             markLine: {
                                 data: [{ yAxis: Math.round(avgH), name: '기종 평균시간', lineStyle: { color: '#ef4444', width: 2, type: 'dashed' } }],
-                                label: { formatter: `기종 평균 ${Math.round(avgH)}h`, position: 'end' }
+                                label: { formatter: `기종 평균 ${Math.round(avgH)}h`, position: 'end', fontSize: 11, fontWeight: 'bold' }
                             }
                         },
                         {
@@ -2352,7 +2382,21 @@ function onSeriesCompanyChange() {
                             stack: 'total',
                             data: overData,
                             itemStyle: { color: '#f97316', borderRadius: [4, 4, 0, 0] },
-                            barMaxWidth: 30
+                            barMaxWidth: 32,
+                            label: {
+                                show: isSeriesShowChartValues,
+                                position: 'top',
+                                distance: 4,
+                                formatter: function(p) {
+                                    const idx = p.dataIndex;
+                                    const tot = Math.round(activeProjects[idx].totalH);
+                                    const o = Math.round(p.value);
+                                    return o > 0 ? `${tot}h\n(+${o}h)` : `${tot}h`;
+                                },
+                                fontSize: 10,
+                                fontWeight: 'bold',
+                                color: '#0f172a'
+                            }
                         }
                     ]
                 };
@@ -2385,7 +2429,15 @@ function onSeriesCompanyChange() {
                         stack: 'processTotal',
                         data: activeProjects.map(p => Math.round(p.processMap[proc] || 0)),
                         itemStyle: { color: procColors[pIdx % procColors.length] },
-                        barMaxWidth: 30
+                        barMaxWidth: 32,
+                        label: {
+                            show: isSeriesShowChartValues,
+                            position: 'inside',
+                            formatter: function(p) { return p.value > 15 ? Math.round(p.value) + 'h' : ''; },
+                            fontSize: 9,
+                            fontWeight: 'bold',
+                            color: '#ffffff'
+                        }
                     };
                 });
 
@@ -2401,7 +2453,16 @@ function onSeriesCompanyChange() {
                             type: 'bar',
                             data: topProcs.map(proc => Math.round(p.processMap[proc] || 0)),
                             itemStyle: { color: groupColors[pIdx % groupColors.length], borderRadius: [3, 3, 0, 0] },
-                            barMaxWidth: 24
+                            barMaxWidth: 24,
+                            label: {
+                                show: isSeriesShowChartValues,
+                                position: 'top',
+                                distance: 2,
+                                formatter: function(p) { return p.value > 0 ? Math.round(p.value) + 'h' : ''; },
+                                fontSize: 9,
+                                fontWeight: 'bold',
+                                color: '#334155'
+                            }
                         };
                     });
 

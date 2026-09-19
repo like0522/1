@@ -339,6 +339,17 @@
                         </div>
                     </div>
 
+                    <!-- 🔧 공정 체크란 (클릭으로 공정별 정밀 필터링 및 데이터 산출) -->
+                    <div class="flex flex-col sm:flex-row sm:items-start gap-2 pt-2.5 border-t border-slate-100">
+                        <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0 pt-1">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                            <span class="text-xs font-black text-slate-700">공정 체크</span>
+                        </div>
+                        <div class="flex-1 flex items-center gap-1.5 flex-wrap max-h-24 sm:max-h-28 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="processCheckboxesArea">
+                            <!-- JS 동적 생성 -->
+                        </div>
+                    </div>
+
                     <!-- 선택된 기간 실시간 요약 바 -->
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-bold text-slate-500 pt-1 border-t border-slate-100">
                         <div class="flex items-center gap-2 flex-wrap">
@@ -3931,6 +3942,17 @@ function switchTmView(view) {
         }
 
         function resetPeriodCheckboxes() {
+            if (typeof selectedFilterProcesses !== 'undefined') {
+                selectedFilterProcesses = new Set(['ALL']);
+            }
+            const compSel = document.getElementById('selCompany');
+            if (compSel) compSel.value = '';
+            const projSel = document.getElementById('selProject');
+            if (projSel) projSel.value = '';
+            const compInp = document.getElementById('searchCompanyInput');
+            if (compInp) compInp.value = '';
+            const projInp = document.getElementById('searchProjectInput');
+            if (projInp) projInp.value = '';
             handlePeriodYearToggle('ALL');
             handlePeriodMonthToggle('ALL');
         }
@@ -3940,18 +3962,29 @@ function switchTmView(view) {
             if (!label) return;
 
             let yrText = '전체 연도';
-            if (!selectedFilterYears.has('ALL')) {
+            if (typeof selectedFilterYears !== 'undefined' && !selectedFilterYears.has('ALL')) {
                 const arr = Array.from(selectedFilterYears).sort((a, b) => b - a);
                 yrText = arr.map(y => y + '년').join(', ');
             }
 
             let moText = '전체 월';
-            if (!selectedFilterMonths.has('ALL')) {
+            if (typeof selectedFilterMonths !== 'undefined' && !selectedFilterMonths.has('ALL')) {
                 const arr = Array.from(selectedFilterMonths).map(Number).sort((a, b) => a - b);
                 moText = arr.map(m => m + '월').join(', ');
             }
 
-            label.innerText = `${yrText} / ${moText}`;
+            const compVal = document.getElementById('selCompany')?.value || '';
+            const compText = compVal ? compVal : '전체 업체';
+
+            const projVal = document.getElementById('selProject')?.value || '';
+            const projText = projVal ? projVal : '전체 프로젝트';
+
+            let procText = '전체 공정';
+            if (typeof selectedFilterProcesses !== 'undefined' && !selectedFilterProcesses.has('ALL')) {
+                procText = Array.from(selectedFilterProcesses).join(', ');
+            }
+
+            label.innerText = `${yrText} / ${moText} / ${compText} / ${projText} / ${procText}`;
         }
 
         // =====================================================================
@@ -3988,6 +4021,15 @@ function switchTmView(view) {
             if (selComp) {
                 selComp.value = companyName;
             }
+            // 업체를 선택하면 프로젝트 선택을 초기화하여 해당 업체의 전체 데이터가 즉시 분석되도록 함
+            const projSel = document.getElementById('selProject');
+            if (projSel) {
+                projSel.value = '';
+            }
+            const projInp = document.getElementById('searchProjectInput');
+            if (projInp) {
+                projInp.value = '';
+            }
             updateProjectList();
         }
 
@@ -4001,8 +4043,15 @@ function switchTmView(view) {
             }
 
             const currentComp = document.getElementById('selCompany')?.value || '';
+            const isAllProj = !currentVal;
 
-            let html = '';
+            let html = `
+                <button type="button" onclick="handleProjectChipClick('', '')"
+                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAllProj ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/30' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50'}">
+                    <span>🌐</span> <span>전체 프로젝트 (${projectPairs.length})</span>
+                </button>
+            `;
+
             projectPairs.slice(0, 80).forEach(pair => {
                 const [cName, pName] = pair.split('|');
                 const isSelected = currentVal === pName;
@@ -4014,8 +4063,8 @@ function switchTmView(view) {
                 html += `
                     <button type="button" onclick="handleProjectChipClick('${safeRawProj}', '${safeCName}')"
                         title="${safeProj}"
-                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 max-w-[260px] truncate ${isSelected ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm ring-2 ring-emerald-400/30' : 'bg-white text-slate-800 border-slate-200 hover:bg-emerald-50 hover:border-emerald-300'}">
-                        <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-emerald-500'}"></span>
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 max-w-[260px] truncate ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/30' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50 hover:border-blue-300'}">
+                        <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-blue-500'}"></span>
                         <span class="truncate">${safeProj}</span>
                     </button>
                 `;
@@ -4034,7 +4083,6 @@ function switchTmView(view) {
 
             if (clientName && compSel && compSel.value !== clientName) {
                 compSel.value = clientName;
-                updateProjectList();
             }
 
             if (projSel) {
@@ -4044,13 +4092,70 @@ function switchTmView(view) {
             // 프로젝트 칩 활성화 상태 즉시 동기화
             const projChips = document.querySelectorAll('#projectCheckboxesArea button');
             projChips.forEach(btn => {
-                const isSelected = btn.getAttribute('onclick')?.includes(`'${projectName}'`);
+                const isSelected = projectName ? btn.getAttribute('onclick')?.includes(`'${projectName}'`) : btn.getAttribute('onclick')?.includes(`('', ''`);
                 if (isSelected) {
-                    btn.className = btn.className.replace(/bg-white text-slate-800 border-slate-200/, 'bg-emerald-600 text-white border-emerald-600 shadow-sm ring-2 ring-emerald-400/30');
+                    btn.className = btn.className.replace(/bg-white text-slate-800 border-slate-200/, 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/30');
                 }
             });
 
-            runAnalysis();
+            updateProjectList();
+        }
+
+        // =====================================================================
+        // 🔧 [TAB 1] 공정 체크 칩 엔진 (Process Checkbox Engine)
+        // =====================================================================
+        let selectedFilterProcesses = new Set(['ALL']);
+
+        function renderProcessChips(processes) {
+            const container = document.getElementById('processCheckboxesArea');
+            if (!container) return;
+
+            if (!processes || processes.length === 0) {
+                container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">해당 조건의 공정 데이터가 없습니다.</span>';
+                return;
+            }
+
+            const isAll = selectedFilterProcesses.has('ALL');
+            let html = `
+                <button type="button" onclick="handleProcessChipClick('ALL')"
+                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-amber-500 text-white border-amber-500 shadow-sm ring-2 ring-amber-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                    <span>🔧</span> <span>전체 공정 (${processes.length})</span>
+                </button>
+            `;
+
+            processes.forEach(p => {
+                const isSelected = selectedFilterProcesses.has(p);
+                const safeP = (p || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                html += `
+                    <button type="button" onclick="handleProcessChipClick('${safeP}')"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isSelected ? 'bg-amber-500 text-white border-amber-500 shadow-sm ring-2 ring-amber-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50 hover:border-amber-300'}">
+                        <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-amber-500'}"></span>
+                        <span>${safeP}</span>
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function handleProcessChipClick(proc) {
+            if (proc === 'ALL') {
+                selectedFilterProcesses = new Set(['ALL']);
+            } else {
+                if (selectedFilterProcesses.has('ALL')) {
+                    selectedFilterProcesses = new Set([proc]);
+                } else {
+                    if (selectedFilterProcesses.has(proc)) {
+                        selectedFilterProcesses.delete(proc);
+                        if (selectedFilterProcesses.size === 0) {
+                            selectedFilterProcesses = new Set(['ALL']);
+                        }
+                    } else {
+                        selectedFilterProcesses.add(proc);
+                    }
+                }
+            }
+            updateProjectList();
         }
 
         // =====================================================================
@@ -4841,7 +4946,19 @@ function switchTmView(view) {
             if (!sel) return;
 
             const periodData = getTmPeriodFilteredData();
-            const companies = [...new Set(periodData.map(i => i.client))].filter(c => c).sort();
+            const tmCompDateMap = {};
+            periodData.forEach(i => {
+                if (!i.client) return;
+                const dStr = i.date || '';
+                if (!tmCompDateMap[i.client] || dStr > tmCompDateMap[i.client]) {
+                    tmCompDateMap[i.client] = dStr;
+                }
+            });
+            const companies = Object.keys(tmCompDateMap).sort((a, b) => {
+                const diff = (tmCompDateMap[b] || '').localeCompare(tmCompDateMap[a] || '');
+                if (diff !== 0) return diff;
+                return a.localeCompare(b);
+            });
 
             const curVal = sel.value;
             sel.innerHTML = '<option value="">업체 선택 (전체)</option>';
@@ -4870,7 +4987,19 @@ function switchTmView(view) {
             if (!sel || !rawData) return;
 
             const periodData = getTmPeriodFilteredData();
-            const companies = [...new Set(periodData.map(i => i.client))].filter(c => c).sort();
+            const tmCompDateMap = {};
+            periodData.forEach(i => {
+                if (!i.client) return;
+                const dStr = i.date || '';
+                if (!tmCompDateMap[i.client] || dStr > tmCompDateMap[i.client]) {
+                    tmCompDateMap[i.client] = dStr;
+                }
+            });
+            const companies = Object.keys(tmCompDateMap).sort((a, b) => {
+                const diff = (tmCompDateMap[b] || '').localeCompare(tmCompDateMap[a] || '');
+                if (diff !== 0) return diff;
+                return a.localeCompare(b);
+            });
             const curVal = sel.value;
 
             sel.innerHTML = '<option value="">업체 선택 (전체)</option>';
@@ -4931,8 +5060,20 @@ function updateProjectList() {
                 filtered = filtered.filter(i => i.month === month);
             }
 
-            // 전체 업체 목록
-            let companies = [...new Set(filtered.map(i => i.client))].sort();
+            // 전체 업체 목록: 최근 작업일자(최신순 내림차순) 기준 정렬
+            const compLatestDateMap = {};
+            filtered.forEach(i => {
+                if (!i.client) return;
+                const dStr = i.date || '';
+                if (!compLatestDateMap[i.client] || dStr > compLatestDateMap[i.client]) {
+                    compLatestDateMap[i.client] = dStr;
+                }
+            });
+            let companies = Object.keys(compLatestDateMap).sort((a, b) => {
+                const diff = (compLatestDateMap[b] || '').localeCompare(compLatestDateMap[a] || '');
+                if (diff !== 0) return diff;
+                return a.localeCompare(b);
+            });
             const totalCompCount = companies.length;
 
             // 업체 검색어 필터링 (공백 구분 복수 키워드 AND 조건)
@@ -4966,8 +5107,21 @@ function updateProjectList() {
             let pFiltered = filtered;
             if (company) pFiltered = pFiltered.filter(i => i.client === company);
 
-            // 프로젝트 목록
-            let projectPairs = [...new Set(pFiltered.map(i => `${i.client}|${i.project}`))].sort();
+            // 프로젝트 목록: 최근 작업일자(최신순 내림차순) 기준 정렬
+            const projLatestDateMap = {};
+            pFiltered.forEach(i => {
+                if (!i.project) return;
+                const pair = `${i.client}|${i.project}`;
+                const dStr = i.date || '';
+                if (!projLatestDateMap[pair] || dStr > projLatestDateMap[pair]) {
+                    projLatestDateMap[pair] = dStr;
+                }
+            });
+            let projectPairs = Object.keys(projLatestDateMap).sort((a, b) => {
+                const diff = (projLatestDateMap[b] || '').localeCompare(projLatestDateMap[a] || '');
+                if (diff !== 0) return diff;
+                return a.localeCompare(b);
+            });
             const totalProjCount = projectPairs.length;
 
             // 프로젝트 검색어 필터링 (공백 구분 복수 키워드 AND 조건)
@@ -5004,6 +5158,32 @@ function updateProjectList() {
             if (typeof renderProjectChips === 'function') {
                 renderProjectChips(projectPairs, projSel.value);
             }
+
+            // 🔧 공정 목록 추출 및 공정 체크란 칩 렌더링
+            const procDateMap = {};
+            pFiltered.forEach(i => {
+                if (!i.type) return;
+                const dStr = i.date || '';
+                if (!procDateMap[i.type] || dStr > procDateMap[i.type]) {
+                    procDateMap[i.type] = dStr;
+                }
+            });
+            const processes = Object.keys(procDateMap).sort((a, b) => {
+                const diff = (procDateMap[b] || '').localeCompare(procDateMap[a] || '');
+                if (diff !== 0) return diff;
+                return a.localeCompare(b);
+            });
+            if (typeof renderProcessChips === 'function') {
+                renderProcessChips(processes);
+            }
+
+            // 조건별 요약 텍스트 실시간 갱신
+            if (typeof updatePeriodSummaryText === 'function') {
+                updatePeriodSummaryText();
+            }
+
+            // 🚀 선택된 조건(연도, 월, 업체, 프로젝트, 공정)에 대한 분석 즉시 실행!
+            runAnalysis(false);
         }
 
         // 업체 검색 핸들러
@@ -5258,73 +5438,133 @@ function updateProjectList() {
 
         function runAnalysis(isProjectChange = true) {
             const projSel = document.getElementById('selProject');
-            const selectedOption = projSel.options[projSel.selectedIndex];
-            const project = projSel.value;
-            const company = selectedOption ? selectedOption.dataset.client : "";
-            if (company) document.getElementById('selCompany').value = company;
+            const selectedOption = (projSel && projSel.selectedIndex >= 0) ? projSel.options[projSel.selectedIndex] : null;
+            const project = projSel ? projSel.value : "";
+            const compSel = document.getElementById('selCompany');
+            let company = (selectedOption && selectedOption.dataset.client) ? selectedOption.dataset.client : (compSel ? compSel.value : "");
+            if (company && compSel && compSel.value !== company) {
+                compSel.value = company;
+            }
 
             const hintContainer = document.getElementById('avgHintContainer');
             const hintText = document.getElementById('avgHintText');
 
-            const budgetInput = parseFloat(document.getElementById('inputBudget').value.replace(/,/g, '')) || 0;
-            const weightInput = parseFloat(document.getElementById('inputWeight').value.replace(/,/g, '')) || 0;
+            const budgetInput = parseFloat((document.getElementById('inputBudget')?.value || '').replace(/,/g, '')) || 0;
+            const weightInput = parseFloat((document.getElementById('inputWeight')?.value || '').replace(/,/g, '')) || 0;
 
-            if (!project) {
-                document.getElementById('analysisView').classList.add('hidden');
-                document.getElementById('emptyState').classList.remove('hidden');
-                hintContainer.classList.add('hidden');
+            // 1. 다중 필터 조건 수집 및 데이터 동적 필터링
+            let filtered = rawData || [];
+            if (!currentWorkplace.includes('ALL')) {
+                filtered = filtered.filter(i => currentWorkplace.includes(i.workplace));
+            }
+            // 연도 필터
+            if (typeof selectedFilterYears !== 'undefined' && !selectedFilterYears.has('ALL') && selectedFilterYears.size > 0) {
+                filtered = filtered.filter(i => selectedFilterYears.has(i.year));
+            } else if (document.getElementById('selYear')?.value) {
+                filtered = filtered.filter(i => i.year === document.getElementById('selYear').value);
+            }
+            // 월 필터
+            if (typeof selectedFilterMonths !== 'undefined' && !selectedFilterMonths.has('ALL') && selectedFilterMonths.size > 0) {
+                filtered = filtered.filter(i => selectedFilterMonths.has(String(parseInt(i.month))));
+            } else if (document.getElementById('selMonth')?.value) {
+                filtered = filtered.filter(i => i.month === document.getElementById('selMonth').value);
+            }
+            // 업체 필터
+            if (company) {
+                filtered = filtered.filter(i => i.client === company);
+            }
+            // 프로젝트 필터
+            if (project) {
+                filtered = filtered.filter(i => i.project === project);
+            }
+            // 공정 필터
+            if (typeof selectedFilterProcesses !== 'undefined' && !selectedFilterProcesses.has('ALL') && selectedFilterProcesses.size > 0) {
+                filtered = filtered.filter(i => selectedFilterProcesses.has(i.type));
+            }
+
+            // 조건에 맞는 데이터가 없을 때
+            if (!filtered || filtered.length === 0) {
+                document.getElementById('analysisView')?.classList.add('hidden');
+                const emptyEl = document.getElementById('emptyState');
+                if (emptyEl) {
+                    emptyEl.classList.remove('hidden');
+                    emptyEl.innerText = "선택된 조건(기간 / 업체 / 프로젝트 / 공정)에 해당하는 작업 데이터가 없습니다.";
+                }
+                if (hintContainer) hintContainer.classList.add('hidden');
                 currentLoadedProject = "";
+                currentProjectData = [];
                 return;
             }
 
-            currentProjectData = rawData.filter(i => i.client === company && i.project === project).sort((a, b) => a.dateObj - b.dateObj);
+            currentProjectData = filtered.sort((a, b) => a.dateObj - b.dateObj);
 
-            if (isProjectChange && project !== currentLoadedProject) {
+            // 단일 프로젝트 선택 변경 시 거래명세서 단가/예산 자동 매칭
+            if (project && isProjectChange && project !== currentLoadedProject) {
                 currentLoadedProject = project;
-                document.getElementById('inputWeight').value = "";
-                document.getElementById('inputBudget').value = "";
+                if (document.getElementById('inputWeight')) document.getElementById('inputWeight').value = "";
+                if (document.getElementById('inputBudget')) document.getElementById('inputBudget').value = "";
                 matchAndFillTransaction(project, company);
                 return;
+            } else if (!project) {
+                currentLoadedProject = "";
             }
 
-            const selectedCoreKey = extractCoreKey(project, company);
-            const relatedProjsLogs = rawData.filter(i => i.coreKey === selectedCoreKey);
-            const uniqueRelatedNames = [...new Set(relatedProjsLogs.map(i => i.project))];
+            // 힌트 텍스트 및 계열 평균
+            if (project) {
+                const selectedCoreKey = extractCoreKey(project, company);
+                const relatedProjsLogs = rawData.filter(i => i.coreKey === selectedCoreKey);
+                const uniqueRelatedNames = [...new Set(relatedProjsLogs.map(i => i.project))];
 
-            let avgWeight = 0;
-            if (transData && transData.length > 0) {
-                const groupTrans = transData.filter(t => t.client.includes(company) && extractCoreKey(t.project, t.client) === selectedCoreKey && t.weight > 0);
-                if (groupTrans.length > 0) {
-                    let sumW = groupTrans.reduce((acc, curr) => acc + curr.weight, 0);
-                    avgWeight = sumW / groupTrans.length;
+                let avgWeight = 0;
+                if (transData && transData.length > 0) {
+                    const groupTrans = transData.filter(t => t.client.includes(company) && extractCoreKey(t.project, t.client) === selectedCoreKey && t.weight > 0);
+                    if (groupTrans.length > 0) {
+                        let sumW = groupTrans.reduce((acc, curr) => acc + curr.weight, 0);
+                        avgWeight = sumW / groupTrans.length;
+                    }
                 }
-            }
 
-            if (uniqueRelatedNames.length > 1) {
-                let totalHAll = 0;
-                relatedProjsLogs.forEach(i => totalHAll += (i.h_reg + i.h_over));
-                currentAvgH = (totalHAll / uniqueRelatedNames.length);
-                hintContainer.classList.remove('hidden');
+                if (uniqueRelatedNames.length > 1) {
+                    let totalHAll = 0;
+                    relatedProjsLogs.forEach(i => totalHAll += (i.h_reg + i.h_over));
+                    currentAvgH = (totalHAll / uniqueRelatedNames.length);
+                    if (hintContainer) hintContainer.classList.remove('hidden');
 
-                let groupLabel = selectedCoreKey;
-                if (selectedCoreKey === "DAEHAN_GOK_GROUP") groupLabel = "대한중전기 곡관 계열";
-                else if (selectedCoreKey === "DAEHAN_JIK_GROUP") groupLabel = "대한중전기 직관 계열";
-                else if (selectedCoreKey === "DAEHAN_TECHNICAL_GROUP") groupLabel = "대한중전기 주요 부품 계열";
+                    let groupLabel = selectedCoreKey;
+                    if (selectedCoreKey === "DAEHAN_GOK_GROUP") groupLabel = "대한중전기 곡관 계열";
+                    else if (selectedCoreKey === "DAEHAN_JIK_GROUP") groupLabel = "대한중전기 직관 계열";
+                    else if (selectedCoreKey === "DAEHAN_TECHNICAL_GROUP") groupLabel = "대한중전기 주요 부품 계열";
 
-                let weightStr = avgWeight > 0 ? ` (평균중량: ${parseInt(avgWeight).toLocaleString()}kg)` : '';
-                hintText.textContent = `💡 ${groupLabel} 평균: ${parseInt(currentAvgH).toLocaleString()}시간${weightStr}[${uniqueRelatedNames.length}개 모델 통합]`;
+                    let weightStr = avgWeight > 0 ? ` (평균중량: ${parseInt(avgWeight).toLocaleString()}kg)` : '';
+                    if (hintText) hintText.textContent = `💡 ${groupLabel} 평균: ${parseInt(currentAvgH).toLocaleString()}시간${weightStr}[${uniqueRelatedNames.length}개 모델 통합]`;
 
-                processAverages = {};
-                const procList = [...new Set(relatedProjsLogs.map(i => i.type))];
-                procList.forEach(p => {
-                    const procH = relatedProjsLogs.filter(i => i.type === p).reduce((acc, curr) => acc + (curr.h_reg + curr.h_over), 0);
-                    processAverages[p] = procH / uniqueRelatedNames.length;
-                });
+                    processAverages = {};
+                    const procList = [...new Set(relatedProjsLogs.map(i => i.type))];
+                    procList.forEach(p => {
+                        const procH = relatedProjsLogs.filter(i => i.type === p).reduce((acc, curr) => acc + (curr.h_reg + curr.h_over), 0);
+                        processAverages[p] = procH / uniqueRelatedNames.length;
+                    });
+                } else {
+                    if (hintContainer) hintContainer.classList.add('hidden');
+                    let selfTotal = 0;
+                    rawData.filter(i => i.project === project).forEach(i => selfTotal += (i.h_reg + i.h_over));
+                    currentAvgH = selfTotal;
+                    processAverages = {};
+                }
             } else {
-                hintContainer.classList.add('hidden');
-                let selfTotal = 0;
-                rawData.filter(i => i.project === project).forEach(i => selfTotal += (i.h_reg + i.h_over));
-                currentAvgH = selfTotal;
+                // 프로젝트 미선택 시 (연도, 월, 업체, 공정 등 상위 통합 분석)
+                const uClients = [...new Set(currentProjectData.map(i => i.client))];
+                const uProjs = [...new Set(currentProjectData.map(i => i.project))];
+                const uWorkers = [...new Set(currentProjectData.map(i => i.worker))];
+                const uProcs = [...new Set(currentProjectData.map(i => i.type))];
+
+                if (hintContainer && hintText) {
+                    hintContainer.classList.remove('hidden');
+                    let condLabel = company ? `[🏢 ${company}]` : `[🌐 ${uClients.length}개 협력업체]`;
+                    let procLabel = (typeof selectedFilterProcesses !== 'undefined' && !selectedFilterProcesses.has('ALL')) ? ` · 공정: ${Array.from(selectedFilterProcesses).join(', ')}` : '';
+                    hintText.innerHTML = `📊 <b>조건별 종합 분석:</b> ${condLabel} ${uProjs.length}개 프로젝트, ${uWorkers.length}명 작업자, ${uProcs.length}개 공정 집계 완료${procLabel}`;
+                }
+                currentAvgH = 0;
                 processAverages = {};
             }
 
@@ -5333,30 +5573,37 @@ function updateProjectList() {
                 const end = currentProjectData[currentProjectData.length - 1].date.replace(/-/g, '.');
                 const uniqueDates = [...new Set(currentProjectData.map(i => i.date))];
 
-                document.getElementById('viewPeriod').textContent = `${start} ~ ${end}`;
-                document.getElementById('viewWorkDays').textContent = `실제 작업: ${uniqueDates.length}일`;
+                const viewPeriodEl = document.getElementById('viewPeriod');
+                if (viewPeriodEl) viewPeriodEl.textContent = `${start} ~ ${end}`;
+                const viewWorkDaysEl = document.getElementById('viewWorkDays');
+                if (viewWorkDaysEl) viewWorkDaysEl.textContent = `실제 작업: ${uniqueDates.length}일`;
 
                 let totalH = 0, totalC = 0;
                 currentProjectData.forEach(i => { totalH += (i.h_reg + i.h_over); totalC += i.cost; });
 
-                document.getElementById('viewTotalHours').textContent = totalH.toLocaleString();
-                document.getElementById('viewTotalMD').textContent = (totalH / 8).toFixed(1);
-                document.getElementById('viewTotalCost').textContent = totalC.toLocaleString();
+                const vHours = document.getElementById('viewTotalHours');
+                if (vHours) vHours.textContent = totalH.toLocaleString();
+                const vMD = document.getElementById('viewTotalMD');
+                if (vMD) vMD.textContent = (totalH / 8).toFixed(1);
+                const vCost = document.getElementById('viewTotalCost');
+                if (vCost) vCost.textContent = totalC.toLocaleString();
 
                 const profitLossElem = document.getElementById('viewProfitLoss');
-                if (budgetInput > 0) {
-                    const diff = budgetInput - totalC;
-                    profitLossElem.textContent = `₩ ${diff.toLocaleString()}`;
-                    profitLossElem.className = `text-3xl font-black ${diff >= 0 ? 'text-emerald-500' : 'text-red-500'}`;
-                } else {
-                    profitLossElem.textContent = '예산 미입력';
-                    profitLossElem.className = 'text-xl font-black text-slate-300';
+                if (profitLossElem) {
+                    if (budgetInput > 0) {
+                        const diff = budgetInput - totalC;
+                        profitLossElem.textContent = `₩ ${diff.toLocaleString()}`;
+                        profitLossElem.className = `text-3xl font-black ${diff >= 0 ? 'text-emerald-500' : 'text-red-500'}`;
+                    } else {
+                        profitLossElem.textContent = '예산 미입력';
+                        profitLossElem.className = 'text-xl font-black text-slate-300';
+                    }
                 }
 
                 renderMatrix(weightInput, company);
                 renderHistory();
-                document.getElementById('emptyState').classList.add('hidden');
-                document.getElementById('analysisView').classList.remove('hidden');
+                document.getElementById('emptyState')?.classList.add('hidden');
+                document.getElementById('analysisView')?.classList.remove('hidden');
             }
         }
 
@@ -5612,12 +5859,20 @@ function updateProjectList() {
 
         function renderHistory() {
             const body = document.getElementById('historyBody');
+            if (!body) return;
             let html = '';
-            currentProjectData.forEach(row => {
+            const isMultiProj = new Set(currentProjectData.map(i => i.project)).size > 1;
+            const displayRows = currentProjectData.slice(0, 500);
+
+            displayRows.forEach(row => {
                 const totalH = row.h_reg + row.h_over;
+                const projBadge = isMultiProj ? `<div class="text-[10px] text-indigo-600 font-bold mt-0.5 truncate max-w-[190px]">[${row.client}] ${row.project}</div>` : '';
                 html += `
                 <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="text-slate-500 font-medium">${row.date}</td>
+                    <td class="text-slate-500 font-medium">
+                        ${row.date}
+                        ${projBadge}
+                    </td>
                     <td class="font-bold text-slate-700">${row.worker}</td>
                     <td><span class="px-2 py-0.5 bg-slate-100 rounded text-[11px] font-bold text-slate-600">${row.type}</span></td>
                     <td class="text-slate-600 font-medium">${row.h_reg > 0 ? row.h_reg + 'h' : ''}</td>
@@ -5626,6 +5881,11 @@ function updateProjectList() {
                     <td class="text-emerald-600 font-bold">₩${row.cost.toLocaleString()}</td>
                 </tr>`;
             });
+
+            if (currentProjectData.length > 500) {
+                html += `<tr><td colspan="7" class="p-3 text-center text-xs text-slate-400 font-bold bg-slate-50">외 ${currentProjectData.length - 500}건의 상세 이력이 더 있습니다 (상단 필터로 기간/공정/프로젝트를 좁혀보세요)</td></tr>`;
+            }
+
             body.innerHTML = html;
         }
 

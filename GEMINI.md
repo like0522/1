@@ -110,15 +110,19 @@ except Exception as e:
 
 ## 6. Output Format (응답 형식 및 Zero-Fluff 규칙)
 
-불필요한 인사말, 장황한 도입부, 원론적 설명을 전면 배제하고 오직 다음 3가지 핵심 요소만 순서대로 출력합니다.
+불필요한 인사말, 장황한 도입부, 원론적 설명을 전면 배제하고 오직 다음 핵심 요소만 순서대로 출력합니다.
 
 1. **[Change Summary & Rollback Guide]:**
-   - 변경/수정 사항 요약 (3줄 이내 불릿 포인트)
+   - 변경/수정 사항 요약 (불릿 포인트)
    - v0.0 롤백 위치 및 복구 가이드 안내
 2. **[Executable Python Script / AutoLISP Code]:**
-   - CP949 인코딩으로 저장하는 Python 자동화 스크립트 및 완성형 AutoLISP 코드
-3. **[AutoCAD Instant Load Command]:**
-   - 슬래시(`/`) 절대경로가 적용된 즉시 로드 명령어 코드 블록
+   - CP949 인코딩으로 저장하는 Python 자동화 스크립트 및 완성형 AutoLISP 코드 (AutoLISP 작업 시)
+3. **실시간 웹 대시보드 URL:** (웹 대시보드 작업 시 필수 표준 규격)
+   - 웹 대시보드 수정 및 배포 완료 시, 최종 응답 항목 제목은 반드시 **`실시간 웹 대시보드 URL:`** 로 작성하여 배포 URL 코드 블록을 제공합니다:
+   ```text
+   https://like0522.github.io/1/
+   ```
+   *(※ AutoLISP 단독 작업 시에는 `[AutoCAD Instant Load Command]`로 슬래시(`/`) 절대경로 로드 명령어를 제공합니다.)*
 
 ---
 
@@ -224,3 +228,7 @@ except Exception as e:
 ### 8.5 [브라우저 캐시 방지(Cache-Busting) 및 배포 전 무결성 자동 검증]
 - GitHub Pages 및 웹 CDN 배포 시 브라우저가 이전 버전의 캐시를 참조하지 않도록 `<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">` 헤더를 필수 배치합니다.
 - Git Push 전 반드시 Headless 브라우저 렌더링 검사(`check_banner.py`)를 자동 실행하여 DOM 상에 JS 오류 문구가 0개인지 확인한 후에만 배포합니다.
+
+### 8.6 [실시간 웹 대시보드 URL 출력 표준 규격 의무화]
+- 웹 대시보드(HTML/JS/CSS) 작업 완료 및 배포 시, 사용자 최종 안내 섹션의 제목은 반드시 정확히 **`실시간 웹 대시보드 URL:`** 로 작성하여 배포된 주소(`https://like0522.github.io/1/`)를 코드 블록과 함께 제공합니다. 임의의 명칭(예: `[AutoCAD / Web Dashboard Instant Access]` 등)을 사용하지 않고 오직 **`실시간 웹 대시보드 URL:`** 표준 표기를 준수합니다.
+

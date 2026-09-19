@@ -317,6 +317,28 @@
                         </div>
                     </div>
 
+                    <!-- 🏢 업체 체크란 (클릭으로 간편 선택) -->
+                    <div class="flex flex-col sm:flex-row sm:items-start gap-2 pt-2.5 border-t border-slate-100">
+                        <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0 pt-1">
+                            <span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
+                            <span class="text-xs font-black text-slate-700">업체 체크</span>
+                        </div>
+                        <div class="flex-1 flex items-center gap-1.5 flex-wrap max-h-24 sm:max-h-28 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="companyCheckboxesArea">
+                            <!-- JS 동적 생성 -->
+                        </div>
+                    </div>
+
+                    <!-- ⚙️ 프로젝트 체크란 (클릭으로 즉시 분석 실행) -->
+                    <div class="flex flex-col sm:flex-row sm:items-start gap-2 pt-2.5 border-t border-slate-100">
+                        <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0 pt-1">
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                            <span class="text-xs font-black text-slate-700">프로젝트 체크</span>
+                        </div>
+                        <div class="flex-1 flex items-center gap-1.5 flex-wrap max-h-28 sm:max-h-36 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="projectCheckboxesArea">
+                            <!-- JS 동적 생성 -->
+                        </div>
+                    </div>
+
                     <!-- 선택된 기간 실시간 요약 바 -->
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-bold text-slate-500 pt-1 border-t border-slate-100">
                         <div class="flex items-center gap-2 flex-wrap">
@@ -3933,6 +3955,105 @@ function switchTmView(view) {
         }
 
         // =====================================================================
+        // 🏢 & ⚙️ [TAB 1] 업체 체크 및 프로젝트 체크 칩 엔진 (Company & Project Chip Engine)
+        // =====================================================================
+        function renderCompanyChips(companies, currentVal) {
+            const container = document.getElementById('companyCheckboxesArea');
+            if (!container) return;
+
+            const isAll = !currentVal;
+            let html = `
+                <button type="button" onclick="handleCompanyChipClick('')"
+                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-purple-600 text-white border-purple-600 shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                    <span>🌐</span> <span>전체 업체 (${companies.length})</span>
+                </button>
+            `;
+
+            companies.forEach(c => {
+                const isSelected = currentVal === c;
+                const safeName = (c || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                html += `
+                    <button type="button" onclick="handleCompanyChipClick('${safeName}')"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isSelected ? 'bg-purple-600 text-white border-purple-600 shadow-sm ring-2 ring-purple-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                        <span>${safeName}</span>
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function handleCompanyChipClick(companyName) {
+            const selComp = document.getElementById('selCompany');
+            if (selComp) {
+                selComp.value = companyName;
+            }
+            updateProjectList();
+        }
+
+        function renderProjectChips(projectPairs, currentVal) {
+            const container = document.getElementById('projectCheckboxesArea');
+            if (!container) return;
+
+            if (projectPairs.length === 0) {
+                container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">일치하는 프로젝트가 없습니다.</span>';
+                return;
+            }
+
+            const currentComp = document.getElementById('selCompany')?.value || '';
+
+            let html = '';
+            projectPairs.slice(0, 80).forEach(pair => {
+                const [cName, pName] = pair.split('|');
+                const isSelected = currentVal === pName;
+                const displayProj = currentComp ? pName : `[${cName}] ${pName}`;
+                const safeProj = displayProj.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const safeRawProj = (pName || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const safeCName = (cName || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+                html += `
+                    <button type="button" onclick="handleProjectChipClick('${safeRawProj}', '${safeCName}')"
+                        title="${safeProj}"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 max-w-[260px] truncate ${isSelected ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm ring-2 ring-emerald-400/30' : 'bg-white text-slate-800 border-slate-200 hover:bg-emerald-50 hover:border-emerald-300'}">
+                        <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-emerald-500'}"></span>
+                        <span class="truncate">${safeProj}</span>
+                    </button>
+                `;
+            });
+
+            if (projectPairs.length > 80) {
+                html += `<span class="text-[11px] text-slate-400 font-bold self-center px-1">외 ${projectPairs.length - 80}개 프로젝트 (검색창으로 정밀 조회)</span>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function handleProjectChipClick(projectName, clientName) {
+            const compSel = document.getElementById('selCompany');
+            const projSel = document.getElementById('selProject');
+
+            if (clientName && compSel && compSel.value !== clientName) {
+                compSel.value = clientName;
+                updateProjectList();
+            }
+
+            if (projSel) {
+                projSel.value = projectName;
+            }
+
+            // 프로젝트 칩 활성화 상태 즉시 동기화
+            const projChips = document.querySelectorAll('#projectCheckboxesArea button');
+            projChips.forEach(btn => {
+                const isSelected = btn.getAttribute('onclick')?.includes(`'${projectName}'`);
+                if (isSelected) {
+                    btn.className = btn.className.replace(/bg-white text-slate-800 border-slate-200/, 'bg-emerald-600 text-white border-emerald-600 shadow-sm ring-2 ring-emerald-400/30');
+                }
+            });
+
+            runAnalysis();
+        }
+
+        // =====================================================================
         // 📅 [TAB 2] 연도 및 월 기간 선택 체크박스 엔진 (Tab2 Period Checkbox Engine)
         // =====================================================================
         let tmSelectedFilterYears = new Set(['ALL']);
@@ -4572,6 +4693,105 @@ function switchTmView(view) {
         }
 
         // =====================================================================
+        // 🏢 & ⚙️ [TAB 1] 업체 체크 및 프로젝트 체크 칩 엔진 (Company & Project Chip Engine)
+        // =====================================================================
+        function renderCompanyChips(companies, currentVal) {
+            const container = document.getElementById('companyCheckboxesArea');
+            if (!container) return;
+
+            const isAll = !currentVal;
+            let html = `
+                <button type="button" onclick="handleCompanyChipClick('')"
+                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-purple-600 text-white border-purple-600 shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                    <span>🌐</span> <span>전체 업체 (${companies.length})</span>
+                </button>
+            `;
+
+            companies.forEach(c => {
+                const isSelected = currentVal === c;
+                const safeName = (c || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                html += `
+                    <button type="button" onclick="handleCompanyChipClick('${safeName}')"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isSelected ? 'bg-purple-600 text-white border-purple-600 shadow-sm ring-2 ring-purple-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                        <span>${safeName}</span>
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function handleCompanyChipClick(companyName) {
+            const selComp = document.getElementById('selCompany');
+            if (selComp) {
+                selComp.value = companyName;
+            }
+            updateProjectList();
+        }
+
+        function renderProjectChips(projectPairs, currentVal) {
+            const container = document.getElementById('projectCheckboxesArea');
+            if (!container) return;
+
+            if (projectPairs.length === 0) {
+                container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">일치하는 프로젝트가 없습니다.</span>';
+                return;
+            }
+
+            const currentComp = document.getElementById('selCompany')?.value || '';
+
+            let html = '';
+            projectPairs.slice(0, 80).forEach(pair => {
+                const [cName, pName] = pair.split('|');
+                const isSelected = currentVal === pName;
+                const displayProj = currentComp ? pName : `[${cName}] ${pName}`;
+                const safeProj = displayProj.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const safeRawProj = (pName || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const safeCName = (cName || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+                html += `
+                    <button type="button" onclick="handleProjectChipClick('${safeRawProj}', '${safeCName}')"
+                        title="${safeProj}"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 max-w-[260px] truncate ${isSelected ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm ring-2 ring-emerald-400/30' : 'bg-white text-slate-800 border-slate-200 hover:bg-emerald-50 hover:border-emerald-300'}">
+                        <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-emerald-500'}"></span>
+                        <span class="truncate">${safeProj}</span>
+                    </button>
+                `;
+            });
+
+            if (projectPairs.length > 80) {
+                html += `<span class="text-[11px] text-slate-400 font-bold self-center px-1">외 ${projectPairs.length - 80}개 프로젝트 (검색창으로 정밀 조회)</span>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function handleProjectChipClick(projectName, clientName) {
+            const compSel = document.getElementById('selCompany');
+            const projSel = document.getElementById('selProject');
+
+            if (clientName && compSel && compSel.value !== clientName) {
+                compSel.value = clientName;
+                updateProjectList();
+            }
+
+            if (projSel) {
+                projSel.value = projectName;
+            }
+
+            // 프로젝트 칩 활성화 상태 즉시 동기화
+            const projChips = document.querySelectorAll('#projectCheckboxesArea button');
+            projChips.forEach(btn => {
+                const isSelected = btn.getAttribute('onclick')?.includes(`'${projectName}'`);
+                if (isSelected) {
+                    btn.className = btn.className.replace(/bg-white text-slate-800 border-slate-200/, 'bg-emerald-600 text-white border-emerald-600 shadow-sm ring-2 ring-emerald-400/30');
+                }
+            });
+
+            runAnalysis();
+        }
+
+        // =====================================================================
         // ⚡ [TAB 2] 통합 스마트 검색 엔진
         // =====================================================================
         function onTmSmartSearchInput() {
@@ -4737,6 +4957,11 @@ function updateProjectList() {
                 badgeComp.innerText = compSearchVal ? `${companies.length}/${totalCompCount}개` : `${totalCompCount}개`;
             }
 
+            // 🏢 업체 체크란 칩 렌더링
+            if (typeof renderCompanyChips === 'function') {
+                renderCompanyChips(companies, compSel.value);
+            }
+
             const company = compSel.value;
             let pFiltered = filtered;
             if (company) pFiltered = pFiltered.filter(i => i.client === company);
@@ -4755,6 +4980,7 @@ function updateProjectList() {
                 });
             }
 
+            const curProjValue = projSel.value;
             projSel.innerHTML = `<option value="">프로젝트 선택 (${projectPairs.length}${projSearchVal ? '/' + totalProjCount : ''})</option>`;
 
             projectPairs.forEach(pair => {
@@ -4764,11 +4990,19 @@ function updateProjectList() {
                 option.dataset.client = cName;
                 projSel.add(option);
             });
+            if (curProjValue && projectPairs.some(p => p.split('|')[1] === curProjValue)) {
+                projSel.value = curProjValue;
+            }
 
             // 프로젝트 개수 뱃지
             const badgeProj = document.getElementById('badgeProjectCount');
             if (badgeProj) {
                 badgeProj.innerText = projSearchVal ? `${projectPairs.length}개 일치` : `${totalProjCount}개`;
+            }
+
+            // ⚙️ 프로젝트 체크란 칩 렌더링
+            if (typeof renderProjectChips === 'function') {
+                renderProjectChips(projectPairs, projSel.value);
             }
         }
 

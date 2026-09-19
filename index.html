@@ -399,7 +399,7 @@
                             <button type="button" id="btnClearProjSearch" onclick="clearProjectFilter()"
                                 class="hidden absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
                         </div>
-                        <select id="selProject" onchange="runAnalysis()"
+                        <select id="selProject" onchange="onSelectProjectChange()"
                             class="w-full h-11 px-3 bg-white border-2 border-emerald-500 rounded-xl text-sm font-black text-slate-900 outline-none shadow-md ring-2 ring-emerald-500/10">
                             <option value="">선택 대기</option>
                         </select>
@@ -3953,6 +3953,9 @@ function switchTmView(view) {
         }
 
         function resetPeriodCheckboxes() {
+            if (typeof selectedFilterProjects !== 'undefined') {
+                selectedFilterProjects.clear();
+            }
             if (typeof selectedFilterProcesses !== 'undefined') {
                 selectedFilterProcesses = new Set(['ALL']);
             }
@@ -3987,8 +3990,17 @@ function switchTmView(view) {
             const compVal = document.getElementById('selCompany')?.value || '';
             const compText = compVal ? compVal : '전체 업체';
 
-            const projVal = document.getElementById('selProject')?.value || '';
-            const projText = projVal ? projVal : '전체 프로젝트';
+            let projText = '전체 프로젝트';
+            if (typeof selectedFilterProjects !== 'undefined' && selectedFilterProjects.size > 0) {
+                if (selectedFilterProjects.size === 1) {
+                    projText = Array.from(selectedFilterProjects)[0];
+                } else {
+                    projText = `📦 ${selectedFilterProjects.size}개 프로젝트 중복선택`;
+                }
+            } else {
+                const projVal = document.getElementById('selProject')?.value || '';
+                if (projVal && projVal !== '__MULTI_SELECTED__') projText = projVal;
+            }
 
             let procText = '전체 공정';
             if (typeof selectedFilterProcesses !== 'undefined' && !selectedFilterProcesses.has('ALL')) {
@@ -4001,12 +4013,12 @@ function switchTmView(view) {
         // =====================================================================
         // 🏢 & ⚙️ [TAB 1] 업체 체크 및 프로젝트 체크 칩 엔진 (Company & Project Chip Engine)
         // =====================================================================
-        // 전역 캐시 배열 (인라인 특수문자 따옴표 파괴 Zero Syntax Injection 보장)
+        // 전역 캐시 배열 및 다중 선택 상태 (중복 선택 & 토글 완벽 지원)
         window._currentCompanies = [];
         window._currentProjectPairs = [];
         window._currentProcesses = [];
         window._desiredCompany = '';
-        window._desiredProject = '';
+        let selectedFilterProjects = new Set(); // 📦 프로젝트 중복선택 Set (0개면 전체 프로젝트)
 
         function renderCompanyChips(companies, currentVal) {
             const container = document.getElementById('companyCheckboxesArea');
@@ -4044,17 +4056,18 @@ function switchTmView(view) {
                 nextComp = '';
             } else {
                 const targetName = (window._currentCompanies && window._currentCompanies[idx]) ? window._currentCompanies[idx] : '';
-                // 토글: 이미 선택된 업체면 다시 눌러서 전체 업체('')로 해제!
                 nextComp = (curComp === targetName) ? '' : targetName;
             }
 
             if (selComp) selComp.value = nextComp;
             window._desiredCompany = nextComp;
 
-            // 업체를 토글하면 선택된 프로젝트도 해제하여 해당 업체의 전체 데이터가 분석되도록 함
+            // 업체를 변경/토글하면 이전 프로젝트 중복선택도 깔끔히 리셋하여 해당 업체의 전체 데이터 분석
+            if (typeof selectedFilterProjects !== 'undefined') {
+                selectedFilterProjects.clear();
+            }
             const projSel = document.getElementById('selProject');
             if (projSel) projSel.value = '';
-            window._desiredProject = '';
             const projInp = document.getElementById('searchProjectInput');
             if (projInp) projInp.value = '';
 
@@ -4073,7 +4086,7 @@ function switchTmView(view) {
             }
 
             const currentComp = document.getElementById('selCompany')?.value || '';
-            const isAllProj = !currentVal;
+            const isAllProj = (selectedFilterProjects.size === 0);
 
             let html = `
                 <button type="button" onclick="handleProjectChipClickByIndex(-1)"
@@ -4084,16 +4097,17 @@ function switchTmView(view) {
 
             projectPairs.slice(0, 100).forEach((pair, idx) => {
                 const [cName, pName] = pair.split('|');
-                const isSelected = currentVal === pName;
+                const isSelected = selectedFilterProjects.has(pName);
                 const displayProj = currentComp ? pName : `[${cName}] ${pName}`;
                 const safeProj = displayProj.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
                 html += `
                     <button type="button" onclick="handleProjectChipClickByIndex(${idx})"
                         title="${safeProj}"
-                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 max-w-[260px] truncate ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/30' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50 hover:border-blue-300'}">
-                        <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-blue-500'}"></span>
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 max-w-[260px] truncate ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/40 scale-[1.02]' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50 hover:border-blue-300'}">
+                        <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-blue-500'}"></span>
                         <span class="truncate">${safeProj}</span>
+                        ${isSelected ? '<span class="text-[10px] font-black bg-blue-700/80 px-1 py-0.2 rounded text-white">선택</span>' : ''}
                     </button>
                 `;
             });
@@ -4106,14 +4120,9 @@ function switchTmView(view) {
         }
 
         function handleProjectChipClickByIndex(idx) {
-            const projSel = document.getElementById('selProject');
-            const compSel = document.getElementById('selCompany');
-            const curProj = projSel ? projSel.value : '';
-
             if (idx === -1) {
-                // 전체 프로젝트 선택
-                window._desiredProject = '';
-                if (projSel) projSel.value = '';
+                // 🌐 전체 프로젝트 클릭 -> 모든 프로젝트 선택 해제!
+                selectedFilterProjects.clear();
                 updateProjectList();
                 return;
             }
@@ -4122,22 +4131,24 @@ function switchTmView(view) {
             if (!pair) return;
             const [cName, pName] = pair.split('|');
 
-            if (curProj === pName) {
-                // 토글: 이미 선택된 프로젝트를 다시 누르면 해제(전체 프로젝트)!
-                window._desiredProject = '';
-                if (projSel) projSel.value = '';
+            // 📦 중복 선택 토글: 이미 선택되어 있으면 제거(해제), 없으면 추가(중복선택)!
+            if (selectedFilterProjects.has(pName)) {
+                selectedFilterProjects.delete(pName);
             } else {
-                // 프로젝트 신규 선택
-                window._desiredProject = pName;
-                window._desiredCompany = cName;
-                if (cName && compSel && compSel.value !== cName) {
-                    compSel.value = cName;
-                }
-                if (projSel) {
-                    projSel.value = pName;
-                }
+                selectedFilterProjects.add(pName);
             }
 
+            updateProjectList();
+        }
+
+        function onSelectProjectChange() {
+            const projSel = document.getElementById('selProject');
+            const val = projSel ? projSel.value : '';
+            if (val && val !== '__MULTI_SELECTED__') {
+                selectedFilterProjects = new Set([val]);
+            } else if (!val) {
+                selectedFilterProjects.clear();
+            }
             updateProjectList();
         }
 
@@ -5180,6 +5191,13 @@ function updateProjectList() {
             const curProjValue = projSel.value;
             projSel.innerHTML = `<option value="">프로젝트 선택 (${projectPairs.length}${projSearchVal ? '/' + totalProjCount : ''})</option>`;
 
+            // 복수 프로젝트 중복선택 상태 옵션
+            if (selectedFilterProjects.size > 1) {
+                const multiOpt = new Option(`📦 [중복선택] ${selectedFilterProjects.size}개 프로젝트 동시 분석`, '__MULTI_SELECTED__');
+                projSel.add(multiOpt);
+                projSel.value = '__MULTI_SELECTED__';
+            }
+
             projectPairs.forEach(pair => {
                 const [cName, pName] = pair.split('|');
                 const optText = company ? pName : `[${cName}] ${pName}`;
@@ -5187,22 +5205,32 @@ function updateProjectList() {
                 option.dataset.client = cName;
                 projSel.add(option);
             });
-            if (window._desiredProject) {
-                projSel.value = window._desiredProject;
-                if (projSel.value !== window._desiredProject) {
-                    const opt = new Option(company ? window._desiredProject : `[${window._desiredCompany || ''}] ${window._desiredProject}`, window._desiredProject);
-                    opt.dataset.client = window._desiredCompany || '';
+
+            if (selectedFilterProjects.size === 1) {
+                const singleP = Array.from(selectedFilterProjects)[0];
+                projSel.value = singleP;
+                if (projSel.value !== singleP) {
+                    const opt = new Option(company ? singleP : `[선택] ${singleP}`, singleP);
                     projSel.add(opt);
-                    projSel.value = window._desiredProject;
+                    projSel.value = singleP;
                 }
-            } else if (curProjValue && projectPairs.some(p => p.split('|')[1] === curProjValue)) {
-                projSel.value = curProjValue;
+            } else if (selectedFilterProjects.size === 0) {
+                projSel.value = '';
             }
 
-            // 프로젝트 개수 뱃지
+            // 프로젝트 개수 뱃지 (중복선택 개수 실시간 표시)
             const badgeProj = document.getElementById('badgeProjectCount');
             if (badgeProj) {
-                badgeProj.innerText = projSearchVal ? `${projectPairs.length}개 일치` : `${totalProjCount}개`;
+                if (selectedFilterProjects.size > 1) {
+                    badgeProj.innerText = `📦 ${selectedFilterProjects.size}개 중복선택`;
+                    badgeProj.className = 'text-[11px] font-black text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-lg border border-blue-300 shadow-xs';
+                } else if (selectedFilterProjects.size === 1) {
+                    badgeProj.innerText = `1개 선택됨`;
+                    badgeProj.className = 'text-[11px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-lg border border-emerald-300 shadow-xs';
+                } else {
+                    badgeProj.innerText = projSearchVal ? `${projectPairs.length}개 일치` : `${totalProjCount}개`;
+                    badgeProj.className = 'text-[10px] font-black text-emerald-600';
+                }
             }
 
             // ⚙️ 프로젝트 체크란 칩 렌더링
@@ -5524,10 +5552,13 @@ function updateProjectList() {
             if (company) {
                 filtered = filtered.filter(i => i.client === company);
             }
-            // 프로젝트 필터
-            if (project) {
+            // 프로젝트 필터 (중복선택 Set 완벽 지원)
+            if (typeof selectedFilterProjects !== 'undefined' && selectedFilterProjects.size > 0) {
+                filtered = filtered.filter(i => selectedFilterProjects.has(i.project));
+            } else if (project && project !== '__MULTI_SELECTED__') {
                 filtered = filtered.filter(i => i.project === project);
             }
+
             // 공정 필터
             if (typeof selectedFilterProcesses !== 'undefined' && !selectedFilterProcesses.has('ALL') && selectedFilterProcesses.size > 0) {
                 filtered = filtered.filter(i => selectedFilterProcesses.has(i.type));
@@ -5549,19 +5580,23 @@ function updateProjectList() {
 
             currentProjectData = filtered.sort((a, b) => a.dateObj - b.dateObj);
 
+            const isSingleProject = (typeof selectedFilterProjects !== 'undefined' && selectedFilterProjects.size === 1) || (project && project !== '__MULTI_SELECTED__' && (!selectedFilterProjects || selectedFilterProjects.size === 0));
+            const singleProjName = isSingleProject ? (selectedFilterProjects && selectedFilterProjects.size === 1 ? Array.from(selectedFilterProjects)[0] : project) : '';
+
             // 단일 프로젝트 선택 변경 시 거래명세서 단가/예산 자동 매칭
-            if (project && isProjectChange && project !== currentLoadedProject) {
-                currentLoadedProject = project;
+            if (isSingleProject && isProjectChange && singleProjName !== currentLoadedProject) {
+                currentLoadedProject = singleProjName;
                 if (document.getElementById('inputWeight')) document.getElementById('inputWeight').value = "";
                 if (document.getElementById('inputBudget')) document.getElementById('inputBudget').value = "";
-                matchAndFillTransaction(project, company);
+                matchAndFillTransaction(singleProjName, company);
                 return;
-            } else if (!project) {
-                currentLoadedProject = "";
+            } else if (!isSingleProject) {
+                currentLoadedProject = (selectedFilterProjects && selectedFilterProjects.size > 1) ? "__MULTI__" : "";
             }
 
             // 힌트 텍스트 및 계열 평균
-            if (project) {
+            if (isSingleProject) {
+                const effectiveProj = singleProjName;
                 const selectedCoreKey = extractCoreKey(project, company);
                 const relatedProjsLogs = rawData.filter(i => i.coreKey === selectedCoreKey);
                 const uniqueRelatedNames = [...new Set(relatedProjsLogs.map(i => i.project))];
@@ -5603,7 +5638,7 @@ function updateProjectList() {
                     processAverages = {};
                 }
             } else {
-                // 프로젝트 미선택 시 (연도, 월, 업체, 공정 등 상위 통합 분석)
+                // 복수 프로젝트 중복선택 or 전체 프로젝트 통합 분석
                 const uClients = [...new Set(currentProjectData.map(i => i.client))];
                 const uProjs = [...new Set(currentProjectData.map(i => i.project))];
                 const uWorkers = [...new Set(currentProjectData.map(i => i.worker))];
@@ -5611,9 +5646,13 @@ function updateProjectList() {
 
                 if (hintContainer && hintText) {
                     hintContainer.classList.remove('hidden');
-                    let condLabel = company ? `[🏢 ${company}]` : `[🌐 ${uClients.length}개 협력업체]`;
                     let procLabel = (typeof selectedFilterProcesses !== 'undefined' && !selectedFilterProcesses.has('ALL')) ? ` · 공정: ${Array.from(selectedFilterProcesses).join(', ')}` : '';
-                    hintText.innerHTML = `📊 <b>조건별 종합 분석:</b> ${condLabel} ${uProjs.length}개 프로젝트, ${uWorkers.length}명 작업자, ${uProcs.length}개 공정 집계 완료${procLabel}`;
+                    if (selectedFilterProjects && selectedFilterProjects.size > 1) {
+                        hintText.innerHTML = `📦 <b>중복 프로젝트 합산 분석:</b> ${uProjs.length}개 프로젝트 동시 집계 (${uProjs.slice(0, 3).join(', ')}${uProjs.length > 3 ? ' 외 ' + (uProjs.length - 3) + '개' : ''}), ${uWorkers.length}명 작업자, ${uProcs.length}개 공정 완료${procLabel}`;
+                    } else {
+                        let condLabel = company ? `[🏢 ${company}]` : `[🌐 ${uClients.length}개 협력업체]`;
+                        hintText.innerHTML = `📊 <b>조건별 종합 분석:</b> ${condLabel} ${uProjs.length}개 프로젝트, ${uWorkers.length}명 작업자, ${uProcs.length}개 공정 집계 완료${procLabel}`;
+                    }
                 }
                 currentAvgH = 0;
                 processAverages = {};

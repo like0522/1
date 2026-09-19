@@ -125,10 +125,13 @@
             animation: highlight 0.4s ease-out;
         }
     </style>
-    <!-- UI 탭 스위처 조기 등록 (ReferenceError 원천 차단) -->
+    <!-- UI 탭 스위처 및 화면 줌 함수 조기 등록 (ReferenceError 원천 차단) -->
     <script>
         window.currentActiveTab = 1;
         window.tabHistory = [];
+        window.changeMainZoom = window.changeMainZoom || function(d){};
+        window.resetMainZoom = window.resetMainZoom || function(){};
+        window.fitMainToMobile = window.fitMainToMobile || function(){};
 
         function switchTab(idx, isBack) {
             if (typeof window._internalSwitchTab === 'function') {
@@ -177,6 +180,20 @@
                 <span class="text-amber-500 text-sm font-black italic" id="avgHintText"></span>
             </div>
             <div class="flex flex-wrap items-center justify-center md:justify-end gap-3 md:gap-4 ml-auto">
+                <!-- 🔍 메인 화면 확대/축소 및 모바일 화면맞춤 툴바 -->
+                <div class="flex items-center gap-1 bg-purple-950/70 p-1 rounded-xl border border-purple-700/60 shadow-inner">
+                    <button type="button" onclick="changeMainZoom(-0.1)" title="화면 축소 (10% 축소)"
+                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800/80 hover:bg-purple-700 text-white rounded-lg text-sm font-black transition-all active:scale-95 shadow-sm">－</button>
+                    <span id="mainZoomIndicator" class="text-[11px] sm:text-xs font-black text-purple-200 px-1.5 sm:px-2 min-w-[42px] sm:min-w-[48px] text-center cursor-pointer hover:text-white transition-colors"
+                        onclick="resetMainZoom()" title="100% 기본 크기 (클릭 시 100% 리셋)">100%</span>
+                    <button type="button" onclick="changeMainZoom(0.1)" title="화면 확대 (10% 확대)"
+                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800/80 hover:bg-purple-700 text-white rounded-lg text-sm font-black transition-all active:scale-95 shadow-sm">＋</button>
+                    <button type="button" onclick="fitMainToMobile()" title="모바일/화면 폭 맞춤 축소"
+                        class="px-2 sm:px-2.5 h-7 sm:h-8 flex items-center gap-1 bg-purple-800/80 hover:bg-white hover:text-purple-900 text-purple-200 rounded-lg text-[11px] sm:text-xs font-bold transition-all ml-0.5 shadow-sm">
+                        <span>📱</span><span>화면맞춤</span>
+                    </button>
+                </div>
+
                 <span id="lastUpdated" class="text-xs font-bold text-slate-400 mr-2">데이터 대기중...</span>
 
                 <input type="file" id="csvFile" accept=".csv" class="hidden">
@@ -201,7 +218,7 @@
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-6 mt-6 space-y-6">
+    <main id="mainContentWrapper" class="max-w-7xl mx-auto px-6 mt-6 space-y-6 transition-all duration-150 origin-top">
 
         <!-- 사업부(작업장) 전역 필터 -->
         <div
@@ -7301,6 +7318,66 @@ function updateProjectList() {
             // 3. 필터 리스트 갱신
             onWAFilterChange(); 
         }
+
+        // =====================================================================
+        // 🔍 메인 화면 줌(확대/축소) & 모바일 뷰포트 맞춤 컨트롤러 (Main Screen Zoom Engine)
+        // =====================================================================
+        let currentMainZoom = 1.0;
+
+        function changeMainZoom(delta) {
+            currentMainZoom = Math.min(2.0, Math.max(0.35, Math.round((currentMainZoom + delta) * 100) / 100));
+            applyMainZoom();
+        }
+
+        function resetMainZoom() {
+            currentMainZoom = 1.0;
+            applyMainZoom();
+        }
+
+        function fitMainToMobile() {
+            const availWidth = window.innerWidth || document.documentElement.clientWidth;
+            const baseWidth = 1260; // 메인 대시보드 뷰포트 기준 최적 폭
+            let ratio = (availWidth - 16) / baseWidth;
+            ratio = Math.max(0.35, Math.min(1.0, Math.round(ratio * 100) / 100));
+            currentMainZoom = ratio;
+            applyMainZoom();
+        }
+
+        function applyMainZoom() {
+            const main = document.getElementById('mainContentWrapper') || document.querySelector('main');
+            const indicator = document.getElementById('mainZoomIndicator');
+            if (indicator) indicator.innerText = `${Math.round(currentMainZoom * 100)}%`;
+            if (main) {
+                if ('zoom' in document.documentElement.style) {
+                    main.style.zoom = currentMainZoom;
+                } else {
+                    main.style.transform = `scale(${currentMainZoom})`;
+                    main.style.transformOrigin = 'top center';
+                }
+                if (currentMainZoom < 1.0) {
+                    main.style.width = `${(100 / currentMainZoom).toFixed(2)}%`;
+                    main.style.maxWidth = 'none';
+                } else {
+                    main.style.width = '';
+                    main.style.maxWidth = '';
+                }
+            }
+            window.dispatchEvent(new Event('resize'));
+            try {
+                localStorage.setItem('pwaa_main_zoom', currentMainZoom);
+            } catch(e) {}
+        }
+
+        // 페이지 로드 시 저장된 메인 줌 자동 복원
+        try {
+            const savedMainZoom = parseFloat(localStorage.getItem('pwaa_main_zoom'));
+            if (savedMainZoom && !isNaN(savedMainZoom) && savedMainZoom >= 0.35 && savedMainZoom <= 2.0) {
+                currentMainZoom = savedMainZoom;
+                window.addEventListener('DOMContentLoaded', () => {
+                    setTimeout(applyMainZoom, 50);
+                });
+            }
+        } catch(e) {}
 
         // =====================================================================
         // 🔍 달력 줌(확대/축소) & 모바일 뷰포트 맞춤 컨트롤러

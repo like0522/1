@@ -379,7 +379,7 @@
                             <button type="button" id="btnClearCompSearch" onclick="clearCompanyFilter()"
                                 class="hidden absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
                         </div>
-                        <select id="selCompany" onchange="updateProjectList()"
+                        <select id="selCompany" onchange="onSelectCompanyChange()"
                             class="w-full h-11 px-3 bg-white border-2 border-slate-200 rounded-xl text-sm font-bold outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-sm">
                             <option value="">업체 선택 (전체)</option>
                         </select>
@@ -3987,8 +3987,17 @@ function switchTmView(view) {
                 moText = arr.map(m => m + '월').join(', ');
             }
 
-            const compVal = document.getElementById('selCompany')?.value || '';
-            const compText = compVal ? compVal : '전체 업체';
+            let compText = '전체 업체';
+            if (typeof selectedFilterCompanies !== 'undefined' && selectedFilterCompanies.size > 0) {
+                if (selectedFilterCompanies.size === 1) {
+                    compText = Array.from(selectedFilterCompanies)[0];
+                } else {
+                    compText = `📦 ${selectedFilterCompanies.size}개 업체 중복선택`;
+                }
+            } else {
+                const compVal = document.getElementById('selCompany')?.value || '';
+                if (compVal && compVal !== '__MULTI_SELECTED__') compText = compVal;
+            }
 
             let projText = '전체 프로젝트';
             if (typeof selectedFilterProjects !== 'undefined' && selectedFilterProjects.size > 0) {
@@ -4018,6 +4027,7 @@ function switchTmView(view) {
         window._currentProjectPairs = [];
         window._currentProcesses = [];
         window._desiredCompany = '';
+        let selectedFilterCompanies = new Set(); // 🏢 업체 중복선택 Set (0개면 전체 업체)
         let selectedFilterProjects = new Set(); // 📦 프로젝트 중복선택 Set (0개면 전체 프로젝트)
 
         function renderCompanyChips(companies, currentVal) {
@@ -4025,21 +4035,24 @@ function switchTmView(view) {
             if (!container) return;
 
             window._currentCompanies = companies || [];
-            const isAll = !currentVal;
+            const isAllComp = (selectedFilterCompanies.size === 0);
             let html = `
                 <button type="button" onclick="handleCompanyChipClickByIndex(-1)"
-                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-purple-600 text-white border-purple-600 shadow-sm ring-2 ring-purple-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAllComp ? 'bg-purple-600 text-white border-purple-600 shadow-sm ring-2 ring-purple-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-purple-50'}">
                     <span>🌐</span> <span>전체 업체 (${companies.length})</span>
                 </button>
             `;
 
             companies.forEach((c, idx) => {
-                const isSelected = currentVal === c;
+                const isSelected = selectedFilterCompanies.has(c);
                 const safeName = (c || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
                 html += `
                     <button type="button" onclick="handleCompanyChipClickByIndex(${idx})"
-                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isSelected ? 'bg-purple-600 text-white border-purple-600 shadow-sm ring-2 ring-purple-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                        title="${safeName}"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isSelected ? 'bg-purple-600 text-white border-purple-600 shadow-sm ring-2 ring-purple-400/40 scale-[1.02]' : 'bg-white text-slate-700 border-slate-200 hover:bg-purple-50 hover:border-purple-300'}">
+                        <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-purple-500'}"></span>
                         <span>${safeName}</span>
+                        ${isSelected ? '<span class="text-[10px] font-black bg-purple-700/80 px-1 py-0.2 rounded text-white">선택</span>' : ''}
                     </button>
                 `;
             });
@@ -4048,21 +4061,22 @@ function switchTmView(view) {
         }
 
         function handleCompanyChipClickByIndex(idx) {
-            const selComp = document.getElementById('selCompany');
-            const curComp = selComp ? selComp.value : '';
-            let nextComp = '';
-
             if (idx === -1) {
-                nextComp = '';
+                // 🌐 전체 업체 클릭 -> 모든 업체 선택 해제!
+                selectedFilterCompanies.clear();
             } else {
                 const targetName = (window._currentCompanies && window._currentCompanies[idx]) ? window._currentCompanies[idx] : '';
-                nextComp = (curComp === targetName) ? '' : targetName;
+                if (!targetName) return;
+
+                // 🏢 중복 선택 토글: 이미 선택되어 있으면 제거(해제), 없으면 추가(중복선택)!
+                if (selectedFilterCompanies.has(targetName)) {
+                    selectedFilterCompanies.delete(targetName);
+                } else {
+                    selectedFilterCompanies.add(targetName);
+                }
             }
 
-            if (selComp) selComp.value = nextComp;
-            window._desiredCompany = nextComp;
-
-            // 업체를 변경/토글하면 이전 프로젝트 중복선택도 깔끔히 리셋하여 해당 업체의 전체 데이터 분석
+            // 업체를 변경/토글하면 이전 프로젝트 중복선택도 깔끔히 리셋하여 해당 업체들의 전체 데이터 분석
             if (typeof selectedFilterProjects !== 'undefined') {
                 selectedFilterProjects.clear();
             }
@@ -4071,6 +4085,20 @@ function switchTmView(view) {
             const projInp = document.getElementById('searchProjectInput');
             if (projInp) projInp.value = '';
 
+            updateProjectList();
+        }
+
+        function onSelectCompanyChange() {
+            const compSel = document.getElementById('selCompany');
+            const val = compSel ? compSel.value : '';
+            if (val && val !== '__MULTI_SELECTED__') {
+                selectedFilterCompanies = new Set([val]);
+            } else if (!val) {
+                selectedFilterCompanies.clear();
+            }
+            if (typeof selectedFilterProjects !== 'undefined') {
+                selectedFilterProjects.clear();
+            }
             updateProjectList();
         }
 
@@ -5044,15 +5072,41 @@ function updateProjectList() {
 
             const currentCompValue = compSel.value;
             compSel.innerHTML = `<option value="">업체 선택 (${compSearchVal ? companies.length + '/' + totalCompCount : '전체 ' + totalCompCount})</option>`;
-            companies.forEach(c => compSel.add(new Option(c, c)));
-            if (companies.includes(currentCompValue)) {
-                compSel.value = currentCompValue;
+
+            // 🏢 복수 업체 중복선택 상태 옵션
+            if (selectedFilterCompanies.size > 1) {
+                const multiCompOpt = new Option(`📦 [중복선택] ${selectedFilterCompanies.size}개 업체 동시 분석`, '__MULTI_SELECTED__');
+                compSel.add(multiCompOpt);
+                compSel.value = '__MULTI_SELECTED__';
             }
 
-            // 업체 개수 뱃지
+            companies.forEach(c => compSel.add(new Option(c, c)));
+
+            if (selectedFilterCompanies.size === 1) {
+                const singleC = Array.from(selectedFilterCompanies)[0];
+                compSel.value = singleC;
+                if (compSel.value !== singleC) {
+                    const opt = new Option(singleC, singleC);
+                    compSel.add(opt);
+                    compSel.value = singleC;
+                }
+            } else if (selectedFilterCompanies.size === 0) {
+                compSel.value = '';
+            }
+
+            // 업체 개수 뱃지 (중복선택 개수 실시간 표시)
             const badgeComp = document.getElementById('badgeCompanyCount');
             if (badgeComp) {
-                badgeComp.innerText = compSearchVal ? `${companies.length}/${totalCompCount}개` : `${totalCompCount}개`;
+                if (selectedFilterCompanies.size > 1) {
+                    badgeComp.innerText = `📦 ${selectedFilterCompanies.size}개 중복선택`;
+                    badgeComp.className = 'text-[11px] font-black text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-lg border border-purple-300 shadow-xs';
+                } else if (selectedFilterCompanies.size === 1) {
+                    badgeComp.innerText = `1개 선택됨`;
+                    badgeComp.className = 'text-[11px] font-black text-purple-700 bg-purple-100 px-2 py-0.5 rounded-lg border border-purple-300 shadow-xs';
+                } else {
+                    badgeComp.innerText = compSearchVal ? `${companies.length}/${totalCompCount}개` : `${totalCompCount}개`;
+                    badgeComp.className = 'text-[10px] font-black text-purple-600';
+                }
             }
 
             // 🏢 업체 체크란 칩 렌더링
@@ -5060,9 +5114,14 @@ function updateProjectList() {
                 renderCompanyChips(companies, compSel.value);
             }
 
-            const company = compSel.value;
+            // 🏢 업체 필터링 적용 (중복선택 Set 완벽 지원)
             let pFiltered = filtered;
-            if (company) pFiltered = pFiltered.filter(i => i.client === company);
+            if (selectedFilterCompanies.size > 0) {
+                pFiltered = pFiltered.filter(i => selectedFilterCompanies.has(i.client));
+            } else if (compSel.value && compSel.value !== '__MULTI_SELECTED__') {
+                pFiltered = pFiltered.filter(i => i.client === compSel.value);
+            }
+            const company = (compSel.value && compSel.value !== '__MULTI_SELECTED__') ? compSel.value : '';
 
             // 프로젝트 목록: 최근 작업일자(최신순 내림차순) 기준 정렬
             const projLatestDateMap = {};
@@ -5423,9 +5482,14 @@ function updateProjectList() {
             const selectedOption = (projSel && projSel.selectedIndex >= 0) ? projSel.options[projSel.selectedIndex] : null;
             const project = projSel ? projSel.value : "";
             const compSel = document.getElementById('selCompany');
-            let company = (selectedOption && selectedOption.dataset.client) ? selectedOption.dataset.client : (compSel ? compSel.value : "");
-            if (company && compSel && compSel.value !== company) {
-                compSel.value = company;
+            let company = compSel ? compSel.value : "";
+            if (typeof selectedFilterCompanies !== 'undefined' && selectedFilterCompanies.size === 0) {
+                if (selectedOption && selectedOption.dataset.client) {
+                    company = selectedOption.dataset.client;
+                    if (compSel && compSel.value !== company) {
+                        compSel.value = company;
+                    }
+                }
             }
 
             const hintContainer = document.getElementById('avgHintContainer');
@@ -5451,8 +5515,10 @@ function updateProjectList() {
             } else if (document.getElementById('selMonth')?.value) {
                 filtered = filtered.filter(i => i.month === document.getElementById('selMonth').value);
             }
-            // 업체 필터
-            if (company) {
+            // 업체 필터 (중복선택 Set 완벽 지원)
+            if (typeof selectedFilterCompanies !== 'undefined' && selectedFilterCompanies.size > 0) {
+                filtered = filtered.filter(i => selectedFilterCompanies.has(i.client));
+            } else if (company && company !== '__MULTI_SELECTED__') {
                 filtered = filtered.filter(i => i.client === company);
             }
             // 프로젝트 필터 (중복선택 Set 완벽 지원)
@@ -5552,8 +5618,11 @@ function updateProjectList() {
                     let procLabel = (typeof selectedFilterProcesses !== 'undefined' && !selectedFilterProcesses.has('ALL')) ? ` · 공정: ${Array.from(selectedFilterProcesses).join(', ')}` : '';
                     if (selectedFilterProjects && selectedFilterProjects.size > 1) {
                         hintText.innerHTML = `📦 <b>중복 프로젝트 합산 분석:</b> ${uProjs.length}개 프로젝트 동시 집계 (${uProjs.slice(0, 3).join(', ')}${uProjs.length > 3 ? ' 외 ' + (uProjs.length - 3) + '개' : ''}), ${uWorkers.length}명 작업자, ${uProcs.length}개 공정 완료${procLabel}`;
+                    } else if (selectedFilterCompanies && selectedFilterCompanies.size > 1) {
+                        let cList = Array.from(selectedFilterCompanies);
+                        hintText.innerHTML = `📦 <b>중복 업체 합산 분석:</b> ${cList.length}개 업체 동시 집계 (${cList.slice(0, 3).join(', ')}${cList.length > 3 ? ' 외 ' + (cList.length - 3) + '개' : ''}), ${uProjs.length}개 프로젝트, ${uWorkers.length}명 작업자, ${uProcs.length}개 공정 집계 완료${procLabel}`;
                     } else {
-                        let condLabel = company ? `[🏢 ${company}]` : `[🌐 ${uClients.length}개 협력업체]`;
+                        let condLabel = (company && company !== '__MULTI_SELECTED__') ? `[🏢 ${company}]` : `[🌐 ${uClients.length}개 협력업체]`;
                         hintText.innerHTML = `📊 <b>조건별 종합 분석:</b> ${condLabel} ${uProjs.length}개 프로젝트, ${uWorkers.length}명 작업자, ${uProcs.length}개 공정 집계 완료${procLabel}`;
                     }
                 }

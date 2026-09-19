@@ -117,12 +117,9 @@ except Exception as e:
    - v0.0 롤백 위치 및 복구 가이드 안내
 2. **[Executable Python Script / AutoLISP Code]:**
    - CP949 인코딩으로 저장하는 Python 자동화 스크립트 및 완성형 AutoLISP 코드 (AutoLISP 작업 시)
-3. **실시간 웹 대시보드 URL:** (웹 대시보드 작업 시 필수 표준 규격)
-   - 웹 대시보드 수정 및 배포 완료 시, 최종 응답 항목 제목은 반드시 **`실시간 웹 대시보드 URL:`** 로 작성하여 배포 URL 코드 블록을 제공합니다:
-   ```text
+3. • **실시간 웹 대시보드 URL:** (웹 대시보드 작업 시 필수 표준 규격)
    https://like0522.github.io/1/
-   ```
-   *(※ AutoLISP 단독 작업 시에는 `[AutoCAD Instant Load Command]`로 슬래시(`/`) 절대경로 로드 명령어를 제공합니다.)*
+   *(※ 코드 블록이 아닌 클릭 가능한 직관적 링크 형식으로 출력)*
 
 ---
 
@@ -230,5 +227,8 @@ except Exception as e:
 - Git Push 전 반드시 Headless 브라우저 렌더링 검사(`check_banner.py`)를 자동 실행하여 DOM 상에 JS 오류 문구가 0개인지 확인한 후에만 배포합니다.
 
 ### 8.6 [실시간 웹 대시보드 URL 출력 표준 규격 의무화]
-- 웹 대시보드(HTML/JS/CSS) 작업 완료 및 배포 시, 사용자 최종 안내 섹션의 제목은 반드시 정확히 **`실시간 웹 대시보드 URL:`** 로 작성하여 배포된 주소(`https://like0522.github.io/1/`)를 코드 블록과 함께 제공합니다. 임의의 명칭(예: `[AutoCAD / Web Dashboard Instant Access]` 등)을 사용하지 않고 오직 **`실시간 웹 대시보드 URL:`** 표준 표기를 준수합니다.
+- 웹 대시보드(HTML/JS/CSS) 작업 완료 및 배포 시, 사용자 최종 안내 섹션은 반드시 아래 형식(불릿 + 클릭 가능한 링크)으로 정확히 작성합니다:
+• **실시간 웹 대시보드 URL:**  
+https://like0522.github.io/1/
+
 

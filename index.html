@@ -572,16 +572,16 @@
             </section>
 
 
-            <!-- 📅 Tab2 기간 정밀 선택: 연도 & 월 체크란 + 스마트 검색 + 업체 필터 -->
-            <section class="dashboard-card p-5 bg-white border border-slate-200 shadow-sm space-y-4">
-                <!-- ⚡ Tab2 통합 스마트 프로젝트 검색 바 -->
+            <!-- 📅 [TAB 2] 전사 통합 5대 정밀 필터 바 (연도/월/업체/프로젝트/공정 칩 & 스마트 검색) -->
+            <section class="dashboard-card p-6 border-t-4 border-t-indigo-600 bg-slate-50 space-y-4">
+                <!-- ⚡ 전사 통합 스마트 프로젝트 검색 바 -->
                 <div class="relative">
                     <div class="flex items-center justify-between mb-1.5">
                         <span class="text-[11px] font-black text-indigo-700 uppercase tracking-wider flex items-center gap-1.5">
                             <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 text-xs">⚡</span>
-                            <span>전사 데이터 스마트 필터 검색</span>
+                            <span>통합 스마트 프로젝트 검색</span>
                         </span>
-                        <span class="text-[10px] text-slate-400 font-bold hidden sm:inline">복수 키워드 AND 검색 &amp; 업체 필터 지원</span>
+                        <span class="text-[10px] text-slate-400 font-bold hidden sm:inline">전사 프로젝트 실시간 자동완성 &amp; 바로가기</span>
                     </div>
                     <div class="relative flex items-center">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -589,27 +589,32 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                         </div>
-                        <input type="text" id="tmSmartSearch"
-                            placeholder="🔍 복수 키워드로 전사 데이터 필터링 (예: 한일 500 타워 → 해당 키워드를 모두 포함하는 데이터만 분석)..."
-                            oninput="onTmSmartSearchInput()"
+                        <input type="text" id="tmSmartQuickSearch"
+                            placeholder="🔍 복수 키워드로 정밀 검색 (예: 한일 500 타워 → 3개 단어를 모두 포함하는 결과만 표시)..."
+                            oninput="onTmSmartQuickSearchInput(this.value)"
+                            onkeydown="onTmSmartQuickSearchKeydown(event)"
                             class="w-full h-11 pl-10 pr-10 bg-white border-2 border-slate-200 focus:border-indigo-500 rounded-xl text-sm font-black text-slate-800 outline-none focus:ring-4 focus:ring-indigo-500/15 shadow-sm transition-all placeholder:text-slate-400 placeholder:font-normal"
                             autocomplete="off">
                         <button type="button" id="btnTmSmartClear" onclick="clearTmSmartSearch()"
                             class="hidden absolute right-3 text-slate-400 hover:text-slate-600 text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors">✕</button>
                     </div>
+                    <!-- 스마트 검색 드롭다운 결과 팝업 -->
+                    <div id="tmSmartSearchDropdown" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 max-h-80 overflow-y-auto divide-y divide-slate-100 custom-scroll">
+                    </div>
                 </div>
 
                 <div class="relative flex py-0.5 items-center">
                     <div class="flex-grow border-t border-slate-200"></div>
-                    <span class="flex-shrink mx-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">기간 &amp; 업체 상세 필터</span>
+                    <span class="flex-shrink mx-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">또는 조건별 상세 필터 &amp; 검색</span>
                     <div class="flex-grow border-t border-slate-200"></div>
                 </div>
 
-                <!-- 📅 연도 체크란 -->
-                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                <!-- 📅 기간 정밀 선택: 연도 & 월 & 업체 & 프로젝트 & 공정 체크란 -->
+                <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <!-- 연도 체크란 -->
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2">
                         <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0">
-                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                             <span class="text-xs font-black text-slate-700">연도 체크</span>
                         </div>
                         <div class="flex items-center gap-1.5 flex-wrap" id="tmYearCheckboxesArea">
@@ -617,13 +622,46 @@
                         </div>
                     </div>
 
-                    <!-- 월 체크란 -->
+                    <!-- 월 체크란 (1월 ~ 12월) -->
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 pt-2.5 border-t border-slate-100">
                         <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0">
-                            <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
                             <span class="text-xs font-black text-slate-700">월 체크</span>
                         </div>
                         <div class="flex items-center gap-1 flex-wrap" id="tmMonthCheckboxesArea">
+                            <!-- JS 동적 생성 -->
+                        </div>
+                    </div>
+
+                    <!-- 🏢 업체 체크란 (클릭으로 간편 선택 & 중복선택) -->
+                    <div class="flex flex-col sm:flex-row sm:items-start gap-2 pt-2.5 border-t border-slate-100">
+                        <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0 pt-1">
+                            <span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
+                            <span class="text-xs font-black text-slate-700">업체 체크</span>
+                        </div>
+                        <div class="flex-1 flex items-center gap-1.5 flex-wrap max-h-24 sm:max-h-28 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="tmCompanyCheckboxesArea">
+                            <!-- JS 동적 생성 -->
+                        </div>
+                    </div>
+
+                    <!-- ⚙️ 프로젝트 체크란 (클릭으로 즉시 전사 분석 실행 & 중복선택) -->
+                    <div class="flex flex-col sm:flex-row sm:items-start gap-2 pt-2.5 border-t border-slate-100">
+                        <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0 pt-1">
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                            <span class="text-xs font-black text-slate-700">프로젝트 체크</span>
+                        </div>
+                        <div class="flex-1 flex items-center gap-1.5 flex-wrap max-h-28 sm:max-h-36 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="tmProjectCheckboxesArea">
+                            <!-- JS 동적 생성 -->
+                        </div>
+                    </div>
+
+                    <!-- 🔧 공정 체크란 (클릭으로 공정별 정밀 필터링 및 데이터 산출) -->
+                    <div class="flex flex-col sm:flex-row sm:items-start gap-2 pt-2.5 border-t border-slate-100">
+                        <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0 pt-1">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                            <span class="text-xs font-black text-slate-700">공정 체크</span>
+                        </div>
+                        <div class="flex-1 flex items-center gap-1.5 flex-wrap max-h-24 sm:max-h-28 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="tmProcessCheckboxesArea">
                             <!-- JS 동적 생성 -->
                         </div>
                     </div>
@@ -632,39 +670,52 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-bold text-slate-500 pt-1 border-t border-slate-100">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span>📅 선택된 기간:</span>
-                            <span id="tmSelectedPeriodSummary" class="text-indigo-700 font-black bg-indigo-50 px-2.5 py-0.5 rounded-md border border-indigo-200">전체 연도 / 전체 월</span>
+                            <span id="tmSelectedPeriodSummary" class="text-indigo-700 font-black bg-indigo-50 px-2.5 py-0.5 rounded-md border border-indigo-200">전체 연도 / 전체 월 / 전체 업체 / 전체 프로젝트 / 전체 공정</span>
                         </div>
                         <button type="button" onclick="resetTmPeriodCheckboxes()" class="text-slate-400 hover:text-slate-700 underline text-[11px] self-end sm:self-auto">전체 기간으로 초기화</button>
                     </div>
                 </div>
 
-                <!-- 업체 필터 드롭다운 -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                     <div class="space-y-1">
                         <div class="flex items-center justify-between">
-                            <label class="text-[10px] font-black text-slate-400 uppercase italic">업체명 필터</label>
+                            <label class="text-[10px] font-black text-slate-400 uppercase italic">업체명</label>
                             <span id="tmBadgeCompanyCount" class="text-[10px] font-bold text-slate-400"></span>
                         </div>
                         <div class="relative mb-1">
                             <input type="text" id="tmSearchCompanyInput"
-                                placeholder="🔍 업체 검색 (예: 한일 프레스)..."
+                                placeholder="🔍 업체 검색 (공백으로 복수 키워드, 예: 한일 프레스)..."
                                 oninput="onTmCompanySearchInput()"
+                                onkeydown="onTmCompanySearchKeydown(event)"
                                 class="w-full h-8 px-2.5 pr-6 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400"
                                 autocomplete="off">
                             <button type="button" id="btnTmClearCompSearch" onclick="clearTmCompanyFilter()"
                                 class="hidden absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
                         </div>
-                        <select id="tmSelCompany" onchange="runTreeMap()"
+                        <select id="tmSelCompany" onchange="onTmSelectCompanyChange()"
                             class="w-full h-11 px-3 bg-white border-2 border-slate-200 rounded-xl text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/20 shadow-sm">
                             <option value="">업체 선택 (전체)</option>
                         </select>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-black text-slate-400 uppercase italic">데이터 필터 현황</label>
-                        <div id="tmFilterStatusBar" class="h-11 px-3 bg-indigo-50 border-2 border-indigo-200 rounded-xl text-sm font-bold text-indigo-700 flex items-center gap-2 shadow-sm">
-                            <span class="animate-pulse text-xs">📊</span>
-                            <span id="tmFilterStatusText">전체 데이터 분석 중</span>
+                        <div class="flex items-center justify-between">
+                            <label class="text-[10px] font-black text-slate-400 uppercase italic">프로젝트</label>
+                            <span id="tmBadgeProjectCount" class="text-[10px] font-black text-indigo-600"></span>
                         </div>
+                        <div class="relative mb-1">
+                            <input type="text" id="tmSearchProjectInput"
+                                placeholder="🔍 프로젝트 검색 (공백으로 복수 검색, 예: 500 타워)..."
+                                oninput="onTmProjectSearchInput()"
+                                onkeydown="onTmProjectSearchKeydown(event)"
+                                class="w-full h-8 px-2.5 pr-6 bg-white border-2 border-indigo-400 rounded-lg text-xs font-black text-slate-800 outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400 placeholder:font-normal"
+                                autocomplete="off">
+                            <button type="button" id="btnTmClearProjSearch" onclick="clearTmProjectFilter()"
+                                class="hidden absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+                        </div>
+                        <select id="tmSelProject" onchange="onTmSelectProjectChange()"
+                            class="w-full h-11 px-3 bg-white border-2 border-indigo-500 rounded-xl text-sm font-black text-slate-900 outline-none shadow-md ring-2 ring-indigo-500/10">
+                            <option value="">선택 대기</option>
+                        </select>
                     </div>
                 </div>
             </section>
@@ -1662,7 +1713,7 @@
             const isTM = !document.getElementById('tabTreeMapMode').classList.contains('hidden');
             const isWA = !document.getElementById('tabWorkerAttendance').classList.contains('hidden');
 
-            if (isTM) runTreeMap();
+            if (isTM) { if (typeof updateTmFilterList === 'function') updateTmFilterList(); else runTreeMap(); }
             else if (isWA) onWAFilterChange();
             else runAnalysis(false);
         }
@@ -1868,7 +1919,11 @@
             } else if (idx === 2) {
                 if (t2) t2.className = 'px-6 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm transition-all shadow-md shadow-indigo-500/30';
                 document.getElementById('tabTreeMapMode').classList.remove('hidden');
-                runTreeMap();
+                if (typeof updateTmFilterList === 'function') {
+                    updateTmFilterList();
+                } else {
+                    runTreeMap();
+                }
                 if (typeof initComparisonLab === 'function') initComparisonLab();
                 setTimeout(() => { if (myTreeMapChart) myTreeMapChart.resize(); }, 50);
             } else if (idx === 3) {
@@ -3089,13 +3144,32 @@ function switchTmView(view) {
                 }
             }
 
-            // 4) 업체 필터
-            const tmCompany = document.getElementById('tmSelCompany')?.value || '';
-            if (tmCompany) {
-                viewData = viewData.filter(d => d.client === tmCompany);
+            // 4) 업체 필터 (다중선택 Set 완벽 지원)
+            if (typeof tmSelectedFilterCompanies !== 'undefined' && tmSelectedFilterCompanies.size > 0) {
+                viewData = viewData.filter(d => tmSelectedFilterCompanies.has(d.client));
+            } else {
+                const tmCompany = document.getElementById('tmSelCompany')?.value || '';
+                if (tmCompany && tmCompany !== '__MULTI_SELECTED__') {
+                    viewData = viewData.filter(d => d.client === tmCompany);
+                }
             }
 
-            // 5) 스마트 검색 키워드 필터 (AND 매칭)
+            // 5) 프로젝트 필터 (다중선택 Set 완벽 지원)
+            if (typeof tmSelectedFilterProjects !== 'undefined' && tmSelectedFilterProjects.size > 0) {
+                viewData = viewData.filter(d => tmSelectedFilterProjects.has(d.project));
+            } else {
+                const tmProj = document.getElementById('tmSelProject')?.value || '';
+                if (tmProj && tmProj !== '__MULTI_SELECTED__') {
+                    viewData = viewData.filter(d => d.project === tmProj);
+                }
+            }
+
+            // 6) 공정 필터 (다중선택 Set 완벽 지원)
+            if (typeof tmSelectedFilterProcesses !== 'undefined' && !tmSelectedFilterProcesses.has('ALL') && tmSelectedFilterProcesses.size > 0) {
+                viewData = viewData.filter(d => tmSelectedFilterProcesses.has(d.type));
+            }
+
+            // 7) 스마트 검색 키워드 필터 (AND 매칭)
             if (typeof tmSmartSearchKeywords !== 'undefined' && tmSmartSearchKeywords.length > 0) {
                 viewData = viewData.filter(d => {
                     const searchTarget = [d.client, d.project, d.type, d.worker, d.workplace].join(' ').toLowerCase();
@@ -4323,10 +4397,12 @@ function switchTmView(view) {
                 moContainer.innerHTML = moHtml;
             }
 
-            // 3. 업체 필터 채우기
-            populateTmCompanyFilter();
-
-            updateTmPeriodSummaryText();
+            // 3. 전사 필터 데이터 집계 및 칩 렌더링
+            if (typeof updateTmFilterList === 'function') {
+                updateTmFilterList();
+            } else {
+                updateTmPeriodSummaryText();
+            }
         }
 
         function handleTmPeriodYearToggle(yr) {
@@ -4354,9 +4430,7 @@ function switchTmView(view) {
                 tmSelYr.value = tmSelectedFilterYears.has('ALL') ? '' : Array.from(tmSelectedFilterYears)[0];
             }
 
-            updateTmPeriodSummaryText();
-            populateTmCompanyFilter();
-            runTreeMap();
+            updateTmFilterList();
         }
 
         // =====================================================================
@@ -4804,13 +4878,23 @@ function switchTmView(view) {
         }
 
 
+        // =====================================================================
+        // 📅 & 🏢 & ⚙️ & 🔧 [TAB 2] 전사 통합 5대 정밀 필터링 엔진
+        // =====================================================================
+        let tmSelectedFilterCompanies = new Set();
+        let tmSelectedFilterProjects = new Set();
+        let tmSelectedFilterProcesses = new Set(['ALL']);
+        window._tmCurrentCompanies = [];
+        window._tmCurrentProjectPairs = [];
+        window._tmCurrentProcesses = [];
+
         function handleTmPeriodMonthToggle(mo) {
             const chkAll = document.getElementById('chkTmPeriodMo_ALL');
             const chks = document.querySelectorAll('input[name="chkTmPeriodMo"]');
 
             if (mo === 'ALL') {
                 chks.forEach(c => c.checked = false);
-                chkAll.checked = true;
+                if (chkAll) chkAll.checked = true;
                 tmSelectedFilterMonths = new Set(['ALL']);
             } else {
                 if (chkAll) chkAll.checked = false;
@@ -4830,17 +4914,11 @@ function switchTmView(view) {
                     tmSelPd.value = 'ALL';
                 } else {
                     const mArr = Array.from(tmSelectedFilterMonths).map(Number);
-                    if (mArr.length === 1) {
-                        tmSelPd.value = 'M' + mArr[0];
-                    } else {
-                        tmSelPd.value = 'ALL';
-                    }
+                    tmSelPd.value = (mArr.length === 1) ? 'M' + mArr[0] : 'ALL';
                 }
             }
 
-            updateTmPeriodSummaryText();
-            populateTmCompanyFilter();
-            runTreeMap();
+            updateTmFilterList();
         }
 
         function applyTmPeriodMonthPreset(preset) {
@@ -4863,18 +4941,36 @@ function switchTmView(view) {
                 }
             });
 
-            updateTmPeriodSummaryText();
-            populateTmCompanyFilter();
-            runTreeMap();
+            updateTmFilterList();
         }
 
         function resetTmPeriodCheckboxes() {
-            handleTmPeriodYearToggle('ALL');
-            handleTmPeriodMonthToggle('ALL');
-            // 스마트 검색 초기화
-            clearTmSmartSearch();
-            // 업체 필터 초기화
-            clearTmCompanyFilter();
+            // 연도/월 초기화
+            const chkYrAll = document.getElementById('chkTmPeriodYr_ALL');
+            if (chkYrAll) chkYrAll.checked = true;
+            document.querySelectorAll('input[name="chkTmPeriodYr"]').forEach(c => c.checked = false);
+            tmSelectedFilterYears = new Set(['ALL']);
+
+            const chkMoAll = document.getElementById('chkTmPeriodMo_ALL');
+            if (chkMoAll) chkMoAll.checked = true;
+            document.querySelectorAll('input[name="chkTmPeriodMo"]').forEach(c => c.checked = false);
+            tmSelectedFilterMonths = new Set(['ALL']);
+
+            // 업체/프로젝트/공정 초기화
+            tmSelectedFilterCompanies.clear();
+            tmSelectedFilterProjects.clear();
+            tmSelectedFilterProcesses = new Set(['ALL']);
+
+            // 검색창 초기화
+            const sInp = document.getElementById('tmSmartQuickSearch');
+            if (sInp) sInp.value = '';
+            const cInp = document.getElementById('tmSearchCompanyInput');
+            if (cInp) cInp.value = '';
+            const pInp = document.getElementById('tmSearchProjectInput');
+            if (pInp) pInp.value = '';
+            tmSmartSearchKeywords = [];
+
+            updateTmFilterList();
         }
 
         function updateTmPeriodSummaryText() {
@@ -4882,151 +4978,598 @@ function switchTmView(view) {
             if (!label) return;
 
             let yrText = '전체 연도';
-            if (!tmSelectedFilterYears.has('ALL')) {
+            if (typeof tmSelectedFilterYears !== 'undefined' && !tmSelectedFilterYears.has('ALL') && tmSelectedFilterYears.size > 0) {
                 const arr = Array.from(tmSelectedFilterYears).sort((a, b) => b - a);
                 yrText = arr.map(y => y + '년').join(', ');
             }
 
             let moText = '전체 월';
-            if (!tmSelectedFilterMonths.has('ALL')) {
+            if (typeof tmSelectedFilterMonths !== 'undefined' && !tmSelectedFilterMonths.has('ALL') && tmSelectedFilterMonths.size > 0) {
                 const arr = Array.from(tmSelectedFilterMonths).map(Number).sort((a, b) => a - b);
                 moText = arr.map(m => m + '월').join(', ');
             }
 
-            label.innerText = `${yrText} / ${moText}`;
-        }
-
-
-
-        // =====================================================================
-        // ⚡ [TAB 2] 통합 스마트 검색 엔진
-        // =====================================================================
-        function onTmSmartSearchInput() {
-            const input = document.getElementById('tmSmartSearch');
-            const btnClear = document.getElementById('btnTmSmartClear');
-            const val = (input?.value || '').trim();
-            if (btnClear) btnClear.classList.toggle('hidden', !val);
-
-            if (val) {
-                tmSmartSearchKeywords = val.toLowerCase().split(/\s+/).filter(k => k.length > 0);
+            let compText = '전체 업체';
+            if (typeof tmSelectedFilterCompanies !== 'undefined' && tmSelectedFilterCompanies.size > 0) {
+                if (tmSelectedFilterCompanies.size === 1) {
+                    compText = Array.from(tmSelectedFilterCompanies)[0];
+                } else {
+                    compText = `📦 ${tmSelectedFilterCompanies.size}개 업체 중복선택`;
+                }
             } else {
-                tmSmartSearchKeywords = [];
+                const compVal = document.getElementById('tmSelCompany')?.value || '';
+                if (compVal && compVal !== '__MULTI_SELECTED__') compText = compVal;
             }
-            runTreeMap();
+
+            let projText = '전체 프로젝트';
+            if (typeof tmSelectedFilterProjects !== 'undefined' && tmSelectedFilterProjects.size > 0) {
+                if (tmSelectedFilterProjects.size === 1) {
+                    projText = Array.from(tmSelectedFilterProjects)[0];
+                } else {
+                    projText = `📦 ${tmSelectedFilterProjects.size}개 프로젝트 중복선택`;
+                }
+            } else {
+                const projVal = document.getElementById('tmSelProject')?.value || '';
+                if (projVal && projVal !== '__MULTI_SELECTED__') projText = projVal;
+            }
+
+            let procText = '전체 공정';
+            if (typeof tmSelectedFilterProcesses !== 'undefined' && !tmSelectedFilterProcesses.has('ALL') && tmSelectedFilterProcesses.size > 0) {
+                procText = Array.from(tmSelectedFilterProcesses).join(', ');
+            }
+
+            label.innerText = `${yrText} / ${moText} / ${compText} / ${projText} / ${procText}`;
         }
 
-        function clearTmSmartSearch() {
-            const input = document.getElementById('tmSmartSearch');
-            const btnClear = document.getElementById('btnTmSmartClear');
-            if (input) input.value = '';
-            if (btnClear) btnClear.classList.add('hidden');
-            tmSmartSearchKeywords = [];
+        // =====================================================================
+        // 🏢 & ⚙️ & 🔧 [TAB 2] 업체/프로젝트/공정 칩 렌더러 및 이벤트 핸들러
+        // =====================================================================
+        function renderTmCompanyChips(companies, currentVal) {
+            const container = document.getElementById('tmCompanyCheckboxesArea');
+            if (!container) return;
+
+            window._tmCurrentCompanies = companies || [];
+            const isAllComp = (tmSelectedFilterCompanies.size === 0);
+            let html = `
+                <button type="button" onclick="handleTmCompanyChipClickByIndex(-1)"
+                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAllComp ? 'bg-purple-600 text-white border-purple-600 shadow-sm ring-2 ring-purple-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-purple-50'}">
+                    <span>🌐</span> <span>전체 업체 (${companies.length})</span>
+                </button>
+            `;
+
+            companies.forEach((c, idx) => {
+                const isSelected = tmSelectedFilterCompanies.has(c);
+                const safeName = (c || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                html += `
+                    <button type="button" onclick="handleTmCompanyChipClickByIndex(${idx})"
+                        title="${safeName}"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isSelected ? 'bg-purple-600 text-white border-purple-600 shadow-sm ring-2 ring-purple-400/40 scale-[1.02]' : 'bg-white text-slate-700 border-slate-200 hover:bg-purple-50 hover:border-purple-300'}">
+                        <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-purple-500'}"></span>
+                        <span>${safeName}</span>
+                        ${isSelected ? '<span class="text-[10px] font-black bg-purple-700/80 px-1 py-0.2 rounded text-white">선택</span>' : ''}
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function handleTmCompanyChipClickByIndex(idx) {
+            if (idx === -1) {
+                tmSelectedFilterCompanies.clear();
+            } else {
+                const targetName = (window._tmCurrentCompanies && window._tmCurrentCompanies[idx]) ? window._tmCurrentCompanies[idx] : '';
+                if (!targetName) return;
+
+                if (tmSelectedFilterCompanies.has(targetName)) {
+                    tmSelectedFilterCompanies.delete(targetName);
+                } else {
+                    tmSelectedFilterCompanies.add(targetName);
+                }
+            }
+
+            if (typeof tmSelectedFilterProjects !== 'undefined') {
+                tmSelectedFilterProjects.clear();
+            }
+            const pInp = document.getElementById('tmSearchProjectInput');
+            if (pInp) pInp.value = '';
+
+            updateTmFilterList();
+        }
+
+        function onTmSelectCompanyChange() {
+            const compSel = document.getElementById('tmSelCompany');
+            const val = compSel ? compSel.value : '';
+            if (val && val !== '__MULTI_SELECTED__') {
+                tmSelectedFilterCompanies = new Set([val]);
+            } else if (!val) {
+                tmSelectedFilterCompanies.clear();
+            }
+            if (typeof tmSelectedFilterProjects !== 'undefined') {
+                tmSelectedFilterProjects.clear();
+            }
+            updateTmFilterList();
+        }
+
+        function renderTmProjectChips(projectPairs, currentVal) {
+            const container = document.getElementById('tmProjectCheckboxesArea');
+            if (!container) return;
+
+            window._tmCurrentProjectPairs = projectPairs || [];
+
+            if (!projectPairs || projectPairs.length === 0) {
+                container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">일치하는 프로젝트가 없습니다.</span>';
+                return;
+            }
+
+            const currentComp = document.getElementById('tmSelCompany')?.value || '';
+            const isAllProj = (tmSelectedFilterProjects.size === 0);
+
+            let html = `
+                <button type="button" onclick="handleTmProjectChipClickByIndex(-1)"
+                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAllProj ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/30' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50'}">
+                    <span>🌐</span> <span>전체 프로젝트 (${projectPairs.length})</span>
+                </button>
+            `;
+
+            projectPairs.slice(0, 100).forEach((pair, idx) => {
+                const [cName, pName] = pair.split('|');
+                const isSelected = tmSelectedFilterProjects.has(pName);
+                const displayProj = (tmSelectedFilterCompanies.size === 1 || currentComp) ? pName : `[${cName}] ${pName}`;
+                const safeProj = displayProj.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+                html += `
+                    <button type="button" onclick="handleTmProjectChipClickByIndex(${idx})"
+                        title="${safeProj}"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 max-w-[260px] truncate ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/40 scale-[1.02]' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50 hover:border-blue-300'}">
+                        <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-blue-500'}"></span>
+                        <span class="truncate">${safeProj}</span>
+                        ${isSelected ? '<span class="text-[10px] font-black bg-blue-700/80 px-1 py-0.2 rounded text-white">선택</span>' : ''}
+                    </button>
+                `;
+            });
+
+            if (projectPairs.length > 100) {
+                html += `<span class="text-[11px] text-slate-400 font-bold self-center px-1">외 ${projectPairs.length - 100}개 프로젝트 (검색창으로 정밀 조회)</span>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function handleTmProjectChipClickByIndex(idx) {
+            if (idx === -1) {
+                tmSelectedFilterProjects.clear();
+            } else {
+                const pair = (window._tmCurrentProjectPairs && window._tmCurrentProjectPairs[idx]) ? window._tmCurrentProjectPairs[idx] : null;
+                if (!pair) return;
+                const [cName, pName] = pair.split('|');
+
+                if (tmSelectedFilterProjects.has(pName)) {
+                    tmSelectedFilterProjects.delete(pName);
+                } else {
+                    tmSelectedFilterProjects.add(pName);
+                }
+            }
+
+            updateTmFilterList();
+        }
+
+        function onTmSelectProjectChange() {
+            const projSel = document.getElementById('tmSelProject');
+            const val = projSel ? projSel.value : '';
+            if (val && val !== '__MULTI_SELECTED__') {
+                tmSelectedFilterProjects = new Set([val]);
+            } else if (!val) {
+                tmSelectedFilterProjects.clear();
+            }
+            updateTmFilterList();
+        }
+
+        function renderTmProcessChips(processes) {
+            const container = document.getElementById('tmProcessCheckboxesArea');
+            if (!container) return;
+
+            window._tmCurrentProcesses = processes || [];
+
+            if (!processes || processes.length === 0) {
+                container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">해당 조건의 공정 데이터가 없습니다.</span>';
+                return;
+            }
+
+            const isAll = tmSelectedFilterProcesses.has('ALL') || tmSelectedFilterProcesses.size === 0;
+
+            let html = `
+                <button type="button" onclick="handleTmProcessChipToggle('ALL')"
+                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-amber-500 text-white border-amber-500 shadow-sm ring-2 ring-amber-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50'}">
+                    <span>🔧</span> <span>전체 공정 (${processes.length})</span>
+                </button>
+            `;
+
+            processes.forEach(p => {
+                const isSelected = !isAll && tmSelectedFilterProcesses.has(p);
+                const safeName = (p || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                html += `
+                    <button type="button" onclick="handleTmProcessChipToggle('${safeName}')"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isSelected ? 'bg-amber-500 text-white border-amber-500 shadow-sm ring-2 ring-amber-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50'}">
+                        <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-amber-500'}"></span>
+                        <span>${safeName}</span>
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function handleTmProcessChipToggle(proc) {
+            if (proc === 'ALL') {
+                tmSelectedFilterProcesses = new Set(['ALL']);
+            } else {
+                if (tmSelectedFilterProcesses.has('ALL')) {
+                    tmSelectedFilterProcesses.clear();
+                }
+                if (tmSelectedFilterProcesses.has(proc)) {
+                    tmSelectedFilterProcesses.delete(proc);
+                } else {
+                    tmSelectedFilterProcesses.add(proc);
+                }
+                if (tmSelectedFilterProcesses.size === 0) {
+                    tmSelectedFilterProcesses = new Set(['ALL']);
+                }
+            }
+
+            updateTmPeriodSummaryText();
             runTreeMap();
         }
 
         // =====================================================================
-        // 🏢 [TAB 2] 업체 필터 드롭다운 엔진
+        // 🔄 [TAB 2] 전사 필터 데이터 오케스트레이터 (Update Tab 2 Filter List)
         // =====================================================================
-        function getTmPeriodFilteredData() {
-            if (!rawData || rawData.length === 0) return [];
-            let data = rawData;
-            if (!currentWorkplace.includes('ALL')) {
-                data = data.filter(d => currentWorkplace.includes(d.workplace));
-            }
-            if (typeof tmSelectedFilterYears !== 'undefined' && !tmSelectedFilterYears.has('ALL')) {
-                data = data.filter(d => tmSelectedFilterYears.has(String(d.year)));
-            }
-            if (typeof tmSelectedFilterMonths !== 'undefined' && !tmSelectedFilterMonths.has('ALL')) {
-                data = data.filter(d => tmSelectedFilterMonths.has(String(parseInt(d.month))));
-            }
-            return data;
-        }
-
-        function populateTmCompanyFilter() {
+        function updateTmFilterList() {
             if (!rawData || rawData.length === 0) return;
-            const sel = document.getElementById('tmSelCompany');
-            if (!sel) return;
 
-            const periodData = getTmPeriodFilteredData();
-            const tmCompDateMap = {};
-            periodData.forEach(i => {
+            const compSel = document.getElementById('tmSelCompany');
+            const projSel = document.getElementById('tmSelProject');
+            const compSearchVal = (document.getElementById('tmSearchCompanyInput')?.value || '').trim().toLowerCase();
+            const projSearchVal = (document.getElementById('tmSearchProjectInput')?.value || '').trim().toLowerCase();
+
+            // ✕ 버튼 표시 토글
+            const btnClearComp = document.getElementById('btnTmClearCompSearch');
+            if (btnClearComp) btnClearComp.classList.toggle('hidden', !compSearchVal);
+            const btnClearProj = document.getElementById('btnTmClearProjSearch');
+            if (btnClearProj) btnClearProj.classList.toggle('hidden', !projSearchVal);
+
+            let filtered = rawData;
+            if (!currentWorkplace.includes('ALL')) {
+                filtered = filtered.filter(i => currentWorkplace.includes(i.workplace));
+            }
+            // 연도 필터 적용
+            if (typeof tmSelectedFilterYears !== 'undefined' && !tmSelectedFilterYears.has('ALL') && tmSelectedFilterYears.size > 0) {
+                filtered = filtered.filter(i => tmSelectedFilterYears.has(String(i.year)));
+            }
+            // 월 필터 적용
+            if (typeof tmSelectedFilterMonths !== 'undefined' && !tmSelectedFilterMonths.has('ALL') && tmSelectedFilterMonths.size > 0) {
+                filtered = filtered.filter(i => tmSelectedFilterMonths.has(String(parseInt(i.month))));
+            }
+
+            // 1. 업체 목록 집계 (최신순 내림차순)
+            const compLatestDateMap = {};
+            filtered.forEach(i => {
                 if (!i.client) return;
                 const dStr = i.date || '';
-                if (!tmCompDateMap[i.client] || dStr > tmCompDateMap[i.client]) {
-                    tmCompDateMap[i.client] = dStr;
+                if (!compLatestDateMap[i.client] || dStr > compLatestDateMap[i.client]) {
+                    compLatestDateMap[i.client] = dStr;
                 }
             });
-            const companies = Object.keys(tmCompDateMap).sort((a, b) => {
-                const diff = (tmCompDateMap[b] || '').localeCompare(tmCompDateMap[a] || '');
+            let companies = Object.keys(compLatestDateMap).sort((a, b) => {
+                const diff = (compLatestDateMap[b] || '').localeCompare(compLatestDateMap[a] || '');
                 if (diff !== 0) return diff;
                 return a.localeCompare(b);
             });
+            const totalCompCount = companies.length;
 
-            const curVal = sel.value;
-            sel.innerHTML = '<option value="">업체 선택 (전체)</option>';
-            companies.forEach(c => sel.add(new Option(c, c)));
-
-            // 기존 선택값이 현재 기간에도 유효하면 유지, 없으면 전체로 초기화
-            if (curVal && companies.includes(curVal)) {
-                sel.value = curVal;
-            } else if (curVal && !companies.includes(curVal)) {
-                sel.value = '';
+            if (compSearchVal) {
+                const compKeywords = compSearchVal.split(/\s+/).filter(k => k.length > 0);
+                companies = companies.filter(c => {
+                    const lc = (c || '').toLowerCase();
+                    return compKeywords.every(kw => lc.includes(kw));
+                });
             }
 
-            const badge = document.getElementById('tmBadgeCompanyCount');
-            if (badge) {
-                const totalComp = [...new Set(rawData.map(i => i.client))].filter(c => c).length;
-                badge.innerText = `${companies.length} / 전체 ${totalComp}개 업체 (선택기간 기준)`;
+            if (compSel) {
+                compSel.innerHTML = `<option value="">업체 선택 (${compSearchVal ? companies.length + '/' + totalCompCount : '전체 ' + totalCompCount})</option>`;
+
+                if (tmSelectedFilterCompanies.size > 1) {
+                    const multiCompOpt = new Option(`📦 [중복선택] ${tmSelectedFilterCompanies.size}개 업체 동시 분석`, '__MULTI_SELECTED__');
+                    compSel.add(multiCompOpt);
+                    compSel.value = '__MULTI_SELECTED__';
+                }
+
+                companies.forEach(c => compSel.add(new Option(c, c)));
+
+                if (tmSelectedFilterCompanies.size === 1) {
+                    const singleC = Array.from(tmSelectedFilterCompanies)[0];
+                    compSel.value = singleC;
+                    if (compSel.value !== singleC) {
+                        compSel.add(new Option(singleC, singleC));
+                        compSel.value = singleC;
+                    }
+                } else if (tmSelectedFilterCompanies.size === 0) {
+                    compSel.value = '';
+                }
             }
+
+            // 업체 뱃지
+            const badgeComp = document.getElementById('tmBadgeCompanyCount');
+            if (badgeComp) {
+                if (tmSelectedFilterCompanies.size > 1) {
+                    badgeComp.innerText = `📦 ${tmSelectedFilterCompanies.size}개 중복선택`;
+                    badgeComp.className = 'text-[11px] font-black text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-lg border border-purple-300 shadow-xs';
+                } else if (tmSelectedFilterCompanies.size === 1) {
+                    badgeComp.innerText = `1개 선택됨`;
+                    badgeComp.className = 'text-[11px] font-black text-purple-700 bg-purple-100 px-2 py-0.5 rounded-lg border border-purple-300 shadow-xs';
+                } else {
+                    badgeComp.innerText = compSearchVal ? `${companies.length}/${totalCompCount}개` : `${totalCompCount}개`;
+                    badgeComp.className = 'text-[10px] font-bold text-slate-400';
+                }
+            }
+
+            // 업체 칩 렌더링
+            renderTmCompanyChips(companies, compSel?.value);
+
+            // 2. 프로젝트 목록 집계
+            let pFiltered = filtered;
+            if (tmSelectedFilterCompanies.size > 0) {
+                pFiltered = pFiltered.filter(i => tmSelectedFilterCompanies.has(i.client));
+            } else if (compSel?.value && compSel.value !== '__MULTI_SELECTED__') {
+                pFiltered = pFiltered.filter(i => i.client === compSel.value);
+            }
+            const company = (compSel?.value && compSel.value !== '__MULTI_SELECTED__') ? compSel.value : '';
+
+            const projLatestDateMap = {};
+            pFiltered.forEach(i => {
+                if (!i.project) return;
+                const pair = `${i.client}|${i.project}`;
+                const dStr = i.date || '';
+                if (!projLatestDateMap[pair] || dStr > projLatestDateMap[pair]) {
+                    projLatestDateMap[pair] = dStr;
+                }
+            });
+            let projectPairs = Object.keys(projLatestDateMap).sort((a, b) => {
+                const diff = (projLatestDateMap[b] || '').localeCompare(projLatestDateMap[a] || '');
+                if (diff !== 0) return diff;
+                return a.localeCompare(b);
+            });
+            const totalProjCount = projectPairs.length;
+
+            if (projSearchVal) {
+                const projKeywords = projSearchVal.split(/\s+/).filter(k => k.length > 0);
+                projectPairs = projectPairs.filter(pair => {
+                    const [cName, pName] = pair.split('|');
+                    const combined = ((pName || '') + ' ' + (cName || '')).toLowerCase();
+                    return projKeywords.every(kw => combined.includes(kw));
+                });
+            }
+
+            if (projSel) {
+                projSel.innerHTML = `<option value="">프로젝트 선택 (${projectPairs.length}${projSearchVal ? '/' + totalProjCount : ''})</option>`;
+
+                if (tmSelectedFilterProjects.size > 1) {
+                    const multiOpt = new Option(`📦 [중복선택] ${tmSelectedFilterProjects.size}개 프로젝트 동시 분석`, '__MULTI_SELECTED__');
+                    projSel.add(multiOpt);
+                    projSel.value = '__MULTI_SELECTED__';
+                }
+
+                projectPairs.forEach(pair => {
+                    const [cName, pName] = pair.split('|');
+                    const optText = (tmSelectedFilterCompanies.size === 1 || company) ? pName : `[${cName}] ${pName}`;
+                    const option = new Option(optText, pName);
+                    option.dataset.client = cName;
+                    projSel.add(option);
+                });
+
+                if (tmSelectedFilterProjects.size === 1) {
+                    const singleP = Array.from(tmSelectedFilterProjects)[0];
+                    projSel.value = singleP;
+                    if (projSel.value !== singleP) {
+                        projSel.add(new Option(company ? singleP : `[선택] ${singleP}`, singleP));
+                        projSel.value = singleP;
+                    }
+                } else if (tmSelectedFilterProjects.size === 0) {
+                    projSel.value = '';
+                }
+            }
+
+            // 프로젝트 뱃지
+            const badgeProj = document.getElementById('tmBadgeProjectCount');
+            if (badgeProj) {
+                if (tmSelectedFilterProjects.size > 1) {
+                    badgeProj.innerText = `📦 ${tmSelectedFilterProjects.size}개 중복선택`;
+                    badgeProj.className = 'text-[11px] font-black text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-lg border border-blue-300 shadow-xs';
+                } else if (tmSelectedFilterProjects.size === 1) {
+                    badgeProj.innerText = `1개 선택됨`;
+                    badgeProj.className = 'text-[11px] font-black text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-lg border border-indigo-300 shadow-xs';
+                } else {
+                    badgeProj.innerText = projSearchVal ? `${projectPairs.length}개 일치` : `${totalProjCount}개`;
+                    badgeProj.className = 'text-[10px] font-bold text-slate-400';
+                }
+            }
+
+            // 프로젝트 칩 렌더링
+            renderTmProjectChips(projectPairs, projSel?.value);
+
+            // 3. 공정 목록 집계 및 칩 렌더링
+            const procDateMap = {};
+            pFiltered.forEach(i => {
+                if (!i.type) return;
+                const dStr = i.date || '';
+                if (!procDateMap[i.type] || dStr > procDateMap[i.type]) {
+                    procDateMap[i.type] = dStr;
+                }
+            });
+            const processes = Object.keys(procDateMap).sort((a, b) => {
+                const diff = (procDateMap[b] || '').localeCompare(procDateMap[a] || '');
+                if (diff !== 0) return diff;
+                return a.localeCompare(b);
+            });
+            renderTmProcessChips(processes);
+
+            // 4. 요약 바 갱신
+            updateTmPeriodSummaryText();
+
+            // 5. 전사 시각화 및 차트 즉시 재계산 구동!
+            runTreeMap();
         }
 
         function onTmCompanySearchInput() {
-            const searchVal = (document.getElementById('tmSearchCompanyInput')?.value || '').trim().toLowerCase();
-            const btnClear = document.getElementById('btnTmClearCompSearch');
-            if (btnClear) btnClear.classList.toggle('hidden', !searchVal);
+            updateTmFilterList();
+        }
 
-            const sel = document.getElementById('tmSelCompany');
-            if (!sel || !rawData) return;
-
-            const periodData = getTmPeriodFilteredData();
-            const tmCompDateMap = {};
-            periodData.forEach(i => {
-                if (!i.client) return;
-                const dStr = i.date || '';
-                if (!tmCompDateMap[i.client] || dStr > tmCompDateMap[i.client]) {
-                    tmCompDateMap[i.client] = dStr;
+        function onTmCompanySearchKeydown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const compSel = document.getElementById('tmSelCompany');
+                if (compSel && compSel.options.length > 1) {
+                    compSel.selectedIndex = 1;
+                    onTmSelectCompanyChange();
+                    const projInput = document.getElementById('tmSearchProjectInput');
+                    if (projInput) projInput.focus();
                 }
-            });
-            const companies = Object.keys(tmCompDateMap).sort((a, b) => {
-                const diff = (tmCompDateMap[b] || '').localeCompare(tmCompDateMap[a] || '');
-                if (diff !== 0) return diff;
-                return a.localeCompare(b);
-            });
-            const curVal = sel.value;
-
-            sel.innerHTML = '<option value="">업체 선택 (전체)</option>';
-
-            const keywords = searchVal.split(/\s+/).filter(k => k.length > 0);
-            const filtered = keywords.length > 0
-                ? companies.filter(c => keywords.every(k => c.toLowerCase().includes(k)))
-                : companies;
-
-            filtered.forEach(c => sel.add(new Option(c, c)));
-            if (curVal && filtered.includes(curVal)) sel.value = curVal;
-
-            const badge = document.getElementById('tmBadgeCompanyCount');
-            if (badge) badge.innerText = `${filtered.length} / ${companies.length}개 (검색 결과)`;
+            }
         }
 
         function clearTmCompanyFilter() {
             const input = document.getElementById('tmSearchCompanyInput');
-            const sel = document.getElementById('tmSelCompany');
-            const btnClear = document.getElementById('btnTmClearCompSearch');
+            if (input) input.value = '';
+            updateTmFilterList();
+            if (input) input.focus();
+        }
+
+        function onTmProjectSearchInput() {
+            updateTmFilterList();
+        }
+
+        function onTmProjectSearchKeydown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const projSel = document.getElementById('tmSelProject');
+                if (projSel && projSel.options.length > 1) {
+                    projSel.selectedIndex = 1;
+                    onTmSelectProjectChange();
+                }
+            }
+        }
+
+        function clearTmProjectFilter() {
+            const input = document.getElementById('tmSearchProjectInput');
+            if (input) input.value = '';
+            updateTmFilterList();
+            if (input) input.focus();
+        }
+
+        // =====================================================================
+        // ⚡ [TAB 2] 통합 스마트 프로젝트 검색 바 (Autocomplete Dropdown)
+        // =====================================================================
+        function onTmSmartQuickSearchInput(val) {
+            const dropdown = document.getElementById('tmSmartSearchDropdown');
+            const btnClear = document.getElementById('btnTmSmartClear');
+            if (!dropdown) return;
+
+            const q = (val || '').trim().toLowerCase();
+            if (btnClear) btnClear.classList.toggle('hidden', !q);
+
+            if (!q || !rawData || rawData.length === 0) {
+                dropdown.classList.add('hidden');
+                dropdown.innerHTML = '';
+                tmSmartSearchKeywords = [];
+                return;
+            }
+
+            tmSmartSearchKeywords = q.split(/\s+/).filter(k => k.length > 0);
+
+            // 전체 프로젝트에서 검색
+            const matchedPairs = [];
+            const seen = new Set();
+
+            for (let i = 0; i < rawData.length; i++) {
+                const item = rawData[i];
+                const p = item.project || '';
+                const c = item.client || '';
+                const key = `${c}|${p}`;
+                if (seen.has(key)) continue;
+
+                const combined = `${p} ${c} ${item.type || ''}`.toLowerCase();
+                const matchAll = tmSmartSearchKeywords.every(kw => combined.includes(kw));
+                if (matchAll) {
+                    seen.add(key);
+                    matchedPairs.push({ client: c, project: p, date: item.date || '' });
+                    if (matchedPairs.length >= 15) break;
+                }
+            }
+
+            if (matchedPairs.length === 0) {
+                dropdown.innerHTML = `
+                    <div class="p-3 text-center text-xs font-bold text-slate-400">
+                        검색어 <span class="text-indigo-600 font-black">"${q}"</span> 에 일치하는 프로젝트가 없습니다.
+                    </div>
+                `;
+                dropdown.classList.remove('hidden');
+                return;
+            }
+
+            let html = '';
+            matchedPairs.forEach((item, idx) => {
+                const safeP = (item.project || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const safeC = (item.client || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                html += `
+                    <div onclick="selectTmSmartSearchResult('${safeC}', '${safeP}')"
+                        class="p-2.5 hover:bg-indigo-50/80 cursor-pointer flex items-center justify-between transition-colors group">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0"></span>
+                            <span class="text-xs font-black text-slate-800 group-hover:text-indigo-700 truncate">${safeP}</span>
+                            <span class="text-[10px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200 flex-shrink-0">${safeC}</span>
+                        </div>
+                        <span class="text-[10px] text-slate-400 font-bold flex-shrink-0 group-hover:text-indigo-600">선택 ➔</span>
+                    </div>
+                `;
+            });
+
+            dropdown.innerHTML = html;
+            dropdown.classList.remove('hidden');
+        }
+
+        function onTmSmartQuickSearchKeydown(e) {
+            if (e.key === 'Escape') {
+                const dropdown = document.getElementById('tmSmartSearchDropdown');
+                if (dropdown) dropdown.classList.add('hidden');
+            }
+        }
+
+        function selectTmSmartSearchResult(clientName, projectName) {
+            const dropdown = document.getElementById('tmSmartSearchDropdown');
+            if (dropdown) dropdown.classList.add('hidden');
+            const searchInput = document.getElementById('tmSmartQuickSearch');
+            if (searchInput) searchInput.value = projectName;
+
+            // 업체 및 프로젝트 단일 설정
+            if (clientName) {
+                tmSelectedFilterCompanies = new Set([clientName]);
+            }
+            if (projectName) {
+                tmSelectedFilterProjects = new Set([projectName]);
+            }
+
+            updateTmFilterList();
+        }
+
+        function clearTmSmartSearch() {
+            const input = document.getElementById('tmSmartQuickSearch');
+            const btnClear = document.getElementById('btnTmSmartClear');
+            const dropdown = document.getElementById('tmSmartSearchDropdown');
             if (input) input.value = '';
             if (btnClear) btnClear.classList.add('hidden');
-            if (sel) sel.value = '';
-            populateTmCompanyFilter();
-            runTreeMap();
+            if (dropdown) dropdown.classList.add('hidden');
+            tmSmartSearchKeywords = [];
+            updateTmFilterList();
         }
 
 

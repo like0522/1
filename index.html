@@ -1147,7 +1147,7 @@
                                 <span id="compDescText">비교할 두 대상을 검색창이나 드롭다운에서 선택하세요. (공백으로 여러 단어 검색 가능)</span>
                             </div>
                             <label class="flex items-center gap-2 cursor-pointer hover:text-slate-800 transition-colors bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-                                <input type="checkbox" id="chkCompSyncPeriod" onchange="runComparison()" class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
+                                <input type="checkbox" id="chkCompSyncPeriod" onchange="onCompSyncPeriodChange()" class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
                                 <span>상단 조회 연도/구간 필터 연동 (<span id="compSyncPeriodLabel" class="text-purple-600 font-black">전체 누적 이력 비교</span>)</span>
                             </label>
                         </div>
@@ -1171,6 +1171,13 @@
                                 <select id="compSelA" onchange="onCompSelectChange('A')"
                                     class="w-full h-11 px-3 bg-white border-2 border-indigo-400 rounded-xl text-sm font-black text-slate-900 outline-none shadow-sm focus:ring-4 focus:ring-indigo-500/20">
                                 </select>
+                                <!-- [A] 최근 작업 추천 칩 -->
+                                <div class="pt-1">
+                                    <div class="text-[10px] font-black text-indigo-500 mb-1 flex items-center gap-1">
+                                        <span>⚡ 최근 작업 추천 대상 [A]:</span>
+                                    </div>
+                                    <div id="compQuickChipsA" class="flex items-center gap-1 flex-wrap max-h-16 overflow-y-auto custom-scroll"></div>
+                                </div>
                             </div>
 
                             <!-- ⇄ 맞바꾸기(Swap) 버튼 -->
@@ -1200,6 +1207,13 @@
                                 <select id="compSelB" onchange="onCompSelectChange('B')"
                                     class="w-full h-11 px-3 bg-white border-2 border-emerald-400 rounded-xl text-sm font-black text-slate-900 outline-none shadow-sm focus:ring-4 focus:ring-emerald-500/20">
                                 </select>
+                                <!-- [B] 최근 작업 추천 칩 -->
+                                <div class="pt-1">
+                                    <div class="text-[10px] font-black text-emerald-600 mb-1 flex items-center gap-1">
+                                        <span>⚡ 최근 작업 추천 대상 [B]:</span>
+                                    </div>
+                                    <div id="compQuickChipsB" class="flex items-center gap-1 flex-wrap max-h-16 overflow-y-auto custom-scroll"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -8212,33 +8226,127 @@ function updateProjectList() {
             runComparison();
         }
 
+        // =====================================================================
+        // ⚖️ 1:1 벤치마킹 비교 랩 드롭다운 & 최근 작업 칩 렌더러 (최신순 정렬 및 기간 연동 무결성)
+        // =====================================================================
+        function onCompSyncPeriodChange() {
+            populateCompDropdowns();
+            runComparison();
+        }
+
+        function updateComparisonPeriodSync() {
+            const syncChk = document.getElementById('chkCompSyncPeriod');
+            if (syncChk && syncChk.checked) {
+                populateCompDropdowns();
+                runComparison();
+            }
+        }
+
+        function renderCompQuickChips(side, items, currentTarget) {
+            const container = document.getElementById(`compQuickChips${side}`);
+            if (!container) return;
+            if (!items || items.length === 0) {
+                container.innerHTML = '<span class="text-[10px] text-slate-400 font-normal">추천 대상 없음</span>';
+                return;
+            }
+            const isA = (side === 'A');
+            let html = '';
+            items.forEach(k => {
+                let label = k;
+                if (compMode === 'project') {
+                    const parts = k.split('|');
+                    label = parts[1] || k;
+                }
+                const isSelected = (k === currentTarget);
+                const safeKey = k.replace(/'/g, "\\'");
+                const safeLabel = (label || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const colorCls = isA
+                    ? (isSelected ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm scale-105' : 'bg-white text-indigo-900 border-indigo-200 hover:bg-indigo-100/70')
+                    : (isSelected ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm scale-105' : 'bg-white text-emerald-900 border-emerald-200 hover:bg-emerald-100/70');
+                html += `
+                    <button type="button" onclick="selectCompQuickChip('${side}', '${safeKey}')"
+                        class="px-2 py-0.5 rounded-lg text-[11px] font-bold border transition-all truncate max-w-[170px] ${colorCls}"
+                        title="${safeKey}">
+                        ${isSelected ? '● ' : ''}${safeLabel}
+                    </button>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function selectCompQuickChip(side, target) {
+            if (side === 'A') compTargetA = target;
+            else compTargetB = target;
+            const sel = document.getElementById(`compSel${side}`);
+            if (sel) sel.value = target;
+            populateCompDropdowns();
+            runComparison();
+        }
+
         function populateCompDropdowns() {
             const selA = document.getElementById('compSelA');
             const selB = document.getElementById('compSelB');
-            if (!selA || !selB) return;
+            if (!selA || !selB || !rawData || rawData.length === 0) return;
 
             const searchA = (document.getElementById('compSearchInputA')?.value || '').trim().toLowerCase();
             const searchB = (document.getElementById('compSearchInputB')?.value || '').trim().toLowerCase();
             const kwA = searchA.split(/\s+/).filter(k => k.length > 0);
             const kwB = searchB.split(/\s+/).filter(k => k.length > 0);
 
+            // 상단 기간 연동 여부 확인
+            const isSync = document.getElementById('chkCompSyncPeriod')?.checked;
+            let scopeData = rawData;
+            if (isSync) {
+                if (!currentWorkplace.includes('ALL')) {
+                    scopeData = scopeData.filter(d => currentWorkplace.includes(d.workplace));
+                }
+                if (typeof tmSelectedFilterYears !== 'undefined' && !tmSelectedFilterYears.has('ALL') && tmSelectedFilterYears.size > 0) {
+                    scopeData = scopeData.filter(d => tmSelectedFilterYears.has(String(d.year)));
+                }
+                if (typeof tmSelectedFilterMonths !== 'undefined' && !tmSelectedFilterMonths.has('ALL') && tmSelectedFilterMonths.size > 0) {
+                    scopeData = scopeData.filter(d => tmSelectedFilterMonths.has(String(parseInt(d.month))));
+                }
+            } else {
+                if (!currentWorkplace.includes('ALL')) {
+                    scopeData = scopeData.filter(d => currentWorkplace.includes(d.workplace));
+                }
+            }
+
+            // 만약 기간 필터링 결과가 비어있으면 fallback으로 전체 데이터 활용
+            const useData = (scopeData.length > 0) ? scopeData : rawData;
+
             if (compMode === 'process') {
+                // 최근 작업일자 기준 공정 집계
+                const procDateMap = {};
                 const procHoursMap = {};
-                rawData.forEach(d => {
+                useData.forEach(d => {
                     const proc = d.type || '기타';
+                    const dStr = d.date || '';
+                    if (!procDateMap[proc] || dStr > procDateMap[proc]) {
+                        procDateMap[proc] = dStr;
+                    }
                     procHoursMap[proc] = (procHoursMap[proc] || 0) + ((d.h_reg + d.h_over) || 0);
                 });
-                let allProcs = Object.keys(procHoursMap).filter(Boolean).sort((a, b) => procHoursMap[b] - procHoursMap[a]);
+                let allProcs = Object.keys(procDateMap).filter(Boolean).sort((a, b) => {
+                    const diff = (procDateMap[b] || '').localeCompare(procDateMap[a] || '');
+                    if (diff !== 0) return diff;
+                    return (procHoursMap[b] || 0) - (procHoursMap[a] || 0);
+                });
 
-                if (!compTargetA && allProcs.length > 0) compTargetA = allProcs[0];
-                if (!compTargetB && allProcs.length > 1) compTargetB = allProcs[1] || allProcs[0];
+                if (!compTargetA || !allProcs.includes(compTargetA)) {
+                    compTargetA = allProcs[0] || '';
+                }
+                if (!compTargetB || !allProcs.includes(compTargetB)) {
+                    compTargetB = (allProcs.length > 1) ? allProcs[1] : (allProcs[0] || '');
+                }
 
                 let listA = allProcs;
                 if (kwA.length > 0) listA = listA.filter(p => kwA.every(k => p.toLowerCase().includes(k)));
                 selA.innerHTML = '';
                 listA.forEach(p => {
                     const h = Math.round(procHoursMap[p] || 0);
-                    selA.add(new Option(`${p} (${h.toLocaleString()}h)`, p));
+                    const dt = procDateMap[p] ? `(${procDateMap[p].slice(5)}) ` : '';
+                    selA.add(new Option(`${p} ${dt}(${h.toLocaleString()}h)`, p));
                 });
                 if (allProcs.includes(compTargetA)) selA.value = compTargetA;
 
@@ -8247,27 +8355,46 @@ function updateProjectList() {
                 selB.innerHTML = '';
                 listB.forEach(p => {
                     const h = Math.round(procHoursMap[p] || 0);
-                    selB.add(new Option(`${p} (${h.toLocaleString()}h)`, p));
+                    const dt = procDateMap[p] ? `(${procDateMap[p].slice(5)}) ` : '';
+                    selB.add(new Option(`${p} ${dt}(${h.toLocaleString()}h)`, p));
                 });
                 if (allProcs.includes(compTargetB)) selB.value = compTargetB;
 
-            } else if (compMode === 'client') {
-                const clientHoursMap = {};
-                rawData.forEach(d => {
-                    if (!clientHoursMap[d.client]) clientHoursMap[d.client] = 0;
-                    clientHoursMap[d.client] += ((d.h_reg + d.h_over) || 0);
-                });
-                let allClients = Object.keys(clientHoursMap).filter(Boolean).sort((a, b) => clientHoursMap[b] - clientHoursMap[a]);
+                renderCompQuickChips('A', allProcs.slice(0, 8), compTargetA);
+                renderCompQuickChips('B', allProcs.slice(0, 8), compTargetB);
 
-                if (!compTargetA && allClients.length > 0) compTargetA = allClients[0];
-                if (!compTargetB && allClients.length > 1) compTargetB = allClients[1] || allClients[0];
+            } else if (compMode === 'client') {
+                // 최근 작업일자 기준 업체 집계 (최신순 내림차순 정렬)
+                const clientDateMap = {};
+                const clientHoursMap = {};
+                useData.forEach(d => {
+                    if (!d.client) return;
+                    const dStr = d.date || '';
+                    if (!clientDateMap[d.client] || dStr > clientDateMap[d.client]) {
+                        clientDateMap[d.client] = dStr;
+                    }
+                    clientHoursMap[d.client] = (clientHoursMap[d.client] || 0) + ((d.h_reg + d.h_over) || 0);
+                });
+                let allClients = Object.keys(clientDateMap).filter(Boolean).sort((a, b) => {
+                    const diff = (clientDateMap[b] || '').localeCompare(clientDateMap[a] || '');
+                    if (diff !== 0) return diff;
+                    return (clientHoursMap[b] || 0) - (clientHoursMap[a] || 0);
+                });
+
+                if (!compTargetA || !allClients.includes(compTargetA)) {
+                    compTargetA = allClients[0] || '';
+                }
+                if (!compTargetB || !allClients.includes(compTargetB)) {
+                    compTargetB = (allClients.length > 1) ? allClients[1] : (allClients[0] || '');
+                }
 
                 let listA = allClients;
                 if (kwA.length > 0) listA = listA.filter(c => kwA.every(k => c.toLowerCase().includes(k)));
                 selA.innerHTML = '';
                 listA.forEach(c => {
                     const h = Math.round(clientHoursMap[c] || 0);
-                    selA.add(new Option(`${c} (${h.toLocaleString()}h)`, c));
+                    const dt = clientDateMap[c] ? `(${clientDateMap[c].slice(5)}) ` : '';
+                    selA.add(new Option(`${c} ${dt}(${h.toLocaleString()}h)`, c));
                 });
                 if (allClients.includes(compTargetA)) selA.value = compTargetA;
 
@@ -8276,53 +8403,78 @@ function updateProjectList() {
                 selB.innerHTML = '';
                 listB.forEach(c => {
                     const h = Math.round(clientHoursMap[c] || 0);
-                    selB.add(new Option(`${c} (${h.toLocaleString()}h)`, c));
+                    const dt = clientDateMap[c] ? `(${clientDateMap[c].slice(5)}) ` : '';
+                    selB.add(new Option(`${c} ${dt}(${h.toLocaleString()}h)`, c));
                 });
                 if (allClients.includes(compTargetB)) selB.value = compTargetB;
 
-            } else {
-                const projMap = {};
-                rawData.forEach(d => {
-                    const key = `${d.client}|${d.project}`;
-                    if (!projMap[key]) projMap[key] = { client: d.client, project: d.project, hours: 0 };
-                    projMap[key].hours += ((d.h_reg + d.h_over) || 0);
-                });
-                let allProjs = Object.keys(projMap).filter(Boolean).sort((a, b) => projMap[b].hours - projMap[a].hours);
+                renderCompQuickChips('A', allClients.slice(0, 8), compTargetA);
+                renderCompQuickChips('B', allClients.slice(0, 8), compTargetB);
 
-                if (!compTargetA && allProjs.length > 0) compTargetA = allProjs[0];
-                if (!compTargetB && allProjs.length > 1) compTargetB = allProjs[1] || allProjs[0];
+            } else {
+                // 프로젝트 vs 프로젝트 (최근 작업일자 최신순 내림차순 정렬)
+                const projDateMap = {};
+                const projHoursMap = {};
+                const projClientMap = {};
+                useData.forEach(d => {
+                    if (!d.project) return;
+                    const key = `${d.client}|${d.project}`;
+                    const dStr = d.date || '';
+                    if (!projDateMap[key] || dStr > projDateMap[key]) {
+                        projDateMap[key] = dStr;
+                    }
+                    projHoursMap[key] = (projHoursMap[key] || 0) + ((d.h_reg + d.h_over) || 0);
+                    projClientMap[key] = d.client || '';
+                });
+                let allProjs = Object.keys(projDateMap).filter(Boolean).sort((a, b) => {
+                    const diff = (projDateMap[b] || '').localeCompare(projDateMap[a] || '');
+                    if (diff !== 0) return diff;
+                    return (projHoursMap[b] || 0) - (projHoursMap[a] || 0);
+                });
+
+                if (!compTargetA || !allProjs.includes(compTargetA)) {
+                    compTargetA = allProjs[0] || '';
+                }
+                if (!compTargetB || !allProjs.includes(compTargetB)) {
+                    compTargetB = (allProjs.length > 1) ? allProjs[1] : (allProjs[0] || '');
+                }
 
                 let listA = allProjs;
                 if (kwA.length > 0) {
                     listA = listA.filter(k => {
-                        const item = projMap[k];
-                        const comb = `${item.client} ${item.project}`.toLowerCase();
+                        const [c, p] = k.split('|');
+                        const comb = `${c} ${p}`.toLowerCase();
                         return kwA.every(kw => comb.includes(kw));
                     });
                 }
                 selA.innerHTML = '';
                 listA.forEach(k => {
-                    const item = projMap[k];
-                    const h = Math.round(item.hours || 0);
-                    selA.add(new Option(`[${item.client}] ${item.project} (${h.toLocaleString()}h)`, k));
+                    const [cName, pName] = k.split('|');
+                    const h = Math.round(projHoursMap[k] || 0);
+                    const dt = projDateMap[k] ? `(${projDateMap[k].slice(5)}) ` : '';
+                    selA.add(new Option(`[${cName}] ${pName} ${dt}(${h.toLocaleString()}h)`, k));
                 });
                 if (allProjs.includes(compTargetA)) selA.value = compTargetA;
 
                 let listB = allProjs;
                 if (kwB.length > 0) {
                     listB = listB.filter(k => {
-                        const item = projMap[k];
-                        const comb = `${item.client} ${item.project}`.toLowerCase();
+                        const [c, p] = k.split('|');
+                        const comb = `${c} ${p}`.toLowerCase();
                         return kwB.every(kw => comb.includes(kw));
                     });
                 }
                 selB.innerHTML = '';
                 listB.forEach(k => {
-                    const item = projMap[k];
-                    const h = Math.round(item.hours || 0);
-                    selB.add(new Option(`[${item.client}] ${item.project} (${h.toLocaleString()}h)`, k));
+                    const [cName, pName] = k.split('|');
+                    const h = Math.round(projHoursMap[k] || 0);
+                    const dt = projDateMap[k] ? `(${projDateMap[k].slice(5)}) ` : '';
+                    selB.add(new Option(`[${cName}] ${pName} ${dt}(${h.toLocaleString()}h)`, k));
                 });
                 if (allProjs.includes(compTargetB)) selB.value = compTargetB;
+
+                renderCompQuickChips('A', allProjs.slice(0, 8), compTargetA);
+                renderCompQuickChips('B', allProjs.slice(0, 8), compTargetB);
             }
         }
 
@@ -8366,13 +8518,6 @@ function updateProjectList() {
             runComparison();
         }
 
-        function updateComparisonPeriodSync() {
-            const syncChk = document.getElementById('chkCompSyncPeriod');
-            if (syncChk && syncChk.checked) {
-                runComparison();
-            }
-        }
-
         function runComparison() {
             const selA = document.getElementById('compSelA');
             const selB = document.getElementById('compSelB');
@@ -8384,11 +8529,11 @@ function updateProjectList() {
             if (syncLabel) {
                 if (isSync) {
                     let yrLabel = '전체년도';
-                    if (typeof tmSelectedFilterYears !== 'undefined' && !tmSelectedFilterYears.has('ALL')) {
+                    if (typeof tmSelectedFilterYears !== 'undefined' && !tmSelectedFilterYears.has('ALL') && tmSelectedFilterYears.size > 0) {
                         yrLabel = Array.from(tmSelectedFilterYears).sort((a,b) => b-a).map(y => y + '년').join(',');
                     }
                     let moLabel = '전체구간';
-                    if (typeof tmSelectedFilterMonths !== 'undefined' && !tmSelectedFilterMonths.has('ALL')) {
+                    if (typeof tmSelectedFilterMonths !== 'undefined' && !tmSelectedFilterMonths.has('ALL') && tmSelectedFilterMonths.size > 0) {
                         moLabel = Array.from(tmSelectedFilterMonths).map(Number).sort((a,b) => a-b).map(m => m + '월').join(',');
                     }
                     syncLabel.innerText = `${yrLabel} / ${moLabel} 적용중`;
@@ -8402,24 +8547,12 @@ function updateProjectList() {
                 if (!currentWorkplace.includes('ALL')) {
                     baseData = baseData.filter(d => currentWorkplace.includes(d.workplace));
                 }
-                // 체크박스 Sets 기반 필터링 (Tab2 연동)
-                if (typeof tmSelectedFilterYears !== 'undefined' && !tmSelectedFilterYears.has('ALL')) {
+                // 체크박스 Sets 기반 연도/월 필터링 (Tab2 연동)
+                if (typeof tmSelectedFilterYears !== 'undefined' && !tmSelectedFilterYears.has('ALL') && tmSelectedFilterYears.size > 0) {
                     baseData = baseData.filter(d => tmSelectedFilterYears.has(String(d.year)));
                 }
-                if (typeof tmSelectedFilterMonths !== 'undefined' && !tmSelectedFilterMonths.has('ALL')) {
+                if (typeof tmSelectedFilterMonths !== 'undefined' && !tmSelectedFilterMonths.has('ALL') && tmSelectedFilterMonths.size > 0) {
                     baseData = baseData.filter(d => tmSelectedFilterMonths.has(String(parseInt(d.month))));
-                }
-                // 업체 필터 동기화
-                const tmCompanySync = document.getElementById('tmSelCompany')?.value || '';
-                if (tmCompanySync) {
-                    baseData = baseData.filter(d => d.client === tmCompanySync);
-                }
-                // 스마트 검색 동기화
-                if (typeof tmSmartSearchKeywords !== 'undefined' && tmSmartSearchKeywords.length > 0) {
-                    baseData = baseData.filter(d => {
-                        const t = [d.client, d.project, d.type, d.worker, d.workplace].join(' ').toLowerCase();
-                        return tmSmartSearchKeywords.every(k => t.includes(k));
-                    });
                 }
             }
 

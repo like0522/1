@@ -132,6 +132,9 @@
         window.changeMainZoom = window.changeMainZoom || function(d){};
         window.resetMainZoom = window.resetMainZoom || function(){};
         window.fitMainToMobile = window.fitMainToMobile || function(){};
+        window.changeKpiDrilldownZoom = window.changeKpiDrilldownZoom || function(d){};
+        window.resetKpiDrilldownZoom = window.resetKpiDrilldownZoom || function(){};
+        window.fitKpiDrilldownChart = window.fitKpiDrilldownChart || function(){};
 
         function switchTab(idx, isBack) {
             if (typeof window._internalSwitchTab === 'function') {
@@ -1468,13 +1471,31 @@
 
                 <!-- 2. 시각적 원인 분해 차트 (ECharts) -->
                 <div class="dashboard-card p-4 bg-white border border-slate-200 shadow-sm">
-                    <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                    <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2 flex-wrap gap-2">
                         <h4 id="tmDrilldownChartTitle" class="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1.5">
                             <span>📈</span> <span>항목별 원인 분해 시각화</span>
                         </h4>
-                        <span class="text-[10px] font-bold text-slate-400">마우스 오버 시 세부 수치 표시</span>
+                        <!-- 🔍 차트 확대/축소 툴바 -->
+                        <div class="flex items-center gap-2">
+                            <div class="flex items-center bg-slate-900 text-white rounded-xl p-0.5 sm:p-1 shadow-inner border border-slate-700/60 text-xs">
+                                <button type="button" onclick="changeKpiDrilldownZoom(-0.15)" title="차트 축소"
+                                    class="w-7 h-7 flex items-center justify-center hover:bg-white/20 active:scale-95 rounded-lg font-black transition-all">－</button>
+                                <span id="kpiDrilldownZoomLabel" class="px-2 font-mono font-black text-sky-400 min-w-[45px] text-center select-none text-[11px]">100%</span>
+                                <button type="button" onclick="changeKpiDrilldownZoom(0.15)" title="차트 확대"
+                                    class="w-7 h-7 flex items-center justify-center hover:bg-white/20 active:scale-95 rounded-lg font-black transition-all">＋</button>
+                                <button type="button" onclick="resetKpiDrilldownZoom()" title="기본 배율 (100%)"
+                                    class="px-2 h-7 flex items-center justify-center hover:bg-white/20 active:scale-95 rounded-lg font-bold transition-all text-[11px] border-l border-slate-700 ml-0.5">100%</button>
+                                <button type="button" onclick="fitKpiDrilldownChart()" title="화면 너비 맞춤"
+                                    class="px-2 h-7 flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white rounded-lg font-bold transition-all text-[11px] ml-0.5 shadow-sm">📱 맞춤</button>
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-400 hidden sm:inline">마우스 오버 시 세부 수치 표시</span>
+                        </div>
                     </div>
-                    <div id="tmKpiDrilldownChart" class="w-full h-72 sm:h-80"></div>
+                    <div id="tmKpiDrilldownChartOuter" class="w-full overflow-x-auto custom-scroll">
+                        <div id="tmKpiDrilldownChartWrapper" class="transition-all duration-150 origin-top-left" style="min-width: 100%;">
+                            <div id="tmKpiDrilldownChart" class="w-full h-80 sm:h-[450px]"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 3. 상세 기여도 파레토 테이블 -->
@@ -4451,6 +4472,43 @@ function switchTmView(view) {
         // 🔍 [TAB 2] 6대 핵심 KPI 원인 분석 드릴다운 엔진 (Root-Cause Drilldown Engine)
         // =====================================================================
         let tmKpiDrilldownChartInstance = null;
+        let kpiDrilldownZoomLevel = 1.0;
+
+        function applyKpiDrilldownZoom() {
+            const wrapper = document.getElementById('tmKpiDrilldownChartWrapper');
+            const label = document.getElementById('kpiDrilldownZoomLabel');
+            if (label) {
+                label.innerText = `${Math.round(kpiDrilldownZoomLevel * 100)}%`;
+            }
+            if (wrapper) {
+                if (kpiDrilldownZoomLevel <= 1.0) {
+                    wrapper.style.width = '100%';
+                    wrapper.style.transform = kpiDrilldownZoomLevel === 1.0 ? 'none' : `scale(${kpiDrilldownZoomLevel})`;
+                    wrapper.style.transformOrigin = 'top left';
+                } else {
+                    wrapper.style.width = `${Math.round(kpiDrilldownZoomLevel * 100)}%`;
+                    wrapper.style.transform = 'none';
+                }
+            }
+            if (tmKpiDrilldownChartInstance) {
+                tmKpiDrilldownChartInstance.resize();
+            }
+        }
+
+        function changeKpiDrilldownZoom(delta) {
+            kpiDrilldownZoomLevel = Math.max(0.6, Math.min(2.5, Math.round((kpiDrilldownZoomLevel + delta) * 100) / 100));
+            applyKpiDrilldownZoom();
+        }
+
+        function resetKpiDrilldownZoom() {
+            kpiDrilldownZoomLevel = 1.0;
+            applyKpiDrilldownZoom();
+        }
+
+        function fitKpiDrilldownChart() {
+            kpiDrilldownZoomLevel = 1.0;
+            applyKpiDrilldownZoom();
+        }
 
         function closeEnterpriseKpiDrilldown() {
             const modal = document.getElementById('tmKpiDrilldownModal');
@@ -4459,6 +4517,7 @@ function switchTmView(view) {
                 tmKpiDrilldownChartInstance.dispose();
                 tmKpiDrilldownChartInstance = null;
             }
+            resetKpiDrilldownZoom();
         }
 
         function openEnterpriseKpiDrilldown(kpiType) {
@@ -4600,17 +4659,264 @@ function switchTmView(view) {
                     <p>• <strong>최대 지출 프로젝트:</strong> [${sortedProjs[0] || '-'}]에 <strong>₩${Math.round((projC[sortedProjs[0]]||0)/10000).toLocaleString()}만원</strong>이 집행되었습니다.</p>
                 `;
 
-                chartTitleEl.innerHTML = '<span>📊</span> <span>상위 7대 프로젝트별 비용 집행액(만원) 비교</span>';
-                chartOption = {
-                    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: '{b}: ₩{c}만원' },
-                    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-                    xAxis: { type: 'value', name: '집행액 (만원)' },
-                    yAxis: { type: 'category', data: sortedProjs.slice(0, 7).reverse(), axisLabel: { width: 140, overflow: 'truncate' } },
-                    series: [{
+                chartTitleEl.innerHTML = '<span>📊</span> <span>상위 7대 프로젝트별 비용 집행액(만원) 및 공정·작업자 분해</span>';
+
+                // 1) 상위 7대 프로젝트 추출
+                const top7Projs = sortedProjs.slice(0, 7);
+                const yAxisData = [...top7Projs].reverse(); // Y축은 아래에서 위로 쌓이므로 1위가 상단에 오도록 reverse
+
+                // 2) 프로젝트별, 공정별 데이터 집계
+                const projProcMap = {};
+                const encounteredProcs = new Set();
+
+                top7Projs.forEach(p => {
+                    projProcMap[p] = {};
+                });
+
+                data.forEach(d => {
+                    const prj = d.project || '미지정';
+                    if (!projProcMap[prj]) return; // 상위 7개 프로젝트만 대상
+
+                    let proc = (d.type || '기타').trim();
+                    if (!proc) proc = '기타';
+                    encounteredProcs.add(proc);
+
+                    if (!projProcMap[prj][proc]) {
+                        projProcMap[prj][proc] = { cost: 0, hours: 0, workers: {} };
+                    }
+
+                    const h = (d.h_reg + d.h_over) || 0;
+                    projProcMap[prj][proc].cost += (d.cost || 0);
+                    projProcMap[prj][proc].hours += h;
+
+                    const w = (d.worker || '작업자').trim();
+                    projProcMap[prj][proc].workers[w] = (projProcMap[prj][proc].workers[w] || 0) + h;
+                });
+
+                // 3) 공정 순서 정렬:
+                // 표준 순서: 절단, 홀가공, 제관, 용접, 사상, 교정, 수정, 도장, 검사, 포장, 출장
+                // 여기에 없는 공정은 뒤쪽에 가나다순으로 배치
+                const targetProcOrder = [
+                    '절단', '홀가공', '제관', '용접', '사상',
+                    '교정', '수정', '도장', '검사', '포장', '출장'
+                ];
+
+                const orderedProcs = [];
+                targetProcOrder.forEach(p => {
+                    if (encounteredProcs.has(p)) {
+                        orderedProcs.push(p);
+                    }
+                });
+                const extraProcs = Array.from(encounteredProcs).filter(p => !targetProcOrder.includes(p)).sort();
+                extraProcs.forEach(p => orderedProcs.push(p));
+
+                // 4) 공정별 테마 색상 정의 (고급 산업 엔지니어링 팔레트)
+                const PROC_PALETTE = {
+                    '절단': '#2563eb',    // 로얄 블루
+                    '홀가공': '#0284c7',  // 스카이 블루
+                    '제관': '#4f46e5',    // 인디고
+                    '용접': '#d97706',    // 앰버 오렌지
+                    '사상': '#059669',    // 에메랄드
+                    '교정': '#7c3aed',    // 바이올렛
+                    '수정': '#e11d48',    // 로즈 레드
+                    '도장': '#0891b2',    // 청록 시안
+                    '검사': '#475569',    // 슬레이트
+                    '포장': '#65a30d',    // 라임 그린
+                    '출장': '#ea580c',    // 웜 오렌지
+                    '기타': '#94a3b8'     // 쿨 그레이
+                };
+                const EXTRA_PALETTE = ['#3b82f6', '#ec4899', '#8b5cf6', '#10b981', '#f59e0b', '#06b6d4', '#64748b'];
+
+                // 5) ECharts 시리즈 구성: 공정별 스택 막대 + 맨 오른쪽 끝 금액 표기 오버레이
+                const seriesList = [];
+
+                orderedProcs.forEach((procName, pIdx) => {
+                    const procColor = PROC_PALETTE[procName] || EXTRA_PALETTE[pIdx % EXTRA_PALETTE.length];
+
+                    const sData = yAxisData.map(prj => {
+                        const pInfo = projProcMap[prj]?.[procName];
+                        if (!pInfo || pInfo.cost <= 0) {
+                            return { value: 0, label: { show: false } };
+                        }
+
+                        const costMan = Math.round(pInfo.cost / 10000);
+                        const totalPrjCost = projC[prj] || 0;
+                        const ratio = totalPrjCost > 0 ? (pInfo.cost / totalPrjCost) : 0;
+
+                        // 작업자 정렬 (투입 시간 내림차순)
+                        const sortedWorkers = Object.keys(pInfo.workers).sort((a, b) => pInfo.workers[b] - pInfo.workers[a]);
+
+                        // 글자 겹침 방지 (Collision Prevention) 스마트 라벨 포맷
+                        let labelText = '';
+                        let showLabel = false;
+
+                        if (sortedWorkers.length > 0) {
+                            const topWorker = sortedWorkers[0];
+                            const topH = Math.round(pInfo.workers[topWorker] * 10) / 10;
+
+                            if (ratio >= 0.28 || costMan >= 150) {
+                                // 넓은 막대: 공정명과 주요 작업자(들) 표기
+                                if (sortedWorkers.length === 1) {
+                                    labelText = `${procName}:${topWorker}(${topH}h)`;
+                                } else {
+                                    labelText = `${procName}:${topWorker}(${topH}h)+${sortedWorkers.length - 1}명`;
+                                }
+                                showLabel = true;
+                            } else if (ratio >= 0.14 || costMan >= 60) {
+                                // 중간 막대: 작업자 및 시간 간결 표기
+                                labelText = `${topWorker} ${topH}h`;
+                                showLabel = true;
+                            } else if (ratio >= 0.07 || costMan >= 25) {
+                                // 좁은 막대: 공정명만 간결 표기
+                                labelText = procName;
+                                showLabel = true;
+                            } else {
+                                // 아주 좁은 막대: 인접 막대 글자와 겹침을 방지하기 위해 툴팁으로 안내
+                                showLabel = false;
+                            }
+                        }
+
+                        return {
+                            value: costMan,
+                            procName: procName,
+                            projectName: prj,
+                            workers: pInfo.workers,
+                            hours: pInfo.hours,
+                            exactCost: pInfo.cost,
+                            label: {
+                                show: showLabel,
+                                position: 'inside',
+                                formatter: labelText,
+                                fontSize: 10,
+                                fontWeight: 'bold',
+                                color: '#ffffff',
+                                textBorderColor: 'rgba(0,0,0,0.5)',
+                                textBorderWidth: 2,
+                                overflow: 'truncate',
+                                ellipsis: ''
+                            }
+                        };
+                    });
+
+                    seriesList.push({
+                        name: procName,
                         type: 'bar',
-                        data: sortedProjs.slice(0, 7).reverse().map(p => Math.round((projC[p] || 0) / 10000)),
-                        itemStyle: { color: '#0284c7', borderRadius: [0, 6, 6, 0] }
-                    }]
+                        stack: 'cost_stack',
+                        barWidth: 32,
+                        itemStyle: {
+                            color: procColor
+                        },
+                        data: sData
+                    });
+                });
+
+                // 6) 막대 오른쪽 끝에 돈(총 집행액)을 표기하는 투명 오버레이 시리즈 (barGap: '-100%')
+                seriesList.push({
+                    name: '총 집행액',
+                    type: 'bar',
+                    barGap: '-100%',
+                    barWidth: 32,
+                    silent: true,
+                    itemStyle: {
+                        color: 'transparent'
+                    },
+                    data: yAxisData.map(prj => {
+                        const totalMan = Math.round((projC[prj] || 0) / 10000);
+                        return {
+                            value: totalMan,
+                            label: {
+                                show: true,
+                                position: 'right',
+                                distance: 8,
+                                formatter: function(params) {
+                                    return `₩${params.value.toLocaleString()}만원`;
+                                },
+                                fontSize: 11,
+                                fontWeight: '900',
+                                color: '#0f172a',
+                                fontFamily: 'Pretendard, sans-serif'
+                            }
+                        };
+                    })
+                });
+
+                chartOption = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: { type: 'shadow' },
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        borderColor: '#334155',
+                        borderWidth: 1,
+                        textStyle: { color: '#ffffff', fontSize: 12 },
+                        padding: [12, 16],
+                        formatter: function(params) {
+                            if (!params || params.length === 0) return '';
+                            const prj = params[0].axisValue;
+                            const totalCost = projC[prj] || 0;
+                            const totalH = projH[prj] || 0;
+
+                            let html = `
+                                <div style="font-family: Pretendard, sans-serif; min-width: 260px;">
+                                    <div style="font-weight: 900; font-size: 13px; color: #38bdf8; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 4px;">
+                                        📁 ${prj}
+                                    </div>
+                                    <div style="font-size: 11px; color: #cbd5e1; margin-bottom: 8px; display: flex; justify-content: space-between;">
+                                        <span>총 집행액: <b style="color:#fde047;">₩${Math.round(totalCost/10000).toLocaleString()}만원</b> (₩${Math.round(totalCost).toLocaleString()}원)</span>
+                                        <span>총 ${Math.round(totalH)}h</span>
+                                    </div>
+                                    <div style="font-size: 11px; font-weight: bold; color: #94a3b8; margin-bottom: 4px;">공정별 투입 내역:</div>
+                            `;
+
+                            let hasProc = false;
+                            orderedProcs.forEach(proc => {
+                                const pInfo = projProcMap[prj]?.[proc];
+                                if (pInfo && pInfo.cost > 0) {
+                                    hasProc = true;
+                                    const procColor = PROC_PALETTE[proc] || '#94a3b8';
+                                    const cMan = Math.round(pInfo.cost / 10000);
+                                    const wList = Object.keys(pInfo.workers)
+                                        .sort((a,b) => pInfo.workers[b] - pInfo.workers[a])
+                                        .map(w => `${w}(${Math.round(pInfo.workers[w]*10)/10}h)`)
+                                        .join(', ');
+
+                                    html += `
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 11px; background: rgba(255,255,255,0.06); padding: 3px 6px; border-radius: 4px;">
+                                            <div>
+                                                <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${procColor};margin-right:4px;"></span>
+                                                <strong style="color: #f1f5f9;">${proc}:</strong>
+                                                <span style="color: #cbd5e1;">${wList || '작업자 미지정'}</span>
+                                            </div>
+                                            <div style="text-align: right; margin-left: 10px; font-family: monospace; font-weight: bold; color: #38bdf8;">
+                                                ₩${cMan.toLocaleString()}만 (${Math.round(pInfo.hours)}h)
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                            });
+
+                            if (!hasProc) {
+                                html += '<div style="color: #94a3b8; font-size: 11px;">공정 정보 없음</div>';
+                            }
+
+                            html += '</div>';
+                            return html;
+                        }
+                    },
+                    legend: {
+                        data: orderedProcs,
+                        top: 0,
+                        textStyle: { fontSize: 11, fontWeight: 'bold', color: '#475569' },
+                        itemWidth: 12,
+                        itemHeight: 10
+                    },
+                    grid: { left: '3%', right: '14%', top: orderedProcs.length > 6 ? 50 : 35, bottom: '3%', containLabel: true },
+                    xAxis: { type: 'value', name: '집행액 (만원)' },
+                    yAxis: {
+                        type: 'category',
+                        data: yAxisData,
+                        axisLabel: { width: 140, overflow: 'truncate', fontWeight: 'bold', color: '#334155' }
+                    },
+                    series: seriesList
                 };
 
                 theadEl.innerHTML = `

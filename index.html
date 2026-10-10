@@ -370,6 +370,17 @@
                         </div>
                     </div>
 
+                    <!-- 👷 작업자 체크란 (클릭으로 작업자별 정밀 필터링 및 데이터 산출) -->
+                    <div class="flex flex-col sm:flex-row sm:items-start gap-2 pt-2.5 border-t border-slate-100">
+                        <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0 pt-1">
+                            <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
+                            <span class="text-xs font-black text-slate-700">작업자 체크</span>
+                        </div>
+                        <div class="flex-1 flex items-center gap-1.5 flex-wrap max-h-24 sm:max-h-28 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="workerCheckboxesArea">
+                            <!-- JS 동적 생성 -->
+                        </div>
+                    </div>
+
                     <!-- 선택된 기간 실시간 요약 바 -->
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-bold text-slate-500 pt-1 border-t border-slate-100">
                         <div class="flex items-center gap-2 flex-wrap">
@@ -665,6 +676,17 @@
                             <span class="text-xs font-black text-slate-700">공정 체크</span>
                         </div>
                         <div class="flex-1 flex items-center gap-1.5 flex-wrap max-h-24 sm:max-h-28 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="tmProcessCheckboxesArea">
+                            <!-- JS 동적 생성 -->
+                        </div>
+                    </div>
+
+                    <!-- 👷 작업자 체크란 (클릭으로 작업자별 정밀 필터링 및 데이터 산출) -->
+                    <div class="flex flex-col sm:flex-row sm:items-start gap-2 pt-2.5 border-t border-slate-100">
+                        <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0 pt-1">
+                            <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
+                            <span class="text-xs font-black text-slate-700">작업자 체크</span>
+                        </div>
+                        <div class="flex-1 flex items-center gap-1.5 flex-wrap max-h-24 sm:max-h-28 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="tmWorkerCheckboxesArea">
                             <!-- JS 동적 생성 -->
                         </div>
                     </div>
@@ -3204,6 +3226,11 @@ function switchTmView(view) {
                 viewData = viewData.filter(d => tmSelectedFilterProcesses.has(d.type));
             }
 
+            // 8) 작업자 필터 (다중선택 Set 완벽 지원)
+            if (typeof tmSelectedFilterWorkers !== 'undefined' && !tmSelectedFilterWorkers.has('ALL') && tmSelectedFilterWorkers.size > 0) {
+                viewData = viewData.filter(d => tmSelectedFilterWorkers.has(d.worker));
+            }
+
             // 7) 스마트 검색 키워드 필터 (AND 매칭)
             if (typeof tmSmartSearchKeywords !== 'undefined' && tmSmartSearchKeywords.length > 0) {
                 viewData = viewData.filter(d => {
@@ -4085,6 +4112,9 @@ function switchTmView(view) {
             if (typeof selectedFilterProcesses !== 'undefined') {
                 selectedFilterProcesses = new Set(['ALL']);
             }
+            if (typeof selectedFilterWorkers !== 'undefined') {
+                selectedFilterWorkers = new Set(['ALL']);
+            }
             const compSel = document.getElementById('selCompany');
             if (compSel) compSel.value = '';
             const projSel = document.getElementById('selProject');
@@ -4142,7 +4172,16 @@ function switchTmView(view) {
                 procText = Array.from(selectedFilterProcesses).join(', ');
             }
 
-            label.innerText = `${yrText} / ${moText} / ${compText} / ${projText} / ${procText}`;
+            let workerText = '전체 작업자';
+            if (typeof selectedFilterWorkers !== 'undefined' && !selectedFilterWorkers.has('ALL') && selectedFilterWorkers.size > 0) {
+                if (selectedFilterWorkers.size === 1) {
+                    workerText = Array.from(selectedFilterWorkers)[0];
+                } else {
+                    workerText = `👷 ${selectedFilterWorkers.size}명 중복선택`;
+                }
+            }
+
+            label.innerText = `${yrText} / ${moText} / ${compText} / ${projText} / ${procText} / ${workerText}`;
         }
 
         // =====================================================================
@@ -4361,6 +4400,65 @@ function switchTmView(view) {
                 } else {
                     // 단일 선택 모드: 기존 선택 교체 후 해당 공정만 선택 (다시 누르면 위에서 해제)
                     selectedFilterProcesses = new Set([proc]);
+                }
+            }
+            updateProjectList();
+        }
+
+        // =====================================================================
+        // 👷 [TAB 1] 작업자 체크 칩 엔진 (Worker Checkbox Engine)
+        // =====================================================================
+        window._currentWorkers = [];
+        let selectedFilterWorkers = new Set(['ALL']);
+
+        function renderWorkerChips(workers) {
+            const container = document.getElementById('workerCheckboxesArea');
+            if (!container) return;
+
+            window._currentWorkers = workers || [];
+
+            if (!workers || workers.length === 0) {
+                container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">해당 조건의 작업자 데이터가 없습니다.</span>';
+                return;
+            }
+
+            const isAll = selectedFilterWorkers.has('ALL') || selectedFilterWorkers.size === 0;
+            let html = `
+                <button type="button" onclick="handleWorkerChipClickByIndex(-1)"
+                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-teal-500 text-white border-teal-500 shadow-sm ring-2 ring-teal-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                    <span>👷</span> <span>전체 작업자 (${workers.length})</span>
+                </button>
+            `;
+
+            workers.forEach((w, idx) => {
+                const isSelected = !isAll && selectedFilterWorkers.has(w);
+                const safeW = (w || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                html += `
+                    <button type="button" onclick="handleWorkerChipClickByIndex(${idx})"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isSelected ? 'bg-teal-600 text-white border-teal-600 shadow-sm ring-2 ring-teal-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50 hover:border-teal-300'}">
+                        <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-teal-500'}"></span>
+                        <span>${safeW}</span>
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function handleWorkerChipClickByIndex(idx) {
+            if (idx === -1) {
+                selectedFilterWorkers = new Set(['ALL']);
+            } else {
+                const worker = (window._currentWorkers && window._currentWorkers[idx]) ? window._currentWorkers[idx] : '';
+                if (!worker) return;
+
+                if (selectedFilterWorkers.has(worker)) {
+                    selectedFilterWorkers.delete(worker);
+                    if (selectedFilterWorkers.size === 0) {
+                        selectedFilterWorkers = new Set(['ALL']);
+                    }
+                } else {
+                    selectedFilterWorkers = new Set([worker]);
                 }
             }
             updateProjectList();
@@ -5280,6 +5378,7 @@ function switchTmView(view) {
             tmSelectedFilterCompanies.clear();
             tmSelectedFilterProjects.clear();
             tmSelectedFilterProcesses = new Set(['ALL']);
+            tmSelectedFilterWorkers = new Set(['ALL']);
 
             // 검색창 초기화
             const sInp = document.getElementById('tmSmartQuickSearch');
@@ -5338,7 +5437,16 @@ function switchTmView(view) {
                 procText = Array.from(tmSelectedFilterProcesses).join(', ');
             }
 
-            label.innerText = `${yrText} / ${moText} / ${compText} / ${projText} / ${procText}`;
+            let workerText = '전체 작업자';
+            if (typeof tmSelectedFilterWorkers !== 'undefined' && !tmSelectedFilterWorkers.has('ALL') && tmSelectedFilterWorkers.size > 0) {
+                if (tmSelectedFilterWorkers.size === 1) {
+                    workerText = Array.from(tmSelectedFilterWorkers)[0];
+                } else {
+                    workerText = `👷 ${tmSelectedFilterWorkers.size}명 중복선택`;
+                }
+            }
+
+            label.innerText = `${yrText} / ${moText} / ${compText} / ${projText} / ${procText} / ${workerText}`;
         }
 
         // =====================================================================
@@ -5542,6 +5650,68 @@ function switchTmView(view) {
         }
 
         // =====================================================================
+        // 👷 [TAB 2] 작업자 체크 칩 엔진 (Tab 2 Worker Checkbox Engine)
+        // =====================================================================
+        window._tmCurrentWorkers = [];
+        let tmSelectedFilterWorkers = new Set(['ALL']);
+
+        function renderTmWorkerChips(workers) {
+            const container = document.getElementById('tmWorkerCheckboxesArea');
+            if (!container) return;
+
+            window._tmCurrentWorkers = workers || [];
+
+            if (!workers || workers.length === 0) {
+                container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">해당 조건의 작업자 데이터가 없습니다.</span>';
+                return;
+            }
+
+            const isAll = tmSelectedFilterWorkers.has('ALL') || tmSelectedFilterWorkers.size === 0;
+
+            let html = `
+                <button type="button" onclick="handleTmWorkerChipToggle('ALL')"
+                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-teal-500 text-white border-teal-500 shadow-sm ring-2 ring-teal-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50'}">
+                    <span>👷</span> <span>전체 작업자 (${workers.length})</span>
+                </button>
+            `;
+
+            workers.forEach(w => {
+                const isSelected = !isAll && tmSelectedFilterWorkers.has(w);
+                const safeName = (w || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                html += `
+                    <button type="button" onclick="handleTmWorkerChipToggle('${safeName}')"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isSelected ? 'bg-teal-600 text-white border-teal-600 shadow-sm ring-2 ring-teal-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50'}">
+                        <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-teal-500'}"></span>
+                        <span>${safeName}</span>
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function handleTmWorkerChipToggle(worker) {
+            if (worker === 'ALL') {
+                tmSelectedFilterWorkers = new Set(['ALL']);
+            } else {
+                if (tmSelectedFilterWorkers.has('ALL')) {
+                    tmSelectedFilterWorkers.clear();
+                }
+                if (tmSelectedFilterWorkers.has(worker)) {
+                    tmSelectedFilterWorkers.delete(worker);
+                } else {
+                    tmSelectedFilterWorkers.add(worker);
+                }
+                if (tmSelectedFilterWorkers.size === 0) {
+                    tmSelectedFilterWorkers = new Set(['ALL']);
+                }
+            }
+
+            updateTmPeriodSummaryText();
+            runTreeMap();
+        }
+
+        // =====================================================================
         // 🔄 [TAB 2] 전사 필터 데이터 오케스트레이터 (Update Tab 2 Filter List)
         // =====================================================================
         function updateTmFilterList() {
@@ -5732,6 +5902,26 @@ function switchTmView(view) {
                 return a.localeCompare(b);
             });
             renderTmProcessChips(processes);
+
+            // 3-2. 작업자 목록 집계 및 칩 렌더링
+            const workerDateMap = {};
+            let wFiltered = pFiltered;
+            if (typeof tmSelectedFilterProcesses !== 'undefined' && !tmSelectedFilterProcesses.has('ALL') && tmSelectedFilterProcesses.size > 0) {
+                wFiltered = wFiltered.filter(i => tmSelectedFilterProcesses.has(i.type));
+            }
+            wFiltered.forEach(i => {
+                if (!i.worker) return;
+                const dStr = i.date || '';
+                if (!workerDateMap[i.worker] || dStr > workerDateMap[i.worker]) {
+                    workerDateMap[i.worker] = dStr;
+                }
+            });
+            const workers = Object.keys(workerDateMap).sort((a, b) => {
+                const diff = (workerDateMap[b] || '').localeCompare(workerDateMap[a] || '');
+                if (diff !== 0) return diff;
+                return a.localeCompare(b);
+            });
+            renderTmWorkerChips(workers);
 
             // 4. 요약 바 갱신
             updateTmPeriodSummaryText();
@@ -6098,6 +6288,28 @@ function updateProjectList() {
                 renderProcessChips(processes);
             }
 
+            // 👷 작업자 목록 추출 및 작업자 체크란 칩 렌더링
+            const workerDateMap = {};
+            let wFiltered = pFiltered;
+            if (typeof selectedFilterProcesses !== 'undefined' && !selectedFilterProcesses.has('ALL') && selectedFilterProcesses.size > 0) {
+                wFiltered = wFiltered.filter(i => selectedFilterProcesses.has(i.type));
+            }
+            wFiltered.forEach(i => {
+                if (!i.worker) return;
+                const dStr = i.date || '';
+                if (!workerDateMap[i.worker] || dStr > workerDateMap[i.worker]) {
+                    workerDateMap[i.worker] = dStr;
+                }
+            });
+            const workers = Object.keys(workerDateMap).sort((a, b) => {
+                const diff = (workerDateMap[b] || '').localeCompare(workerDateMap[a] || '');
+                if (diff !== 0) return diff;
+                return a.localeCompare(b);
+            });
+            if (typeof renderWorkerChips === 'function') {
+                renderWorkerChips(workers);
+            }
+
             // 조건별 요약 텍스트 실시간 갱신
             if (typeof updatePeriodSummaryText === 'function') {
                 updatePeriodSummaryText();
@@ -6411,6 +6623,11 @@ function updateProjectList() {
             // 공정 필터
             if (typeof selectedFilterProcesses !== 'undefined' && !selectedFilterProcesses.has('ALL') && selectedFilterProcesses.size > 0) {
                 filtered = filtered.filter(i => selectedFilterProcesses.has(i.type));
+            }
+
+            // 작업자 필터
+            if (typeof selectedFilterWorkers !== 'undefined' && !selectedFilterWorkers.has('ALL') && selectedFilterWorkers.size > 0) {
+                filtered = filtered.filter(i => selectedFilterWorkers.has(i.worker));
             }
 
             // 조건에 맞는 데이터가 없을 때

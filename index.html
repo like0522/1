@@ -4354,29 +4354,31 @@ function switchTmView(view) {
             const container = document.getElementById('processCheckboxesArea');
             if (!container) return;
 
-            window._currentProcesses = processes || [];
+            window._currentProcesses = (processes || []).map(p => (p || '').trim()).filter(Boolean);
 
-            if (!processes || processes.length === 0) {
+            if (!window._currentProcesses || window._currentProcesses.length === 0) {
                 container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">해당 조건의 공정 데이터가 없습니다.</span>';
                 return;
             }
 
-            const isAll = selectedFilterProcesses.has('ALL');
+            const isAll = selectedFilterProcesses.has('ALL') || selectedFilterProcesses.size === 0;
             let html = `
                 <button type="button" onclick="handleProcessChipClickByIndex(-1)"
-                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-amber-500 text-white border-amber-500 shadow-sm ring-2 ring-amber-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}">
-                    <span>🔧</span> <span>전체 공정 (${processes.length})</span>
+                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-amber-600 text-white border-amber-600 shadow-sm ring-2 ring-amber-400/40' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                    <span>🔧</span> <span>전체 공정 (${window._currentProcesses.length})</span>
                 </button>
             `;
 
-            processes.forEach((p, idx) => {
-                const isSelected = selectedFilterProcesses.has(p);
-                const safeP = (p || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            window._currentProcesses.forEach((p, idx) => {
+                const isSelected = !isAll && selectedFilterProcesses.has(p);
+                const safeP = p.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
                 html += `
                     <button type="button" onclick="handleProcessChipClickByIndex(${idx})"
-                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isSelected ? 'bg-amber-500 text-white border-amber-500 shadow-sm ring-2 ring-amber-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50 hover:border-amber-300'}">
-                        <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-amber-500'}"></span>
+                        title="${safeP}"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isSelected ? 'bg-amber-600 text-white border-amber-600 shadow-sm ring-2 ring-amber-400/50 scale-[1.02]' : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50 hover:border-amber-300'}">
+                        <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-amber-500'}"></span>
                         <span>${safeP}</span>
+                        ${isSelected ? '<span class="text-[10px] font-black bg-amber-800/80 px-1.5 py-0.5 rounded text-white shadow-xs">선택</span>' : ''}
                     </button>
                 `;
             });
@@ -4388,8 +4390,12 @@ function switchTmView(view) {
             if (idx === -1) {
                 selectedFilterProcesses = new Set(['ALL']);
             } else {
-                const proc = (window._currentProcesses && window._currentProcesses[idx]) ? window._currentProcesses[idx] : '';
+                const proc = (window._currentProcesses && window._currentProcesses[idx]) ? window._currentProcesses[idx].trim() : '';
                 if (!proc) return;
+
+                if (selectedFilterProcesses.has('ALL')) {
+                    selectedFilterProcesses.clear();
+                }
 
                 if (selectedFilterProcesses.has(proc)) {
                     // 토글: 이미 선택된 공정이면 해제!
@@ -4398,7 +4404,7 @@ function switchTmView(view) {
                         selectedFilterProcesses = new Set(['ALL']);
                     }
                 } else {
-                    // 단일 선택 모드: 기존 선택 교체 후 해당 공정만 선택 (다시 누르면 위에서 해제)
+                    // 토글 선택: 해당 공정 추가/선택
                     selectedFilterProcesses = new Set([proc]);
                 }
             }
@@ -5603,9 +5609,9 @@ function switchTmView(view) {
             const container = document.getElementById('tmProcessCheckboxesArea');
             if (!container) return;
 
-            window._tmCurrentProcesses = processes || [];
+            window._tmCurrentProcesses = (processes || []).map(p => (p || '').trim()).filter(Boolean);
 
-            if (!processes || processes.length === 0) {
+            if (!window._tmCurrentProcesses || window._tmCurrentProcesses.length === 0) {
                 container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">해당 조건의 공정 데이터가 없습니다.</span>';
                 return;
             }
@@ -5614,19 +5620,21 @@ function switchTmView(view) {
 
             let html = `
                 <button type="button" onclick="handleTmProcessChipToggle('ALL')"
-                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-amber-500 text-white border-amber-500 shadow-sm ring-2 ring-amber-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50'}">
-                    <span>🔧</span> <span>전체 공정 (${processes.length})</span>
+                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-amber-600 text-white border-amber-600 shadow-sm ring-2 ring-amber-400/40' : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50'}">
+                    <span>🔧</span> <span>전체 공정 (${window._tmCurrentProcesses.length})</span>
                 </button>
             `;
 
-            processes.forEach(p => {
+            window._tmCurrentProcesses.forEach(p => {
                 const isSelected = !isAll && tmSelectedFilterProcesses.has(p);
-                const safeName = (p || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const safeName = p.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
                 html += `
                     <button type="button" onclick="handleTmProcessChipToggle('${safeName}')"
-                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isSelected ? 'bg-amber-500 text-white border-amber-500 shadow-sm ring-2 ring-amber-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50'}">
-                        <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-amber-500'}"></span>
+                        title="${safeName}"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isSelected ? 'bg-amber-600 text-white border-amber-600 shadow-sm ring-2 ring-amber-400/50 scale-[1.02]' : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50 hover:border-amber-300'}">
+                        <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-amber-500'}"></span>
                         <span>${safeName}</span>
+                        ${isSelected ? '<span class="text-[10px] font-black bg-amber-800/80 px-1.5 py-0.5 rounded text-white shadow-xs">선택</span>' : ''}
                     </button>
                 `;
             });
@@ -5635,24 +5643,24 @@ function switchTmView(view) {
         }
 
         function handleTmProcessChipToggle(proc) {
-            if (proc === 'ALL') {
+            const cleanP = (proc || '').trim();
+            if (cleanP === 'ALL') {
                 tmSelectedFilterProcesses = new Set(['ALL']);
             } else {
                 if (tmSelectedFilterProcesses.has('ALL')) {
                     tmSelectedFilterProcesses.clear();
                 }
-                if (tmSelectedFilterProcesses.has(proc)) {
-                    tmSelectedFilterProcesses.delete(proc);
+                if (tmSelectedFilterProcesses.has(cleanP)) {
+                    tmSelectedFilterProcesses.delete(cleanP);
                 } else {
-                    tmSelectedFilterProcesses.add(proc);
+                    tmSelectedFilterProcesses.add(cleanP);
                 }
                 if (tmSelectedFilterProcesses.size === 0) {
                     tmSelectedFilterProcesses = new Set(['ALL']);
                 }
             }
 
-            updateTmPeriodSummaryText();
-            runTreeMap();
+            updateTmFilterList();
         }
 
         // =====================================================================
@@ -5925,12 +5933,24 @@ function switchTmView(view) {
 
             const procDateMap = {};
             procBaseData.forEach(i => {
-                if (!i.type) return;
+                const pName = (i.type || '').trim();
+                if (!pName) return;
                 const dStr = i.date || '';
-                if (!procDateMap[i.type] || dStr > procDateMap[i.type]) {
-                    procDateMap[i.type] = dStr;
+                if (!procDateMap[pName] || dStr > procDateMap[pName]) {
+                    procDateMap[pName] = dStr;
                 }
             });
+
+            // 현재 선택된 공정이 필터 목록에 항상 표시되도록 보장 (멍 풀림 방지)
+            if (typeof selectedFilterProcesses !== 'undefined' && !selectedFilterProcesses.has('ALL')) {
+                selectedFilterProcesses.forEach(p => {
+                    const cleanP = (p || '').trim();
+                    if (cleanP && !procDateMap[cleanP]) {
+                        procDateMap[cleanP] = '9999-99-99';
+                    }
+                });
+            }
+
             const processes = Object.keys(procDateMap).sort((a, b) => {
                 const diff = (procDateMap[b] || '').localeCompare(procDateMap[a] || '');
                 if (diff !== 0) return diff;
@@ -6354,12 +6374,24 @@ function updateProjectList() {
 
             const procDateMap = {};
             procBaseData.forEach(i => {
-                if (!i.type) return;
+                const pName = (i.type || '').trim();
+                if (!pName) return;
                 const dStr = i.date || '';
-                if (!procDateMap[i.type] || dStr > procDateMap[i.type]) {
-                    procDateMap[i.type] = dStr;
+                if (!procDateMap[pName] || dStr > procDateMap[pName]) {
+                    procDateMap[pName] = dStr;
                 }
             });
+
+            // 현재 선택된 공정이 필터 목록에 항상 표시되도록 보장 (멍 풀림 방지)
+            if (typeof tmSelectedFilterProcesses !== 'undefined' && !tmSelectedFilterProcesses.has('ALL')) {
+                tmSelectedFilterProcesses.forEach(p => {
+                    const cleanP = (p || '').trim();
+                    if (cleanP && !procDateMap[cleanP]) {
+                        procDateMap[cleanP] = '9999-99-99';
+                    }
+                });
+            }
+
             const processes = Object.keys(procDateMap).sort((a, b) => {
                 const diff = (procDateMap[b] || '').localeCompare(procDateMap[a] || '');
                 if (diff !== 0) return diff;

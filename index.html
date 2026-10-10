@@ -4415,9 +4415,9 @@ function switchTmView(view) {
             const container = document.getElementById('workerCheckboxesArea');
             if (!container) return;
 
-            window._currentWorkers = workers || [];
+            window._currentWorkers = (workers || []).map(w => (w || '').trim()).filter(Boolean);
 
-            if (!workers || workers.length === 0) {
+            if (!window._currentWorkers || window._currentWorkers.length === 0) {
                 container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">해당 조건의 작업자 데이터가 없습니다.</span>';
                 return;
             }
@@ -4425,19 +4425,21 @@ function switchTmView(view) {
             const isAll = selectedFilterWorkers.has('ALL') || selectedFilterWorkers.size === 0;
             let html = `
                 <button type="button" onclick="handleWorkerChipClickByIndex(-1)"
-                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-teal-500 text-white border-teal-500 shadow-sm ring-2 ring-teal-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}">
-                    <span>👷</span> <span>전체 작업자 (${workers.length})</span>
+                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-teal-600 text-white border-teal-600 shadow-sm ring-2 ring-teal-400/40' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                    <span>👷</span> <span>전체 작업자 (${window._currentWorkers.length})</span>
                 </button>
             `;
 
-            workers.forEach((w, idx) => {
+            window._currentWorkers.forEach((w, idx) => {
                 const isSelected = !isAll && selectedFilterWorkers.has(w);
-                const safeW = (w || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const safeW = w.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
                 html += `
                     <button type="button" onclick="handleWorkerChipClickByIndex(${idx})"
-                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isSelected ? 'bg-teal-600 text-white border-teal-600 shadow-sm ring-2 ring-teal-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50 hover:border-teal-300'}">
-                        <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-teal-500'}"></span>
+                        title="${safeW}"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isSelected ? 'bg-teal-600 text-white border-teal-600 shadow-sm ring-2 ring-teal-400/50 scale-[1.02]' : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50 hover:border-teal-300'}">
+                        <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-teal-500'}"></span>
                         <span>${safeW}</span>
+                        ${isSelected ? '<span class="text-[10px] font-black bg-teal-800/80 px-1.5 py-0.5 rounded text-white shadow-xs">선택</span>' : ''}
                     </button>
                 `;
             });
@@ -4449,8 +4451,12 @@ function switchTmView(view) {
             if (idx === -1) {
                 selectedFilterWorkers = new Set(['ALL']);
             } else {
-                const worker = (window._currentWorkers && window._currentWorkers[idx]) ? window._currentWorkers[idx] : '';
+                const worker = (window._currentWorkers && window._currentWorkers[idx]) ? window._currentWorkers[idx].trim() : '';
                 if (!worker) return;
+
+                if (selectedFilterWorkers.has('ALL')) {
+                    selectedFilterWorkers.clear();
+                }
 
                 if (selectedFilterWorkers.has(worker)) {
                     selectedFilterWorkers.delete(worker);
@@ -5659,9 +5665,9 @@ function switchTmView(view) {
             const container = document.getElementById('tmWorkerCheckboxesArea');
             if (!container) return;
 
-            window._tmCurrentWorkers = workers || [];
+            window._tmCurrentWorkers = (workers || []).map(w => (w || '').trim()).filter(Boolean);
 
-            if (!workers || workers.length === 0) {
+            if (!window._tmCurrentWorkers || window._tmCurrentWorkers.length === 0) {
                 container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">해당 조건의 작업자 데이터가 없습니다.</span>';
                 return;
             }
@@ -5670,19 +5676,21 @@ function switchTmView(view) {
 
             let html = `
                 <button type="button" onclick="handleTmWorkerChipToggle('ALL')"
-                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-teal-500 text-white border-teal-500 shadow-sm ring-2 ring-teal-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50'}">
-                    <span>👷</span> <span>전체 작업자 (${workers.length})</span>
+                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-teal-600 text-white border-teal-600 shadow-sm ring-2 ring-teal-400/40' : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50'}">
+                    <span>👷</span> <span>전체 작업자 (${window._tmCurrentWorkers.length})</span>
                 </button>
             `;
 
-            workers.forEach(w => {
+            window._tmCurrentWorkers.forEach(w => {
                 const isSelected = !isAll && tmSelectedFilterWorkers.has(w);
-                const safeName = (w || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const safeName = w.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
                 html += `
                     <button type="button" onclick="handleTmWorkerChipToggle('${safeName}')"
-                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isSelected ? 'bg-teal-600 text-white border-teal-600 shadow-sm ring-2 ring-teal-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50'}">
-                        <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-teal-500'}"></span>
+                        title="${safeName}"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isSelected ? 'bg-teal-600 text-white border-teal-600 shadow-sm ring-2 ring-teal-400/50 scale-[1.02]' : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50 hover:border-teal-300'}">
+                        <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-teal-500'}"></span>
                         <span>${safeName}</span>
+                        ${isSelected ? '<span class="text-[10px] font-black bg-teal-800/80 px-1.5 py-0.5 rounded text-white shadow-xs">선택</span>' : ''}
                     </button>
                 `;
             });
@@ -5691,24 +5699,24 @@ function switchTmView(view) {
         }
 
         function handleTmWorkerChipToggle(worker) {
-            if (worker === 'ALL') {
+            const cleanW = (worker || '').trim();
+            if (cleanW === 'ALL') {
                 tmSelectedFilterWorkers = new Set(['ALL']);
             } else {
                 if (tmSelectedFilterWorkers.has('ALL')) {
                     tmSelectedFilterWorkers.clear();
                 }
-                if (tmSelectedFilterWorkers.has(worker)) {
-                    tmSelectedFilterWorkers.delete(worker);
+                if (tmSelectedFilterWorkers.has(cleanW)) {
+                    tmSelectedFilterWorkers.delete(cleanW);
                 } else {
-                    tmSelectedFilterWorkers.add(worker);
+                    tmSelectedFilterWorkers.add(cleanW);
                 }
                 if (tmSelectedFilterWorkers.size === 0) {
                     tmSelectedFilterWorkers = new Set(['ALL']);
                 }
             }
 
-            updateTmPeriodSummaryText();
-            runTreeMap();
+            updateTmFilterList();
         }
 
         // =====================================================================
@@ -5741,9 +5749,15 @@ function switchTmView(view) {
                 filtered = filtered.filter(i => tmSelectedFilterMonths.has(String(parseInt(i.month))));
             }
 
-            // 1. 업체 목록 집계 (최신순 내림차순)
+            // 1. 업체 목록 집계: 작업자가 선택되어 있다면 해당 작업자가 참여한 업체 연계
+            let compBaseData = filtered;
+            if (typeof tmSelectedFilterWorkers !== 'undefined' && !tmSelectedFilterWorkers.has('ALL') && tmSelectedFilterWorkers.size > 0) {
+                const wComp = compBaseData.filter(i => tmSelectedFilterWorkers.has((i.worker || '').trim()));
+                if (wComp.length > 0) compBaseData = wComp;
+            }
+
             const compLatestDateMap = {};
-            filtered.forEach(i => {
+            compBaseData.forEach(i => {
                 if (!i.client) return;
                 const dStr = i.date || '';
                 if (!compLatestDateMap[i.client] || dStr > compLatestDateMap[i.client]) {
@@ -5806,7 +5820,7 @@ function switchTmView(view) {
             // 업체 칩 렌더링
             renderTmCompanyChips(companies, compSel?.value);
 
-            // 2. 프로젝트 목록 집계
+            // 2. 프로젝트 목록: 작업자 및 공정이 선택되어 있다면 해당 작업자/공정이 투입된 프로젝트 연계!
             let pFiltered = filtered;
             if (tmSelectedFilterCompanies.size > 0) {
                 pFiltered = pFiltered.filter(i => tmSelectedFilterCompanies.has(i.client));
@@ -5815,8 +5829,18 @@ function switchTmView(view) {
             }
             const company = (compSel?.value && compSel.value !== '__MULTI_SELECTED__') ? compSel.value : '';
 
+            let projBaseData = pFiltered;
+            if (typeof tmSelectedFilterWorkers !== 'undefined' && !tmSelectedFilterWorkers.has('ALL') && tmSelectedFilterWorkers.size > 0) {
+                const wProj = projBaseData.filter(i => tmSelectedFilterWorkers.has((i.worker || '').trim()));
+                if (wProj.length > 0) projBaseData = wProj;
+            }
+            if (typeof tmSelectedFilterProcesses !== 'undefined' && !tmSelectedFilterProcesses.has('ALL') && tmSelectedFilterProcesses.size > 0) {
+                const pProj = projBaseData.filter(i => tmSelectedFilterProcesses.has(i.type));
+                if (pProj.length > 0) projBaseData = pProj;
+            }
+
             const projLatestDateMap = {};
-            pFiltered.forEach(i => {
+            projBaseData.forEach(i => {
                 if (!i.project) return;
                 const pair = `${i.client}|${i.project}`;
                 const dStr = i.date || '';
@@ -5887,9 +5911,20 @@ function switchTmView(view) {
             // 프로젝트 칩 렌더링
             renderTmProjectChips(projectPairs, projSel?.value);
 
-            // 3. 공정 목록 집계 및 칩 렌더링
+            // 3. 공정 목록 집계: 프로젝트 필터 및 작업자 필터 연계!
+            let procBaseData = pFiltered;
+            if (tmSelectedFilterProjects.size > 0) {
+                procBaseData = procBaseData.filter(i => tmSelectedFilterProjects.has(i.project));
+            } else if (projSel?.value && projSel.value !== '__MULTI_SELECTED__') {
+                procBaseData = procBaseData.filter(i => i.project === projSel.value);
+            }
+            if (typeof tmSelectedFilterWorkers !== 'undefined' && !tmSelectedFilterWorkers.has('ALL') && tmSelectedFilterWorkers.size > 0) {
+                const wProc = procBaseData.filter(i => tmSelectedFilterWorkers.has((i.worker || '').trim()));
+                if (wProc.length > 0) procBaseData = wProc;
+            }
+
             const procDateMap = {};
-            pFiltered.forEach(i => {
+            procBaseData.forEach(i => {
                 if (!i.type) return;
                 const dStr = i.date || '';
                 if (!procDateMap[i.type] || dStr > procDateMap[i.type]) {
@@ -5903,19 +5938,38 @@ function switchTmView(view) {
             });
             renderTmProcessChips(processes);
 
-            // 3-2. 작업자 목록 집계 및 칩 렌더링
-            const workerDateMap = {};
-            let wFiltered = pFiltered;
-            if (typeof tmSelectedFilterProcesses !== 'undefined' && !tmSelectedFilterProcesses.has('ALL') && tmSelectedFilterProcesses.size > 0) {
-                wFiltered = wFiltered.filter(i => tmSelectedFilterProcesses.has(i.type));
+            // 3-2. 작업자 목록 집계: 프로젝트 필터 및 공정 필터 연계!
+            let workerBaseData = pFiltered;
+            if (tmSelectedFilterProjects.size > 0) {
+                workerBaseData = workerBaseData.filter(i => tmSelectedFilterProjects.has(i.project));
+            } else if (projSel?.value && projSel.value !== '__MULTI_SELECTED__') {
+                workerBaseData = workerBaseData.filter(i => i.project === projSel.value);
             }
-            wFiltered.forEach(i => {
-                if (!i.worker) return;
+            if (typeof tmSelectedFilterProcesses !== 'undefined' && !tmSelectedFilterProcesses.has('ALL') && tmSelectedFilterProcesses.size > 0) {
+                const pWorker = workerBaseData.filter(i => tmSelectedFilterProcesses.has(i.type));
+                if (pWorker.length > 0) workerBaseData = pWorker;
+            }
+
+            const workerDateMap = {};
+            workerBaseData.forEach(i => {
+                const w = (i.worker || '').trim();
+                if (!w) return;
                 const dStr = i.date || '';
-                if (!workerDateMap[i.worker] || dStr > workerDateMap[i.worker]) {
-                    workerDateMap[i.worker] = dStr;
+                if (!workerDateMap[w] || dStr > workerDateMap[w]) {
+                    workerDateMap[w] = dStr;
                 }
             });
+
+            // 현재 선택된 작업자가 필터 목록에 항상 표시되도록 보장 (멍 풀림 방지)
+            if (typeof tmSelectedFilterWorkers !== 'undefined' && !tmSelectedFilterWorkers.has('ALL')) {
+                tmSelectedFilterWorkers.forEach(w => {
+                    const cleanW = (w || '').trim();
+                    if (cleanW && !workerDateMap[cleanW]) {
+                        workerDateMap[cleanW] = '9999-99-99';
+                    }
+                });
+            }
+
             const workers = Object.keys(workerDateMap).sort((a, b) => {
                 const diff = (workerDateMap[b] || '').localeCompare(workerDateMap[a] || '');
                 if (diff !== 0) return diff;
@@ -6115,9 +6169,15 @@ function updateProjectList() {
                 filtered = filtered.filter(i => i.month === month);
             }
 
-            // 전체 업체 목록: 최근 작업일자(최신순 내림차순) 기준 정렬
+            // 1. 업체 목록 집계: 작업자가 선택되어 있다면 해당 작업자가 참여한 업체 연계
+            let compBaseData = filtered;
+            if (typeof selectedFilterWorkers !== 'undefined' && !selectedFilterWorkers.has('ALL') && selectedFilterWorkers.size > 0) {
+                const wComp = compBaseData.filter(i => selectedFilterWorkers.has((i.worker || '').trim()));
+                if (wComp.length > 0) compBaseData = wComp;
+            }
+
             const compLatestDateMap = {};
-            filtered.forEach(i => {
+            compBaseData.forEach(i => {
                 if (!i.client) return;
                 const dStr = i.date || '';
                 if (!compLatestDateMap[i.client] || dStr > compLatestDateMap[i.client]) {
@@ -6172,7 +6232,7 @@ function updateProjectList() {
                     badgeComp.className = 'text-[11px] font-black text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-lg border border-purple-300 shadow-xs';
                 } else if (selectedFilterCompanies.size === 1) {
                     badgeComp.innerText = `1개 선택됨`;
-                    badgeComp.className = 'text-[11px] font-black text-purple-700 bg-purple-100 px-2 py-0.5 rounded-lg border border-purple-300 shadow-xs';
+                    badgeComp.className = 'text-[11px] font-black text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-lg border border-purple-300 shadow-xs';
                 } else {
                     badgeComp.innerText = compSearchVal ? `${companies.length}/${totalCompCount}개` : `${totalCompCount}개`;
                     badgeComp.className = 'text-[10px] font-black text-purple-600';
@@ -6193,9 +6253,19 @@ function updateProjectList() {
             }
             const company = (compSel.value && compSel.value !== '__MULTI_SELECTED__') ? compSel.value : '';
 
-            // 프로젝트 목록: 최근 작업일자(최신순 내림차순) 기준 정렬
+            // 2. 프로젝트 목록: 작업자 및 공정이 선택되어 있다면 해당 작업자/공정이 투입된 프로젝트 연계!
+            let projBaseData = pFiltered;
+            if (typeof selectedFilterWorkers !== 'undefined' && !selectedFilterWorkers.has('ALL') && selectedFilterWorkers.size > 0) {
+                const wProj = projBaseData.filter(i => selectedFilterWorkers.has((i.worker || '').trim()));
+                if (wProj.length > 0) projBaseData = wProj;
+            }
+            if (typeof selectedFilterProcesses !== 'undefined' && !selectedFilterProcesses.has('ALL') && selectedFilterProcesses.size > 0) {
+                const pProj = projBaseData.filter(i => selectedFilterProcesses.has(i.type));
+                if (pProj.length > 0) projBaseData = pProj;
+            }
+
             const projLatestDateMap = {};
-            pFiltered.forEach(i => {
+            projBaseData.forEach(i => {
                 if (!i.project) return;
                 const pair = `${i.client}|${i.project}`;
                 const dStr = i.date || '';
@@ -6270,9 +6340,20 @@ function updateProjectList() {
                 renderProjectChips(projectPairs, projSel.value);
             }
 
-            // 🔧 공정 목록 추출 및 공정 체크란 칩 렌더링
+            // 3. 공정 목록 추출: 프로젝트 필터 및 작업자 필터 연계!
+            let procBaseData = pFiltered;
+            if (selectedFilterProjects.size > 0) {
+                procBaseData = procBaseData.filter(i => selectedFilterProjects.has(i.project));
+            } else if (projSel.value && projSel.value !== '__MULTI_SELECTED__') {
+                procBaseData = procBaseData.filter(i => i.project === projSel.value);
+            }
+            if (typeof selectedFilterWorkers !== 'undefined' && !selectedFilterWorkers.has('ALL') && selectedFilterWorkers.size > 0) {
+                const wProc = procBaseData.filter(i => selectedFilterWorkers.has((i.worker || '').trim()));
+                if (wProc.length > 0) procBaseData = wProc;
+            }
+
             const procDateMap = {};
-            pFiltered.forEach(i => {
+            procBaseData.forEach(i => {
                 if (!i.type) return;
                 const dStr = i.date || '';
                 if (!procDateMap[i.type] || dStr > procDateMap[i.type]) {
@@ -6288,19 +6369,38 @@ function updateProjectList() {
                 renderProcessChips(processes);
             }
 
-            // 👷 작업자 목록 추출 및 작업자 체크란 칩 렌더링
-            const workerDateMap = {};
-            let wFiltered = pFiltered;
-            if (typeof selectedFilterProcesses !== 'undefined' && !selectedFilterProcesses.has('ALL') && selectedFilterProcesses.size > 0) {
-                wFiltered = wFiltered.filter(i => selectedFilterProcesses.has(i.type));
+            // 4. 작업자 목록 추출: 프로젝트 필터 및 공정 필터 연계!
+            let workerBaseData = pFiltered;
+            if (selectedFilterProjects.size > 0) {
+                workerBaseData = workerBaseData.filter(i => selectedFilterProjects.has(i.project));
+            } else if (projSel.value && projSel.value !== '__MULTI_SELECTED__') {
+                workerBaseData = workerBaseData.filter(i => i.project === projSel.value);
             }
-            wFiltered.forEach(i => {
-                if (!i.worker) return;
+            if (typeof selectedFilterProcesses !== 'undefined' && !selectedFilterProcesses.has('ALL') && selectedFilterProcesses.size > 0) {
+                const pWorker = workerBaseData.filter(i => selectedFilterProcesses.has(i.type));
+                if (pWorker.length > 0) workerBaseData = pWorker;
+            }
+
+            const workerDateMap = {};
+            workerBaseData.forEach(i => {
+                const w = (i.worker || '').trim();
+                if (!w) return;
                 const dStr = i.date || '';
-                if (!workerDateMap[i.worker] || dStr > workerDateMap[i.worker]) {
-                    workerDateMap[i.worker] = dStr;
+                if (!workerDateMap[w] || dStr > workerDateMap[w]) {
+                    workerDateMap[w] = dStr;
                 }
             });
+
+            // 현재 선택된 작업자가 필터 목록에 항상 표시되도록 보장 (멍 풀림 방지)
+            if (typeof selectedFilterWorkers !== 'undefined' && !selectedFilterWorkers.has('ALL')) {
+                selectedFilterWorkers.forEach(w => {
+                    const cleanW = (w || '').trim();
+                    if (cleanW && !workerDateMap[cleanW]) {
+                        workerDateMap[cleanW] = '9999-99-99';
+                    }
+                });
+            }
+
             const workers = Object.keys(workerDateMap).sort((a, b) => {
                 const diff = (workerDateMap[b] || '').localeCompare(workerDateMap[a] || '');
                 if (diff !== 0) return diff;

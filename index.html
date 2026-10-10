@@ -354,8 +354,12 @@
                             <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
                             <span class="text-xs font-black text-slate-700">프로젝트 체크</span>
                         </div>
-                        <div class="flex-1 flex items-center gap-1.5 flex-wrap max-h-28 sm:max-h-36 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="projectCheckboxesArea">
-                            <!-- JS 동적 생성 -->
+                        <div class="flex-1 flex flex-col gap-2 min-w-0 w-full">
+                            <div class="flex items-center gap-1.5 flex-wrap max-h-28 sm:max-h-36 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="projectCheckboxesArea">
+                                <!-- JS 동적 생성 -->
+                            </div>
+                            <!-- 📊 미선택 프로젝트별 용접시간 및 공정 매트릭스 그리드 컨테이너 -->
+                            <div id="projectMatrixContainer" class="w-full"></div>
                         </div>
                     </div>
 
@@ -664,8 +668,12 @@
                             <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
                             <span class="text-xs font-black text-slate-700">프로젝트 체크</span>
                         </div>
-                        <div class="flex-1 flex items-center gap-1.5 flex-wrap max-h-28 sm:max-h-36 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="tmProjectCheckboxesArea">
-                            <!-- JS 동적 생성 -->
+                        <div class="flex-1 flex flex-col gap-2 min-w-0 w-full">
+                            <div class="flex items-center gap-1.5 flex-wrap max-h-28 sm:max-h-36 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="tmProjectCheckboxesArea">
+                                <!-- JS 동적 생성 -->
+                            </div>
+                            <!-- 📊 미선택 프로젝트별 용접시간 및 공정 매트릭스 그리드 컨테이너 -->
+                            <div id="tmProjectMatrixContainer" class="w-full"></div>
                         </div>
                     </div>
 
@@ -4271,11 +4279,149 @@ function switchTmView(view) {
             updateProjectList();
         }
 
-        function renderProjectChips(projectPairs, currentVal) {
+        function computeProjectProcessMatrix(data, projectPairs, workerSet, processSet, selectedProjectsSet) {
+            if (!data || !projectPairs) {
+                return { list: [], maxWeld: 0.1, sumWeld: 0, sumWeldReg: 0, sumWeldOver: 0, sumTotal: 0, totalProjects: 0, unselectedCount: 0, activeProcs: [], isWorkerActive: false };
+            }
+
+            const isWorkerActive = Boolean(workerSet && !workerSet.has('ALL') && workerSet.size > 0);
+
+            const recordsByPair = {};
+            const recordsByProj = {};
+            data.forEach(item => {
+                if (!item || !item.project) return;
+                const p = (item.project || '').trim();
+                const c = (item.client || '').trim();
+                const pairKey = `${c}|${p}`;
+                if (!recordsByPair[pairKey]) recordsByPair[pairKey] = [];
+                recordsByPair[pairKey].push(item);
+                if (!recordsByProj[p]) recordsByProj[p] = [];
+                recordsByProj[p].push(item);
+            });
+
+            const stdOrder = ['절단', '홀가공', '제관', '사상', '교정', '수정', '도장', '검사', '포장', '출장'];
+            const encounteredProcs = new Set();
+            let sumWeld = 0;
+            let sumWeldReg = 0;
+            let sumWeldOver = 0;
+            let sumTotal = 0;
+            const allWorkersSet = new Set();
+
+            const list = projectPairs.map((pair, idx) => {
+                const parts = pair.split('|');
+                const cName = parts[0] || '';
+                const pName = parts[1] || parts[0];
+                const allProjRecs = recordsByPair[pair] || recordsByProj[pName] || [];
+
+                const scopedRecs = isWorkerActive 
+                    ? allProjRecs.filter(r => workerSet.has((r.worker || '').trim()))
+                    : allProjRecs;
+
+                let weldH_reg = 0;
+                let weldH_over = 0;
+                let totalH = 0;
+                let cost = 0;
+                const procMap = {};
+                const workerMap = {};
+
+                scopedRecs.forEach(r => {
+                    const hReg = Number(r.h_reg) || 0;
+                    const hOver = Number(r.h_over) || 0;
+                    const h = hReg + hOver;
+                    const pType = (r.type || '').trim();
+                    const wName = (r.worker || '').trim();
+
+                    if (pType.includes('용접')) {
+                        weldH_reg += hReg;
+                        weldH_over += hOver;
+                    } else if (pType) {
+                        encounteredProcs.add(pType);
+                    }
+
+                    if (pType) {
+                        procMap[pType] = (procMap[pType] || 0) + h;
+                    }
+
+                    if (wName) {
+                        allWorkersSet.add(wName);
+                        if (!workerMap[wName]) workerMap[wName] = { weldH: 0, totH: 0 };
+                        workerMap[wName].totH += h;
+                        if (pType.includes('용접')) {
+                            workerMap[wName].weldH += h;
+                        }
+                    }
+
+                    totalH += h;
+                    cost += Number(r.cost) || 0;
+                });
+
+                const weldTotal = weldH_reg + weldH_over;
+                sumWeld += weldTotal;
+                sumWeldReg += weldH_reg;
+                sumWeldOver += weldH_over;
+                sumTotal += totalH;
+
+                const isSelected = selectedProjectsSet ? selectedProjectsSet.has(pName) : false;
+
+                return {
+                    idx,
+                    pair,
+                    client: cName,
+                    project: pName,
+                    weldReg: weldH_reg,
+                    weldOver: weldH_over,
+                    weldTotal,
+                    totalH,
+                    cost,
+                    procMap,
+                    workerMap,
+                    isSelected
+                };
+            });
+
+            const maxWeld = Math.max(...list.map(m => m.weldTotal), 0.1);
+
+            const activeProcs = [];
+            stdOrder.forEach(p => {
+                if (encounteredProcs.has(p)) activeProcs.push(p);
+            });
+            Array.from(encounteredProcs).filter(p => !stdOrder.includes(p)).sort().forEach(p => {
+                activeProcs.push(p);
+            });
+
+            return {
+                list,
+                maxWeld,
+                sumWeld,
+                sumWeldReg,
+                sumWeldOver,
+                sumTotal,
+                totalProjects: list.length,
+                unselectedCount: list.filter(m => !m.isSelected).length,
+                activeProcs,
+                allWorkersCount: allWorkersSet.size,
+                isWorkerActive
+            };
+        }
+
+        function renderProjectChips(projectPairs, currentVal, pFilteredData) {
             const container = document.getElementById('projectCheckboxesArea');
             if (!container) return;
 
             window._currentProjectPairs = projectPairs || [];
+            if (pFilteredData) window._lastPFiltered = pFilteredData;
+
+            const baseData = pFilteredData || window._lastPFiltered || (typeof rawData !== 'undefined' ? rawData : []);
+            const metrics = computeProjectProcessMatrix(
+                baseData,
+                projectPairs,
+                (typeof selectedFilterWorkers !== 'undefined' ? selectedFilterWorkers : null),
+                (typeof selectedFilterProcesses !== 'undefined' ? selectedFilterProcesses : null),
+                selectedFilterProjects
+            );
+
+            // 매트릭스 테이블 즉시 렌더링
+            renderProjectTimeMatrix(metrics);
 
             if (!projectPairs || projectPairs.length === 0) {
                 container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">일치하는 프로젝트가 없습니다.</span>';
@@ -4287,8 +4433,9 @@ function switchTmView(view) {
 
             let html = `
                 <button type="button" onclick="handleProjectChipClickByIndex(-1)"
-                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAllProj ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/30' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50'}">
+                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isAllProj ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/30' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50'}">
                     <span>🌐</span> <span>전체 프로젝트 (${projectPairs.length})</span>
+                    ${metrics.sumWeld > 0 ? `<span class="text-[10px] font-mono font-black px-1.5 py-0.2 rounded ${isAllProj ? 'bg-blue-800 text-amber-200' : 'bg-amber-100 text-amber-800 border border-amber-300'}">용접 총 ${metrics.sumWeld.toFixed(1)}h</span>` : ''}
                 </button>
             `;
 
@@ -4297,14 +4444,18 @@ function switchTmView(view) {
                 const isSelected = selectedFilterProjects.has(pName);
                 const displayProj = currentComp ? pName : `[${cName}] ${pName}`;
                 const safeProj = displayProj.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const m = metrics.list ? metrics.list[idx] : null;
+                const weldH = m ? m.weldTotal : 0;
+                const totH = m ? m.totalH : 0;
 
                 html += `
                     <button type="button" onclick="handleProjectChipClickByIndex(${idx})"
-                        title="${safeProj}"
-                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 max-w-[260px] truncate ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/40 scale-[1.02]' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50 hover:border-blue-300'}">
+                        title="${safeProj} (용접: ${weldH.toFixed(1)}h / 총: ${totH.toFixed(1)}h)"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 max-w-[320px] truncate ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/40 scale-[1.02]' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50 hover:border-blue-300'}">
                         <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-blue-500'}"></span>
                         <span class="truncate">${safeProj}</span>
-                        ${isSelected ? '<span class="text-[10px] font-black bg-blue-700/80 px-1 py-0.2 rounded text-white">선택</span>' : ''}
+                        ${weldH > 0 ? `<span class="text-[10px] font-mono font-black px-1.5 py-0.2 rounded ${isSelected ? 'bg-blue-800 text-amber-200' : 'bg-amber-100 text-amber-800 border border-amber-300'} shrink-0">용접 ${weldH.toFixed(1)}h</span>` : (totH > 0 ? `<span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${isSelected ? 'bg-blue-800 text-blue-100' : 'bg-slate-100 text-slate-600 border border-slate-200'} shrink-0">${totH.toFixed(1)}h</span>` : '')}
+                        ${isSelected ? '<span class="text-[10px] font-black bg-blue-700/80 px-1 py-0.2 rounded text-white shrink-0">선택</span>' : ''}
                     </button>
                 `;
             });
@@ -4314,6 +4465,240 @@ function switchTmView(view) {
             }
 
             container.innerHTML = html;
+        }
+
+        function renderProjectTimeMatrix(metrics) {
+            const container = document.getElementById('projectMatrixContainer');
+            if (!container) return;
+
+            window._lastMatrixMetrics = metrics;
+
+            if (!metrics || !metrics.list || metrics.list.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            window.tab1MatrixSort = window.tab1MatrixSort || 'weld_desc';
+            if (window.tab1MatrixOnlyUnselected === undefined) window.tab1MatrixOnlyUnselected = false;
+            if (window.tab1MatrixCollapsed === undefined) window.tab1MatrixCollapsed = false;
+
+            let displayList = [...metrics.list];
+            if (window.tab1MatrixOnlyUnselected) {
+                displayList = displayList.filter(m => !m.isSelected);
+            }
+
+            if (window.tab1MatrixSort === 'weld_desc') {
+                displayList.sort((a, b) => (b.weldTotal - a.weldTotal) || (b.totalH - a.totalH) || a.project.localeCompare(b.project));
+            } else if (window.tab1MatrixSort === 'total_desc') {
+                displayList.sort((a, b) => (b.totalH - a.totalH) || (b.weldTotal - a.weldTotal) || a.project.localeCompare(b.project));
+            } else if (window.tab1MatrixSort === 'name_asc') {
+                displayList.sort((a, b) => a.project.localeCompare(b.project));
+            }
+
+            window._matrixDisplayList = displayList;
+
+            if (window.tab1MatrixCollapsed) {
+                container.innerHTML = `
+                    <div class="p-2.5 bg-gradient-to-r from-amber-50/80 via-slate-50 to-indigo-50/40 rounded-xl border border-amber-200/80 shadow-2xs flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 flex-wrap text-xs">
+                            <span class="text-amber-500 font-bold">🔥</span>
+                            <span class="font-black text-slate-800">프로젝트별 용접시간 분석 매트릭스</span>
+                            <span class="text-[10px] font-mono font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">용접 합계: ${metrics.sumWeld.toFixed(1)}h</span>
+                            <span class="text-[10px] font-bold text-slate-500">(${metrics.unselectedCount}개 미선택 / 총 ${metrics.totalProjects}개 프로젝트)</span>
+                        </div>
+                        <button type="button" onclick="toggleMatrixCollapse()" class="px-2.5 py-1 text-xs font-black bg-white hover:bg-amber-50 text-amber-900 border border-amber-300 rounded-lg shadow-2xs transition-colors">
+                            매트릭스 표 펼치기 ▼
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            const currentComp = document.getElementById('selCompany')?.value || '';
+
+            let html = `
+                <div class="p-3 bg-white rounded-2xl border-2 border-amber-300/80 shadow-sm space-y-2.5">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                                <span class="p-1 rounded-lg bg-amber-500 text-white text-xs leading-none shadow-xs">🔥</span>
+                                <span>프로젝트별 용접시간 &amp; 공정 분석 매트릭스</span>
+                            </span>
+                            <span class="text-[11px] font-mono font-black px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
+                                용접 총 ${metrics.sumWeld.toFixed(1)}h
+                            </span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
+                                ${metrics.unselectedCount > 0 ? `<b class="text-amber-700">미선택 ${metrics.unselectedCount}개</b> / ` : ''}전체 ${metrics.totalProjects}개
+                            </span>
+                            ${metrics.isWorkerActive ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-lg bg-teal-50 text-teal-700 border border-teal-200">👷 작업자 필터 적용</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-1.5 flex-wrap self-end md:self-auto">
+                            <button type="button" onclick="toggleMatrixUnselectedOnly()"
+                                class="px-2.5 py-1 rounded-lg text-xs font-black border transition-all ${window.tab1MatrixOnlyUnselected ? 'bg-amber-600 text-white border-amber-600 shadow-2xs' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'}">
+                                ${window.tab1MatrixOnlyUnselected ? '✓ 미선택만 보기' : '전체 보기'}
+                            </button>
+                            <select onchange="changeMatrixSort(this.value)" class="h-7 px-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 outline-none">
+                                <option value="weld_desc" ${window.tab1MatrixSort === 'weld_desc' ? 'selected' : ''}>🔥 용접시간순</option>
+                                <option value="total_desc" ${window.tab1MatrixSort === 'total_desc' ? 'selected' : ''}>⏱️ 총공수순</option>
+                                <option value="name_asc" ${window.tab1MatrixSort === 'name_asc' ? 'selected' : ''}>🔤 가나다순</option>
+                            </select>
+                            <button type="button" onclick="toggleMatrixCollapse()" class="px-2 py-1 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg border border-slate-200">
+                                접기 ▲
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scroll rounded-xl border border-slate-200 max-h-72 overflow-y-auto">
+                        <table class="w-full text-xs text-left border-collapse">
+                            <thead class="bg-slate-100/90 text-slate-600 font-black sticky top-0 z-10 text-[11px] border-b border-slate-200">
+                                <tr>
+                                    <th class="p-2 w-10 text-center">선택</th>
+                                    <th class="p-2 min-w-[170px]">프로젝트명</th>
+                                    <th class="p-2 min-w-[145px] bg-amber-100/90 text-amber-900 border-x border-amber-300">
+                                        <div class="flex items-center gap-1 font-black">
+                                            <span>🔥</span> <span>용접시간 (h)</span>
+                                        </div>
+                                    </th>
+                                    ${metrics.activeProcs.map(p => `
+                                        <th class="p-2 text-center min-w-[65px] font-bold text-slate-600 border-r border-slate-200/60">${p}</th>
+                                    `).join('')}
+                                    <th class="p-2 text-right min-w-[75px] font-black text-slate-800 border-r border-slate-200">총공수</th>
+                                    <th class="p-2 min-w-[140px] font-bold text-slate-600">투입 작업자</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 font-bold text-slate-700">
+            `;
+
+            displayList.forEach((item, rowIdx) => {
+                const isSel = item.isSelected;
+                const weldPct = (metrics.maxWeld > 0 ? (item.weldTotal / metrics.maxWeld) * 100 : 0).toFixed(0);
+                const displayProj = (selectedFilterCompanies.size === 1 || currentComp) ? item.project : `[${item.client}] ${item.project}`;
+                const safeProj = displayProj.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const workersList = Object.entries(item.workerMap || {}).map(([w, hInfo]) => `${w}(${hInfo.totH.toFixed(1)}h)`).join(', ') || '-';
+
+                html += `
+                    <tr class="transition-colors hover:bg-amber-50/50 ${isSel ? 'bg-blue-50/70 font-black' : ''}">
+                        <td class="p-2 text-center">
+                            <button type="button" onclick="handleMatrixRowClickByIndex(${rowIdx}, false)"
+                                title="${isSel ? '선택 해제' : '선택 추가'}"
+                                class="w-6 h-6 rounded-md flex items-center justify-center border text-[11px] font-black transition-all ${isSel ? 'bg-blue-600 text-white border-blue-600 shadow-2xs' : 'bg-white text-slate-400 hover:text-blue-600 hover:border-blue-400 border-slate-300'}">
+                                ${isSel ? '✓' : '+'}
+                            </button>
+                        </td>
+                        <td class="p-2 font-black cursor-pointer" onclick="handleMatrixRowClickByIndex(${rowIdx}, false)">
+                            <div class="flex items-center gap-1.5">
+                                <span class="truncate max-w-[210px]" title="${safeProj}">${safeProj}</span>
+                                ${isSel ? '<span class="text-[9px] font-black px-1.5 py-0.2 rounded bg-blue-600 text-white shrink-0">선택</span>' : '<span class="text-[9px] font-bold px-1 py-0.2 rounded bg-slate-100 text-slate-500 shrink-0">미선택</span>'}
+                            </div>
+                        </td>
+                        <td class="p-2 bg-amber-50/70 border-x border-amber-200 cursor-pointer" onclick="handleMatrixRowClickByIndex(${rowIdx}, false)">
+                            <div class="flex items-baseline justify-between gap-1">
+                                <span class="font-mono font-black text-xs ${item.weldTotal > 0 ? 'text-amber-800' : 'text-slate-400'}">
+                                    ${item.weldTotal > 0 ? item.weldTotal.toFixed(1) + 'h' : '-'}
+                                </span>
+                                ${item.weldTotal > 0 ? `<span class="text-[10px] text-amber-700 font-bold">(정 ${item.weldReg.toFixed(0)}/연 ${item.weldOver.toFixed(0)})</span>` : ''}
+                            </div>
+                            ${item.weldTotal > 0 ? `
+                                <div class="w-full bg-amber-200/80 rounded-full h-1 mt-1 overflow-hidden">
+                                    <div class="bg-amber-500 h-full rounded-full" style="width: ${weldPct}%"></div>
+                                </div>
+                            ` : ''}
+                        </td>
+                        ${metrics.activeProcs.map(p => {
+                            const val = item.procMap[p] || 0;
+                            return `
+                                <td class="p-2 text-center border-r border-slate-200/60 font-mono text-[11px] ${val > 0 ? 'text-slate-800 font-bold' : 'text-slate-300'}">
+                                    ${val > 0 ? val.toFixed(1) : '-'}
+                                </td>
+                            `;
+                        }).join('')}
+                        <td class="p-2 text-right font-mono font-black text-slate-800 border-r border-slate-200">
+                            ${item.totalH.toFixed(1)}h
+                        </td>
+                        <td class="p-2 text-slate-600 truncate max-w-[180px] text-[11px]" title="${workersList}">
+                            ${workersList}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            const totWeld = displayList.reduce((acc, c) => acc + c.weldTotal, 0);
+            const totWeldReg = displayList.reduce((acc, c) => acc + c.weldReg, 0);
+            const totWeldOver = displayList.reduce((acc, c) => acc + c.weldOver, 0);
+            const totTotalH = displayList.reduce((acc, c) => acc + c.totalH, 0);
+            const totWorkers = new Set(displayList.flatMap(c => Object.keys(c.workerMap || {}))).size;
+
+            html += `
+                            </tbody>
+                            <tfoot class="bg-slate-100 font-black text-slate-800 sticky bottom-0 border-t-2 border-slate-300 text-[11px]">
+                                <tr>
+                                    <td class="p-2 text-center font-bold text-slate-500">계</td>
+                                    <td class="p-2">합계 (${displayList.length}개)</td>
+                                    <td class="p-2 bg-amber-100 text-amber-900 border-x border-amber-300 font-mono font-black">
+                                        <div class="flex items-baseline justify-between">
+                                            <span>${totWeld.toFixed(1)}h</span>
+                                            <span class="text-[10px] font-bold text-amber-800">(정 ${totWeldReg.toFixed(0)}/연 ${totWeldOver.toFixed(0)})</span>
+                                        </div>
+                                    </td>
+                                    ${metrics.activeProcs.map(p => {
+                                        const sumP = displayList.reduce((acc, c) => acc + (c.procMap[p] || 0), 0);
+                                        return `
+                                            <td class="p-2 text-center border-r border-slate-200/60 font-mono ${sumP > 0 ? 'text-slate-800' : 'text-slate-300'}">
+                                                ${sumP > 0 ? sumP.toFixed(1) : '-'}
+                                            </td>
+                                        `;
+                                    }).join('')}
+                                    <td class="p-2 text-right font-mono text-slate-900 border-r border-slate-200">
+                                        ${totTotalH.toFixed(1)}h
+                                    </td>
+                                    <td class="p-2 text-slate-600 text-[10px]">
+                                        총 ${totWorkers}명 투입
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function handleMatrixRowClickByIndex(rowIdx, isSingle) {
+            const item = window._matrixDisplayList && window._matrixDisplayList[rowIdx];
+            if (!item) return;
+
+            if (isSingle) {
+                selectedFilterProjects = new Set([item.project]);
+            } else {
+                if (selectedFilterProjects.has(item.project)) {
+                    selectedFilterProjects.delete(item.project);
+                } else {
+                    selectedFilterProjects.add(item.project);
+                }
+            }
+            updateProjectList();
+        }
+
+        function toggleMatrixUnselectedOnly() {
+            window.tab1MatrixOnlyUnselected = !window.tab1MatrixOnlyUnselected;
+            if (window._lastMatrixMetrics) {
+                renderProjectTimeMatrix(window._lastMatrixMetrics);
+            }
+        }
+
+        function changeMatrixSort(val) {
+            window.tab1MatrixSort = val;
+            if (window._lastMatrixMetrics) {
+                renderProjectTimeMatrix(window._lastMatrixMetrics);
+            }
+        }
+
+        function toggleMatrixCollapse() {
+            window.tab1MatrixCollapsed = !window.tab1MatrixCollapsed;
+            if (window._lastMatrixMetrics) {
+                renderProjectTimeMatrix(window._lastMatrixMetrics);
+            }
         }
 
         function handleProjectChipClickByIndex(idx) {
@@ -5541,11 +5926,24 @@ function switchTmView(view) {
             updateTmFilterList();
         }
 
-        function renderTmProjectChips(projectPairs, currentVal) {
+        function renderTmProjectChips(projectPairs, currentVal, pFilteredData) {
             const container = document.getElementById('tmProjectCheckboxesArea');
             if (!container) return;
 
             window._tmCurrentProjectPairs = projectPairs || [];
+            if (pFilteredData) window._tmLastPFiltered = pFilteredData;
+
+            const baseData = pFilteredData || window._tmLastPFiltered || (typeof rawData !== 'undefined' ? rawData : []);
+            const metrics = computeProjectProcessMatrix(
+                baseData,
+                projectPairs,
+                (typeof tmSelectedFilterWorkers !== 'undefined' ? tmSelectedFilterWorkers : null),
+                (typeof tmSelectedFilterProcesses !== 'undefined' ? tmSelectedFilterProcesses : null),
+                tmSelectedFilterProjects
+            );
+
+            // 매트릭스 테이블 즉시 렌더링
+            renderTmProjectTimeMatrix(metrics);
 
             if (!projectPairs || projectPairs.length === 0) {
                 container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">일치하는 프로젝트가 없습니다.</span>';
@@ -5557,8 +5955,9 @@ function switchTmView(view) {
 
             let html = `
                 <button type="button" onclick="handleTmProjectChipClickByIndex(-1)"
-                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAllProj ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/30' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50'}">
+                    class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isAllProj ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/30' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50'}">
                     <span>🌐</span> <span>전체 프로젝트 (${projectPairs.length})</span>
+                    ${metrics.sumWeld > 0 ? `<span class="text-[10px] font-mono font-black px-1.5 py-0.2 rounded ${isAllProj ? 'bg-blue-800 text-amber-200' : 'bg-amber-100 text-amber-800 border border-amber-300'}">용접 총 ${metrics.sumWeld.toFixed(1)}h</span>` : ''}
                 </button>
             `;
 
@@ -5567,14 +5966,18 @@ function switchTmView(view) {
                 const isSelected = tmSelectedFilterProjects.has(pName);
                 const displayProj = (tmSelectedFilterCompanies.size === 1 || currentComp) ? pName : `[${cName}] ${pName}`;
                 const safeProj = displayProj.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const m = metrics.list ? metrics.list[idx] : null;
+                const weldH = m ? m.weldTotal : 0;
+                const totH = m ? m.totalH : 0;
 
                 html += `
                     <button type="button" onclick="handleTmProjectChipClickByIndex(${idx})"
-                        title="${safeProj}"
-                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 max-w-[260px] truncate ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/40 scale-[1.02]' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50 hover:border-blue-300'}">
+                        title="${safeProj} (용접: ${weldH.toFixed(1)}h / 총: ${totH.toFixed(1)}h)"
+                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 max-w-[320px] truncate ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/40 scale-[1.02]' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50 hover:border-blue-300'}">
                         <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-blue-500'}"></span>
                         <span class="truncate">${safeProj}</span>
-                        ${isSelected ? '<span class="text-[10px] font-black bg-blue-700/80 px-1 py-0.2 rounded text-white">선택</span>' : ''}
+                        ${weldH > 0 ? `<span class="text-[10px] font-mono font-black px-1.5 py-0.2 rounded ${isSelected ? 'bg-blue-800 text-amber-200' : 'bg-amber-100 text-amber-800 border border-amber-300'} shrink-0">용접 ${weldH.toFixed(1)}h</span>` : (totH > 0 ? `<span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${isSelected ? 'bg-blue-800 text-blue-100' : 'bg-slate-100 text-slate-600 border border-slate-200'} shrink-0">${totH.toFixed(1)}h</span>` : '')}
+                        ${isSelected ? '<span class="text-[10px] font-black bg-blue-700/80 px-1 py-0.2 rounded text-white shrink-0">선택</span>' : ''}
                     </button>
                 `;
             });
@@ -5584,6 +5987,240 @@ function switchTmView(view) {
             }
 
             container.innerHTML = html;
+        }
+
+        function renderTmProjectTimeMatrix(metrics) {
+            const container = document.getElementById('tmProjectMatrixContainer');
+            if (!container) return;
+
+            window._tmLastMetrics = metrics;
+
+            if (!metrics || !metrics.list || metrics.list.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            window.tmMatrixSort = window.tmMatrixSort || 'weld_desc';
+            if (window.tmMatrixOnlyUnselected === undefined) window.tmMatrixOnlyUnselected = false;
+            if (window.tmMatrixCollapsed === undefined) window.tmMatrixCollapsed = false;
+
+            let displayList = [...metrics.list];
+            if (window.tmMatrixOnlyUnselected) {
+                displayList = displayList.filter(m => !m.isSelected);
+            }
+
+            if (window.tmMatrixSort === 'weld_desc') {
+                displayList.sort((a, b) => (b.weldTotal - a.weldTotal) || (b.totalH - a.totalH) || a.project.localeCompare(b.project));
+            } else if (window.tmMatrixSort === 'total_desc') {
+                displayList.sort((a, b) => (b.totalH - a.totalH) || (b.weldTotal - a.weldTotal) || a.project.localeCompare(b.project));
+            } else if (window.tmMatrixSort === 'name_asc') {
+                displayList.sort((a, b) => a.project.localeCompare(b.project));
+            }
+
+            window._tmMatrixDisplayList = displayList;
+
+            if (window.tmMatrixCollapsed) {
+                container.innerHTML = `
+                    <div class="p-2.5 bg-gradient-to-r from-amber-50/80 via-slate-50 to-indigo-50/40 rounded-xl border border-amber-200/80 shadow-2xs flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 flex-wrap text-xs">
+                            <span class="text-amber-500 font-bold">🔥</span>
+                            <span class="font-black text-slate-800">프로젝트별 용접시간 분석 매트릭스</span>
+                            <span class="text-[10px] font-mono font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">용접 합계: ${metrics.sumWeld.toFixed(1)}h</span>
+                            <span class="text-[10px] font-bold text-slate-500">(${metrics.unselectedCount}개 미선택 / 총 ${metrics.totalProjects}개 프로젝트)</span>
+                        </div>
+                        <button type="button" onclick="toggleTmMatrixCollapse()" class="px-2.5 py-1 text-xs font-black bg-white hover:bg-amber-50 text-amber-900 border border-amber-300 rounded-lg shadow-2xs transition-colors">
+                            매트릭스 표 펼치기 ▼
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            const currentComp = document.getElementById('tmSelCompany')?.value || '';
+
+            let html = `
+                <div class="p-3 bg-white rounded-2xl border-2 border-amber-300/80 shadow-sm space-y-2.5">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                                <span class="p-1 rounded-lg bg-amber-500 text-white text-xs leading-none shadow-xs">🔥</span>
+                                <span>프로젝트별 용접시간 &amp; 공정 분석 매트릭스</span>
+                            </span>
+                            <span class="text-[11px] font-mono font-black px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
+                                용접 총 ${metrics.sumWeld.toFixed(1)}h
+                            </span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
+                                ${metrics.unselectedCount > 0 ? `<b class="text-amber-700">미선택 ${metrics.unselectedCount}개</b> / ` : ''}전체 ${metrics.totalProjects}개
+                            </span>
+                            ${metrics.isWorkerActive ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-lg bg-teal-50 text-teal-700 border border-teal-200">👷 작업자 필터 적용</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-1.5 flex-wrap self-end md:self-auto">
+                            <button type="button" onclick="toggleTmMatrixUnselectedOnly()"
+                                class="px-2.5 py-1 rounded-lg text-xs font-black border transition-all ${window.tmMatrixOnlyUnselected ? 'bg-amber-600 text-white border-amber-600 shadow-2xs' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'}">
+                                ${window.tmMatrixOnlyUnselected ? '✓ 미선택만 보기' : '전체 보기'}
+                            </button>
+                            <select onchange="changeTmMatrixSort(this.value)" class="h-7 px-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 outline-none">
+                                <option value="weld_desc" ${window.tmMatrixSort === 'weld_desc' ? 'selected' : ''}>🔥 용접시간순</option>
+                                <option value="total_desc" ${window.tmMatrixSort === 'total_desc' ? 'selected' : ''}>⏱️ 총공수순</option>
+                                <option value="name_asc" ${window.tmMatrixSort === 'name_asc' ? 'selected' : ''}>🔤 가나다순</option>
+                            </select>
+                            <button type="button" onclick="toggleTmMatrixCollapse()" class="px-2 py-1 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg border border-slate-200">
+                                접기 ▲
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scroll rounded-xl border border-slate-200 max-h-72 overflow-y-auto">
+                        <table class="w-full text-xs text-left border-collapse">
+                            <thead class="bg-slate-100/90 text-slate-600 font-black sticky top-0 z-10 text-[11px] border-b border-slate-200">
+                                <tr>
+                                    <th class="p-2 w-10 text-center">선택</th>
+                                    <th class="p-2 min-w-[170px]">프로젝트명</th>
+                                    <th class="p-2 min-w-[145px] bg-amber-100/90 text-amber-900 border-x border-amber-300">
+                                        <div class="flex items-center gap-1 font-black">
+                                            <span>🔥</span> <span>용접시간 (h)</span>
+                                        </div>
+                                    </th>
+                                    ${metrics.activeProcs.map(p => `
+                                        <th class="p-2 text-center min-w-[65px] font-bold text-slate-600 border-r border-slate-200/60">${p}</th>
+                                    `).join('')}
+                                    <th class="p-2 text-right min-w-[75px] font-black text-slate-800 border-r border-slate-200">총공수</th>
+                                    <th class="p-2 min-w-[140px] font-bold text-slate-600">투입 작업자</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 font-bold text-slate-700">
+            `;
+
+            displayList.forEach((item, rowIdx) => {
+                const isSel = item.isSelected;
+                const weldPct = (metrics.maxWeld > 0 ? (item.weldTotal / metrics.maxWeld) * 100 : 0).toFixed(0);
+                const displayProj = (tmSelectedFilterCompanies.size === 1 || currentComp) ? item.project : `[${item.client}] ${item.project}`;
+                const safeProj = displayProj.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const workersList = Object.entries(item.workerMap || {}).map(([w, hInfo]) => `${w}(${hInfo.totH.toFixed(1)}h)`).join(', ') || '-';
+
+                html += `
+                    <tr class="transition-colors hover:bg-amber-50/50 ${isSel ? 'bg-blue-50/70 font-black' : ''}">
+                        <td class="p-2 text-center">
+                            <button type="button" onclick="handleTmMatrixRowClickByIndex(${rowIdx}, false)"
+                                title="${isSel ? '선택 해제' : '선택 추가'}"
+                                class="w-6 h-6 rounded-md flex items-center justify-center border text-[11px] font-black transition-all ${isSel ? 'bg-blue-600 text-white border-blue-600 shadow-2xs' : 'bg-white text-slate-400 hover:text-blue-600 hover:border-blue-400 border-slate-300'}">
+                                ${isSel ? '✓' : '+'}
+                            </button>
+                        </td>
+                        <td class="p-2 font-black cursor-pointer" onclick="handleTmMatrixRowClickByIndex(${rowIdx}, false)">
+                            <div class="flex items-center gap-1.5">
+                                <span class="truncate max-w-[210px]" title="${safeProj}">${safeProj}</span>
+                                ${isSel ? '<span class="text-[9px] font-black px-1.5 py-0.2 rounded bg-blue-600 text-white shrink-0">선택</span>' : '<span class="text-[9px] font-bold px-1 py-0.2 rounded bg-slate-100 text-slate-500 shrink-0">미선택</span>'}
+                            </div>
+                        </td>
+                        <td class="p-2 bg-amber-50/70 border-x border-amber-200 cursor-pointer" onclick="handleTmMatrixRowClickByIndex(${rowIdx}, false)">
+                            <div class="flex items-baseline justify-between gap-1">
+                                <span class="font-mono font-black text-xs ${item.weldTotal > 0 ? 'text-amber-800' : 'text-slate-400'}">
+                                    ${item.weldTotal > 0 ? item.weldTotal.toFixed(1) + 'h' : '-'}
+                                </span>
+                                ${item.weldTotal > 0 ? `<span class="text-[10px] text-amber-700 font-bold">(정 ${item.weldReg.toFixed(0)}/연 ${item.weldOver.toFixed(0)})</span>` : ''}
+                            </div>
+                            ${item.weldTotal > 0 ? `
+                                <div class="w-full bg-amber-200/80 rounded-full h-1 mt-1 overflow-hidden">
+                                    <div class="bg-amber-500 h-full rounded-full" style="width: ${weldPct}%"></div>
+                                </div>
+                            ` : ''}
+                        </td>
+                        ${metrics.activeProcs.map(p => {
+                            const val = item.procMap[p] || 0;
+                            return `
+                                <td class="p-2 text-center border-r border-slate-200/60 font-mono text-[11px] ${val > 0 ? 'text-slate-800 font-bold' : 'text-slate-300'}">
+                                    ${val > 0 ? val.toFixed(1) : '-'}
+                                </td>
+                            `;
+                        }).join('')}
+                        <td class="p-2 text-right font-mono font-black text-slate-800 border-r border-slate-200">
+                            ${item.totalH.toFixed(1)}h
+                        </td>
+                        <td class="p-2 text-slate-600 truncate max-w-[180px] text-[11px]" title="${workersList}">
+                            ${workersList}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            const totWeld = displayList.reduce((acc, c) => acc + c.weldTotal, 0);
+            const totWeldReg = displayList.reduce((acc, c) => acc + c.weldReg, 0);
+            const totWeldOver = displayList.reduce((acc, c) => acc + c.weldOver, 0);
+            const totTotalH = displayList.reduce((acc, c) => acc + c.totalH, 0);
+            const totWorkers = new Set(displayList.flatMap(c => Object.keys(c.workerMap || {}))).size;
+
+            html += `
+                            </tbody>
+                            <tfoot class="bg-slate-100 font-black text-slate-800 sticky bottom-0 border-t-2 border-slate-300 text-[11px]">
+                                <tr>
+                                    <td class="p-2 text-center font-bold text-slate-500">계</td>
+                                    <td class="p-2">합계 (${displayList.length}개)</td>
+                                    <td class="p-2 bg-amber-100 text-amber-900 border-x border-amber-300 font-mono font-black">
+                                        <div class="flex items-baseline justify-between">
+                                            <span>${totWeld.toFixed(1)}h</span>
+                                            <span class="text-[10px] font-bold text-amber-800">(정 ${totWeldReg.toFixed(0)}/연 ${totWeldOver.toFixed(0)})</span>
+                                        </div>
+                                    </td>
+                                    ${metrics.activeProcs.map(p => {
+                                        const sumP = displayList.reduce((acc, c) => acc + (c.procMap[p] || 0), 0);
+                                        return `
+                                            <td class="p-2 text-center border-r border-slate-200/60 font-mono ${sumP > 0 ? 'text-slate-800' : 'text-slate-300'}">
+                                                ${sumP > 0 ? sumP.toFixed(1) : '-'}
+                                            </td>
+                                        `;
+                                    }).join('')}
+                                    <td class="p-2 text-right font-mono text-slate-900 border-r border-slate-200">
+                                        ${totTotalH.toFixed(1)}h
+                                    </td>
+                                    <td class="p-2 text-slate-600 text-[10px]">
+                                        총 ${totWorkers}명 투입
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function handleTmMatrixRowClickByIndex(rowIdx, isSingle) {
+            const item = window._tmMatrixDisplayList && window._tmMatrixDisplayList[rowIdx];
+            if (!item) return;
+
+            if (isSingle) {
+                tmSelectedFilterProjects = new Set([item.project]);
+            } else {
+                if (tmSelectedFilterProjects.has(item.project)) {
+                    tmSelectedFilterProjects.delete(item.project);
+                } else {
+                    tmSelectedFilterProjects.add(item.project);
+                }
+            }
+            updateTmFilterList();
+        }
+
+        function toggleTmMatrixUnselectedOnly() {
+            window.tmMatrixOnlyUnselected = !window.tmMatrixOnlyUnselected;
+            if (window._tmLastMetrics) {
+                renderTmProjectTimeMatrix(window._tmLastMetrics);
+            }
+        }
+
+        function changeTmMatrixSort(val) {
+            window.tmMatrixSort = val;
+            if (window._tmLastMetrics) {
+                renderTmProjectTimeMatrix(window._tmLastMetrics);
+            }
+        }
+
+        function toggleTmMatrixCollapse() {
+            window.tmMatrixCollapsed = !window.tmMatrixCollapsed;
+            if (window._tmLastMetrics) {
+                renderTmProjectTimeMatrix(window._tmLastMetrics);
+            }
         }
 
         function handleTmProjectChipClickByIndex(idx) {
@@ -5927,7 +6564,7 @@ function switchTmView(view) {
             }
 
             // 프로젝트 칩 렌더링
-            renderTmProjectChips(projectPairs, projSel?.value);
+            renderTmProjectChips(projectPairs, projSel?.value, pFiltered);
 
             // 3. 공정 목록 집계: 프로젝트 필터 및 작업자 필터 연계!
             let procBaseData = pFiltered;
@@ -6367,7 +7004,7 @@ function updateProjectList() {
 
             // ⚙️ 프로젝트 체크란 칩 렌더링
             if (typeof renderProjectChips === 'function') {
-                renderProjectChips(projectPairs, projSel.value);
+                renderProjectChips(projectPairs, projSel.value, pFiltered);
             }
 
             // 3. 공정 목록 추출: 프로젝트 필터 및 작업자 필터 연계!

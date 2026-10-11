@@ -137,8 +137,21 @@
         window.fitKpiDrilldownChart = window.fitKpiDrilldownChart || function(){};
         window.tab1ProjSearchMode = 'AND';
         window.tab2ProjSearchMode = 'AND';
+        window.tab1CompSearchMode = 'AND';
+        window.tab2CompSearchMode = 'AND';
+        window.smartSearchMode = 'AND';
+        window.tmSmartSearchMode = 'AND';
+        window.seriesSearchMode = 'AND';
+        window.compSearchModeA = 'AND';
+        window.compSearchModeB = 'AND';
         window.setProjectSearchMode = window.setProjectSearchMode || function(m){};
         window.setTmProjectSearchMode = window.setTmProjectSearchMode || function(m){};
+        window.setCompanySearchMode = window.setCompanySearchMode || function(m){};
+        window.setTmCompanySearchMode = window.setTmCompanySearchMode || function(m){};
+        window.setSmartSearchMode = window.setSmartSearchMode || function(m){};
+        window.setTmSmartSearchMode = window.setTmSmartSearchMode || function(m){};
+        window.setSeriesSearchMode = window.setSeriesSearchMode || function(m){};
+        window.setCompSearchMode = window.setCompSearchMode || function(s, m){};
 
         function switchTab(idx, isBack) {
             if (typeof window._internalSwitchTab === 'function') {
@@ -285,10 +298,19 @@
                 <!-- ⚡ 2,850개 프로젝트 통합 스마트 검색 바 -->
                 <div class="relative">
                     <div class="flex items-center justify-between mb-1.5">
-                        <span class="text-[11px] font-black text-emerald-700 uppercase tracking-wider flex items-center gap-1.5">
-                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs">⚡</span>
-                            <span>통합 스마트 프로젝트 검색</span>
-                        </span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] font-black text-emerald-700 uppercase tracking-wider flex items-center gap-1.5">
+                                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs">⚡</span>
+                                <span>통합 스마트 프로젝트 검색</span>
+                            </span>
+                            <!-- 🔍 Tab 1 스마트 검색 AND / OR 토글 -->
+                            <div class="inline-flex items-center bg-slate-100 p-0.5 rounded-md border border-slate-200 text-[10px] font-black" title="복수 검색어 일치 방식 선택">
+                                <button type="button" id="btnSmartSearchModeAnd" onclick="setSmartSearchMode('AND')"
+                                    class="px-1.5 py-0.2 rounded transition-all bg-emerald-600 text-white shadow-2xs">AND</button>
+                                <button type="button" id="btnSmartSearchModeOr" onclick="setSmartSearchMode('OR')"
+                                    class="px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900">OR</button>
+                            </div>
+                        </div>
                         <span class="text-[10px] text-slate-400 font-bold hidden sm:inline">전체 2,850개 프로젝트 중 실시간 자동완성 &amp; 바로가기</span>
                     </div>
                     <div class="relative flex items-center">
@@ -404,8 +426,17 @@
                     <select id="selYear" onchange="updateProjectList()" class="hidden"><option value="">전체 연도</option></select>
                     <select id="selMonth" onchange="updateProjectList()" class="hidden"><option value="">전체 월</option></select>
                     <div class="space-y-1">
-                        <div class="flex items-center justify-between">
-                            <label class="text-[10px] font-black text-slate-400 uppercase italic">업체명</label>
+                        <div class="flex items-center justify-between mb-0.5">
+                            <div class="flex items-center gap-1.5">
+                                <label class="text-[10px] font-black text-slate-400 uppercase italic">업체명</label>
+                                <!-- 🔍 Tab 1 업체 검색 AND / OR 토글 -->
+                                <div class="inline-flex items-center bg-slate-100 p-0.5 rounded-md border border-slate-200 text-[10px] font-black" title="복수 검색어 일치 방식 선택">
+                                    <button type="button" id="btnCompSearchModeAnd" onclick="setCompanySearchMode('AND')"
+                                        class="px-1.5 py-0.2 rounded transition-all bg-emerald-600 text-white shadow-2xs">AND</button>
+                                    <button type="button" id="btnCompSearchModeOr" onclick="setCompanySearchMode('OR')"
+                                        class="px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900">OR</button>
+                                </div>
+                            </div>
                             <span id="badgeCompanyCount" class="text-[10px] font-bold text-slate-400"></span>
                         </div>
                         <div class="relative mb-1">
@@ -608,10 +639,19 @@
                 <!-- ⚡ 전사 통합 스마트 프로젝트 검색 바 -->
                 <div class="relative">
                     <div class="flex items-center justify-between mb-1.5">
-                        <span class="text-[11px] font-black text-indigo-700 uppercase tracking-wider flex items-center gap-1.5">
-                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 text-xs">⚡</span>
-                            <span>통합 스마트 프로젝트 검색</span>
-                        </span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] font-black text-indigo-700 uppercase tracking-wider flex items-center gap-1.5">
+                                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 text-xs">⚡</span>
+                                <span>통합 스마트 프로젝트 검색</span>
+                            </span>
+                            <!-- 🔍 Tab 2 스마트 검색 AND / OR 토글 -->
+                            <div class="inline-flex items-center bg-slate-100 p-0.5 rounded-md border border-slate-200 text-[10px] font-black" title="복수 검색어 일치 방식 선택">
+                                <button type="button" id="btnTmSmartSearchModeAnd" onclick="setTmSmartSearchMode('AND')"
+                                    class="px-1.5 py-0.2 rounded transition-all bg-indigo-600 text-white shadow-2xs">AND</button>
+                                <button type="button" id="btnTmSmartSearchModeOr" onclick="setTmSmartSearchMode('OR')"
+                                    class="px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900">OR</button>
+                            </div>
+                        </div>
                         <span class="text-[10px] text-slate-400 font-bold hidden sm:inline">전사 프로젝트 실시간 자동완성 &amp; 바로가기</span>
                     </div>
                     <div class="relative flex items-center">
@@ -724,8 +764,17 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                     <div class="space-y-1">
-                        <div class="flex items-center justify-between">
-                            <label class="text-[10px] font-black text-slate-400 uppercase italic">업체명</label>
+                        <div class="flex items-center justify-between mb-0.5">
+                            <div class="flex items-center gap-1.5">
+                                <label class="text-[10px] font-black text-slate-400 uppercase italic">업체명</label>
+                                <!-- 🔍 Tab 2 업체 검색 AND / OR 토글 -->
+                                <div class="inline-flex items-center bg-slate-100 p-0.5 rounded-md border border-slate-200 text-[10px] font-black" title="복수 검색어 일치 방식 선택">
+                                    <button type="button" id="btnTmCompSearchModeAnd" onclick="setTmCompanySearchMode('AND')"
+                                        class="px-1.5 py-0.2 rounded transition-all bg-indigo-600 text-white shadow-2xs">AND</button>
+                                    <button type="button" id="btnTmCompSearchModeOr" onclick="setTmCompanySearchMode('OR')"
+                                        class="px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900">OR</button>
+                                </div>
+                            </div>
                             <span id="tmBadgeCompanyCount" class="text-[10px] font-bold text-slate-400"></span>
                         </div>
                         <div class="relative mb-1">
@@ -888,7 +937,19 @@
                         </div>
 
                         <div class="md:col-span-5 space-y-1">
-                            <label class="text-[10px] font-black text-slate-500 uppercase">2. 기종 / 모델 키워드 (공백 구분 복수 검색 가능)</label>
+                            <div class="flex items-center justify-between mb-0.5">
+                                <div class="flex items-center gap-1.5">
+                                    <label class="text-[10px] font-black text-slate-500 uppercase">2. 기종 / 모델 키워드</label>
+                                    <!-- 🔍 기종 검색 AND / OR 토글 -->
+                                    <div class="inline-flex items-center bg-slate-100 p-0.5 rounded-md border border-slate-200 text-[10px] font-black" title="복수 검색어 일치 방식 선택">
+                                        <button type="button" id="btnSeriesSearchModeAnd" onclick="setSeriesSearchMode('AND')"
+                                            class="px-1.5 py-0.2 rounded transition-all bg-purple-600 text-white shadow-2xs">AND</button>
+                                        <button type="button" id="btnSeriesSearchModeOr" onclick="setSeriesSearchMode('OR')"
+                                            class="px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900">OR</button>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] text-slate-400 font-bold hidden sm:inline">공백·쉼표 복수 검색</span>
+                            </div>
                             <div class="relative">
                                 <input type="text" id="seriesKeywordInput" value="H400" placeholder="예: H400, 400, 500, 슬라이드, 볼스터..."
                                     oninput="onSeriesKeywordInput()"
@@ -1211,10 +1272,18 @@
                             <!-- 대상 [A] -->
                             <div class="p-4 rounded-2xl border-2 border-indigo-200 bg-indigo-50/40 space-y-2.5">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-xs font-black text-indigo-700 uppercase tracking-wide flex items-center gap-1.5">
-                                        <span class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-black shadow-sm">A</span>
-                                        <span id="compLabelA">기준 대상 [A]</span>
-                                    </span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-black text-indigo-700 uppercase tracking-wide flex items-center gap-1.5">
+                                            <span class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-black shadow-sm">A</span>
+                                            <span id="compLabelA">기준 대상 [A]</span>
+                                        </span>
+                                        <div class="inline-flex items-center bg-white p-0.5 rounded-md border border-indigo-200 text-[10px] font-black" title="복수 검색어 일치 방식 선택">
+                                            <button type="button" id="btnCompSearchModeA_And" onclick="setCompSearchMode('A', 'AND')"
+                                                class="px-1.5 py-0.2 rounded transition-all bg-indigo-600 text-white shadow-2xs">AND</button>
+                                            <button type="button" id="btnCompSearchModeA_Or" onclick="setCompSearchMode('A', 'OR')"
+                                                class="px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900">OR</button>
+                                        </div>
+                                    </div>
                                     <span id="compBadgeA" class="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">선택 대기</span>
                                 </div>
                                 <div class="relative">
@@ -1247,10 +1316,18 @@
                             <!-- 대상 [B] -->
                             <div class="p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50/40 space-y-2.5">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-xs font-black text-emerald-700 uppercase tracking-wide flex items-center gap-1.5">
-                                        <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black shadow-sm">B</span>
-                                        <span id="compLabelB">비교 대상 [B]</span>
-                                    </span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-black text-emerald-700 uppercase tracking-wide flex items-center gap-1.5">
+                                            <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black shadow-sm">B</span>
+                                            <span id="compLabelB">비교 대상 [B]</span>
+                                        </span>
+                                        <div class="inline-flex items-center bg-white p-0.5 rounded-md border border-emerald-200 text-[10px] font-black" title="복수 검색어 일치 방식 선택">
+                                            <button type="button" id="btnCompSearchModeB_And" onclick="setCompSearchMode('B', 'AND')"
+                                                class="px-1.5 py-0.2 rounded transition-all bg-emerald-600 text-white shadow-2xs">AND</button>
+                                            <button type="button" id="btnCompSearchModeB_Or" onclick="setCompSearchMode('B', 'OR')"
+                                                class="px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900">OR</button>
+                                        </div>
+                                    </div>
                                     <span id="compBadgeB" class="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">선택 대기</span>
                                 </div>
                                 <div class="relative">
@@ -2375,7 +2452,7 @@ function onSeriesCompanyChange() {
                 const cName = d.client || '';
                 const combined = (pName + ' ' + cName).toLowerCase();
 
-                if (keywords.length > 0 && !keywords.every(k => combined.includes(k))) return;
+                if (kw && !matchQueryKeywords(combined, kw, window.seriesSearchMode)) return;
 
                 const key = `${cName}|${pName}`;
                 if (!projMap[key]) {
@@ -6491,11 +6568,7 @@ function switchTmView(view) {
             const totalCompCount = companies.length;
 
             if (compSearchVal) {
-                const compKeywords = compSearchVal.split(/\s+/).filter(k => k.length > 0);
-                companies = companies.filter(c => {
-                    const lc = (c || '').toLowerCase();
-                    return compKeywords.every(kw => lc.includes(kw));
-                });
+                companies = companies.filter(c => matchQueryKeywords(c, compSearchVal, window.tab1CompSearchMode));
             }
 
             if (compSel) {
@@ -6805,7 +6878,7 @@ function switchTmView(view) {
                 if (seen.has(key)) continue;
 
                 const combined = `${p} ${c} ${item.type || ''}`.toLowerCase();
-                const matchAll = tmSmartSearchKeywords.every(kw => combined.includes(kw));
+                const matchAll = matchQueryKeywords(combined, q, window.tmSmartSearchMode);
                 if (matchAll) {
                     seen.add(key);
                     matchedPairs.push({ client: c, project: p, date: item.date || '' });
@@ -6934,13 +7007,9 @@ function updateProjectList() {
             });
             const totalCompCount = companies.length;
 
-            // 업체 검색어 필터링 (공백 구분 복수 키워드 AND 조건)
+            // 업체 검색어 필터링 (복수 키워드 AND / OR 조건)
             if (compSearchVal) {
-                const compKeywords = compSearchVal.split(/\s+/).filter(k => k.length > 0);
-                companies = companies.filter(c => {
-                    const lc = (c || '').toLowerCase();
-                    return compKeywords.every(kw => lc.includes(kw));
-                });
+                companies = companies.filter(c => matchQueryKeywords(c, compSearchVal, window.tab2CompSearchMode));
             }
 
             const currentCompValue = compSel.value;
@@ -7213,6 +7282,153 @@ function updateProjectList() {
 
         // 프로젝트 검색 핸들러
         
+
+        // =====================================================================
+        // 🔍 전사 통합 검색엔진 공통 쿼리 파서 & AND/OR 모드 컨트롤러 (Global Multi-Search Engine)
+        // =====================================================================
+        window.smartSearchMode = window.smartSearchMode || 'AND';
+        window.tmSmartSearchMode = window.tmSmartSearchMode || 'AND';
+        window.tab1CompSearchMode = window.tab1CompSearchMode || 'AND';
+        window.tab2CompSearchMode = window.tab2CompSearchMode || 'AND';
+        window.tab1ProjSearchMode = window.tab1ProjSearchMode || 'AND';
+        window.tab2ProjSearchMode = window.tab2ProjSearchMode || 'AND';
+        window.seriesSearchMode = window.seriesSearchMode || 'AND';
+        window.compSearchModeA = window.compSearchModeA || 'AND';
+        window.compSearchModeB = window.compSearchModeB || 'AND';
+
+        function matchQueryKeywords(targetText, queryStr, searchMode) {
+            if (!queryStr) return true;
+            let isOr = (searchMode === 'OR');
+            let raw = String(queryStr).toLowerCase();
+            if (raw.includes('|') || /\bor\b/i.test(raw)) {
+                isOr = true;
+                raw = raw.replace(/\bor\b/gi, ' ');
+            }
+            const keywords = raw.split(/[\s,;/|]+/).map(k => k.trim()).filter(k => k.length > 0);
+            if (keywords.length === 0) return true;
+            const text = String(targetText || '').toLowerCase();
+            return isOr ? keywords.some(k => text.includes(k)) : keywords.every(k => text.includes(k));
+        }
+
+        function setSmartSearchMode(mode) {
+            window.smartSearchMode = mode;
+            const btnAnd = document.getElementById('btnSmartSearchModeAnd');
+            const btnOr = document.getElementById('btnSmartSearchModeOr');
+            if (btnAnd && btnOr) {
+                if (mode === 'AND') {
+                    btnAnd.className = 'px-1.5 py-0.2 rounded transition-all bg-emerald-600 text-white shadow-2xs';
+                    btnOr.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                } else {
+                    btnAnd.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                    btnOr.className = 'px-1.5 py-0.2 rounded transition-all bg-emerald-600 text-white shadow-2xs';
+                }
+            }
+            const input = document.getElementById('smartQuickSearch');
+            if (input && input.value) onSmartSearchInput(input.value);
+        }
+
+        function setTmSmartSearchMode(mode) {
+            window.tmSmartSearchMode = mode;
+            const btnAnd = document.getElementById('btnTmSmartSearchModeAnd');
+            const btnOr = document.getElementById('btnTmSmartSearchModeOr');
+            if (btnAnd && btnOr) {
+                if (mode === 'AND') {
+                    btnAnd.className = 'px-1.5 py-0.2 rounded transition-all bg-indigo-600 text-white shadow-2xs';
+                    btnOr.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                } else {
+                    btnAnd.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                    btnOr.className = 'px-1.5 py-0.2 rounded transition-all bg-indigo-600 text-white shadow-2xs';
+                }
+            }
+            const input = document.getElementById('tmSmartQuickSearch');
+            if (input && input.value) onTmSmartQuickSearchInput(input.value);
+        }
+
+        function setCompanySearchMode(mode) {
+            window.tab1CompSearchMode = mode;
+            const btnAnd = document.getElementById('btnCompSearchModeAnd');
+            const btnOr = document.getElementById('btnCompSearchModeOr');
+            if (btnAnd && btnOr) {
+                if (mode === 'AND') {
+                    btnAnd.className = 'px-1.5 py-0.2 rounded transition-all bg-emerald-600 text-white shadow-2xs';
+                    btnOr.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                } else {
+                    btnAnd.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                    btnOr.className = 'px-1.5 py-0.2 rounded transition-all bg-emerald-600 text-white shadow-2xs';
+                }
+            }
+            updateProjectList();
+        }
+
+        function setTmCompanySearchMode(mode) {
+            window.tab2CompSearchMode = mode;
+            const btnAnd = document.getElementById('btnTmCompSearchModeAnd');
+            const btnOr = document.getElementById('btnTmCompSearchModeOr');
+            if (btnAnd && btnOr) {
+                if (mode === 'AND') {
+                    btnAnd.className = 'px-1.5 py-0.2 rounded transition-all bg-indigo-600 text-white shadow-2xs';
+                    btnOr.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                } else {
+                    btnAnd.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                    btnOr.className = 'px-1.5 py-0.2 rounded transition-all bg-indigo-600 text-white shadow-2xs';
+                }
+            }
+            updateTmFilterList();
+        }
+
+        function setSeriesSearchMode(mode) {
+            window.seriesSearchMode = mode;
+            const btnAnd = document.getElementById('btnSeriesSearchModeAnd');
+            const btnOr = document.getElementById('btnSeriesSearchModeOr');
+            if (btnAnd && btnOr) {
+                if (mode === 'AND') {
+                    btnAnd.className = 'px-1.5 py-0.2 rounded transition-all bg-purple-600 text-white shadow-2xs';
+                    btnOr.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                } else {
+                    btnAnd.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                    btnOr.className = 'px-1.5 py-0.2 rounded transition-all bg-purple-600 text-white shadow-2xs';
+                }
+            }
+            renderSeriesCohort();
+        }
+
+        function setCompSearchMode(side, mode) {
+            if (side === 'A') {
+                window.compSearchModeA = mode;
+                const btnAnd = document.getElementById('btnCompSearchModeA_And');
+                const btnOr = document.getElementById('btnCompSearchModeA_Or');
+                if (btnAnd && btnOr) {
+                    if (mode === 'AND') {
+                        btnAnd.className = 'px-1.5 py-0.2 rounded transition-all bg-indigo-600 text-white shadow-2xs';
+                        btnOr.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                    } else {
+                        btnAnd.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                        btnOr.className = 'px-1.5 py-0.2 rounded transition-all bg-indigo-600 text-white shadow-2xs';
+                    }
+                }
+            } else {
+                window.compSearchModeB = mode;
+                const btnAnd = document.getElementById('btnCompSearchModeB_And');
+                const btnOr = document.getElementById('btnCompSearchModeB_Or');
+                if (btnAnd && btnOr) {
+                    if (mode === 'AND') {
+                        btnAnd.className = 'px-1.5 py-0.2 rounded transition-all bg-emerald-600 text-white shadow-2xs';
+                        btnOr.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                    } else {
+                        btnAnd.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                        btnOr.className = 'px-1.5 py-0.2 rounded transition-all bg-emerald-600 text-white shadow-2xs';
+                    }
+                }
+            }
+            populateCompDropdowns();
+            const sel = document.getElementById(`compSel${side}`);
+            if (sel && sel.options.length > 0) {
+                if (side === 'A') compTargetA = sel.value;
+                else compTargetB = sel.value;
+                runComparison();
+            }
+        }
+
         // 🔍 프로젝트 검색 복수 검색 (AND / OR) 모드 제어 엔진
         window.tab1ProjSearchMode = window.tab1ProjSearchMode || 'AND';
         window.tab2ProjSearchMode = window.tab2ProjSearchMode || 'AND';
@@ -7307,10 +7523,9 @@ function onProjectSearchInput() {
             }
 
             const allProjects = Array.from(map.values());
-            const keywords = q.split(/\s+/).filter(k => k.length > 0);
             const matches = allProjects.filter(p => {
                 const combined = (p.project + ' ' + p.client).toLowerCase();
-                return keywords.every(kw => combined.includes(kw));
+                return matchQueryKeywords(combined, q, window.smartSearchMode);
             }).slice(0, 30);
 
             if (matches.length === 0) {
@@ -9717,8 +9932,6 @@ function onProjectSearchInput() {
 
             const searchA = (document.getElementById('compSearchInputA')?.value || '').trim().toLowerCase();
             const searchB = (document.getElementById('compSearchInputB')?.value || '').trim().toLowerCase();
-            const kwA = searchA.split(/\s+/).filter(k => k.length > 0);
-            const kwB = searchB.split(/\s+/).filter(k => k.length > 0);
 
             // 상단 기간 연동 여부 확인
             const isSync = document.getElementById('chkCompSyncPeriod')?.checked;
@@ -9768,7 +9981,7 @@ function onProjectSearchInput() {
                 }
 
                 let listA = allProcs;
-                if (kwA.length > 0) listA = listA.filter(p => kwA.every(k => p.toLowerCase().includes(k)));
+                if (rawKwA) listA = listA.filter(p => matchQueryKeywords(p, rawKwA, window.compSearchModeA));
                 selA.innerHTML = '';
                 listA.forEach(p => {
                     const h = Math.round(procHoursMap[p] || 0);
@@ -9778,7 +9991,7 @@ function onProjectSearchInput() {
                 if (allProcs.includes(compTargetA)) selA.value = compTargetA;
 
                 let listB = allProcs;
-                if (kwB.length > 0) listB = listB.filter(p => kwB.every(k => p.toLowerCase().includes(k)));
+                if (rawKwB) listB = listB.filter(p => matchQueryKeywords(p, rawKwB, window.compSearchModeB));
                 selB.innerHTML = '';
                 listB.forEach(p => {
                     const h = Math.round(procHoursMap[p] || 0);
@@ -9816,7 +10029,7 @@ function onProjectSearchInput() {
                 }
 
                 let listA = allClients;
-                if (kwA.length > 0) listA = listA.filter(c => kwA.every(k => c.toLowerCase().includes(k)));
+                if (rawKwA) listA = listA.filter(c => matchQueryKeywords(c, rawKwA, window.compSearchModeA));
                 selA.innerHTML = '';
                 listA.forEach(c => {
                     const h = Math.round(clientHoursMap[c] || 0);
@@ -9826,7 +10039,7 @@ function onProjectSearchInput() {
                 if (allClients.includes(compTargetA)) selA.value = compTargetA;
 
                 let listB = allClients;
-                if (kwB.length > 0) listB = listB.filter(c => kwB.every(k => c.toLowerCase().includes(k)));
+                if (rawKwB) listB = listB.filter(c => matchQueryKeywords(c, rawKwB, window.compSearchModeB));
                 selB.innerHTML = '';
                 listB.forEach(c => {
                     const h = Math.round(clientHoursMap[c] || 0);

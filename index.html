@@ -135,6 +135,10 @@
         window.changeKpiDrilldownZoom = window.changeKpiDrilldownZoom || function(d){};
         window.resetKpiDrilldownZoom = window.resetKpiDrilldownZoom || function(){};
         window.fitKpiDrilldownChart = window.fitKpiDrilldownChart || function(){};
+        window.tab1ProjSearchMode = 'AND';
+        window.tab2ProjSearchMode = 'AND';
+        window.setProjectSearchMode = window.setProjectSearchMode || function(m){};
+        window.setTmProjectSearchMode = window.setTmProjectSearchMode || function(m){};
 
         function switchTab(idx, isBack) {
             if (typeof window._internalSwitchTab === 'function') {
@@ -420,8 +424,17 @@
                         </select>
                     </div>
                     <div class="space-y-1">
-                        <div class="flex items-center justify-between">
-                            <label class="text-[10px] font-black text-slate-400 uppercase italic">프로젝트</label>
+                        <div class="flex items-center justify-between mb-0.5">
+                            <div class="flex items-center gap-1.5">
+                                <label class="text-[10px] font-black text-slate-400 uppercase italic">프로젝트</label>
+                                <!-- 🔍 AND / OR 모드 선택 토글 -->
+                                <div class="inline-flex items-center bg-slate-100 p-0.5 rounded-md border border-slate-200 text-[10px] font-black" title="복수 검색어 일치 방식 선택">
+                                    <button type="button" id="btnProjSearchModeAnd" onclick="setProjectSearchMode('AND')"
+                                        class="px-1.5 py-0.2 rounded transition-all bg-emerald-600 text-white shadow-2xs">AND</button>
+                                    <button type="button" id="btnProjSearchModeOr" onclick="setProjectSearchMode('OR')"
+                                        class="px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900">OR</button>
+                                </div>
+                            </div>
                             <span id="badgeProjectCount" class="text-[10px] font-black text-emerald-600"></span>
                         </div>
                         <div class="relative mb-1">
@@ -731,8 +744,17 @@
                         </select>
                     </div>
                     <div class="space-y-1">
-                        <div class="flex items-center justify-between">
-                            <label class="text-[10px] font-black text-slate-400 uppercase italic">프로젝트</label>
+                        <div class="flex items-center justify-between mb-0.5">
+                            <div class="flex items-center gap-1.5">
+                                <label class="text-[10px] font-black text-slate-400 uppercase italic">프로젝트</label>
+                                <!-- 🔍 AND / OR 모드 선택 토글 -->
+                                <div class="inline-flex items-center bg-slate-100 p-0.5 rounded-md border border-slate-200 text-[10px] font-black" title="복수 검색어 일치 방식 선택">
+                                    <button type="button" id="btnTmProjSearchModeAnd" onclick="setTmProjectSearchMode('AND')"
+                                        class="px-1.5 py-0.2 rounded transition-all bg-indigo-600 text-white shadow-2xs">AND</button>
+                                    <button type="button" id="btnTmProjSearchModeOr" onclick="setTmProjectSearchMode('OR')"
+                                        class="px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900">OR</button>
+                                </div>
+                            </div>
                             <span id="tmBadgeProjectCount" class="text-[10px] font-black text-indigo-600"></span>
                         </div>
                         <div class="relative mb-1">
@@ -4281,10 +4303,31 @@ function switchTmView(view) {
 
         function computeProjectProcessMatrix(data, projectPairs, workerSet, processSet, selectedProjectsSet) {
             if (!data || !projectPairs) {
-                return { list: [], maxWeld: 0.1, sumWeld: 0, sumWeldReg: 0, sumWeldOver: 0, sumTotal: 0, totalProjects: 0, unselectedCount: 0, activeProcs: [], isWorkerActive: false };
+                return {
+                    list: [], targetLabel: '용접', fullTargetLabel: '용접', targetProcList: ['용접'], isProcFiltered: false,
+                    maxTarget: 0.1, sumTarget: 0, sumTargetReg: 0, sumTargetOver: 0,
+                    maxWeld: 0.1, sumWeld: 0, sumWeldReg: 0, sumWeldOver: 0,
+                    sumTotal: 0, totalProjects: 0, unselectedCount: 0, activeProcs: [], isWorkerActive: false
+                };
             }
 
             const isWorkerActive = Boolean(workerSet && !workerSet.has('ALL') && workerSet.size > 0);
+            
+            // 🔧 사용자가 선택한 공정 목록 추출
+            const isProcFiltered = Boolean(processSet && !processSet.has('ALL') && processSet.size > 0);
+            const targetProcList = isProcFiltered ? Array.from(processSet) : ['용접'];
+            
+            let targetLabel = '용접';
+            if (isProcFiltered) {
+                if (targetProcList.length === 1) {
+                    targetLabel = targetProcList[0];
+                } else if (targetProcList.length === 2) {
+                    targetLabel = `${targetProcList[0]}+${targetProcList[1]}`;
+                } else {
+                    targetLabel = `${targetProcList.slice(0, 2).join('+')}+${targetProcList.length - 2}개`;
+                }
+            }
+            const fullTargetLabel = isProcFiltered ? targetProcList.join(', ') : '용접';
 
             const recordsByPair = {};
             const recordsByProj = {};
@@ -4299,11 +4342,11 @@ function switchTmView(view) {
                 recordsByProj[p].push(item);
             });
 
-            const stdOrder = ['절단', '홀가공', '제관', '사상', '교정', '수정', '도장', '검사', '포장', '출장'];
+            const stdOrder = ['절단', '홀가공', '제관', '용접', '사상', '교정', '수정', '도장', '검사', '포장', '출장'];
             const encounteredProcs = new Set();
-            let sumWeld = 0;
-            let sumWeldReg = 0;
-            let sumWeldOver = 0;
+            let sumTarget = 0;
+            let sumTargetReg = 0;
+            let sumTargetOver = 0;
             let sumTotal = 0;
             const allWorkersSet = new Set();
 
@@ -4317,8 +4360,8 @@ function switchTmView(view) {
                     ? allProjRecs.filter(r => workerSet.has((r.worker || '').trim()))
                     : allProjRecs;
 
-                let weldH_reg = 0;
-                let weldH_over = 0;
+                let targetH_reg = 0;
+                let targetH_over = 0;
                 let totalH = 0;
                 let cost = 0;
                 const procMap = {};
@@ -4331,22 +4374,27 @@ function switchTmView(view) {
                     const pType = (r.type || '').trim();
                     const wName = (r.worker || '').trim();
 
-                    if (pType.includes('용접')) {
-                        weldH_reg += hReg;
-                        weldH_over += hOver;
-                    } else if (pType) {
-                        encounteredProcs.add(pType);
+                    // 선택된 공정(들) 매칭 여부
+                    const isMatchedTarget = isProcFiltered
+                        ? targetProcList.some(tp => pType === tp || (tp && pType.includes(tp)))
+                        : pType.includes('용접');
+
+                    if (isMatchedTarget) {
+                        targetH_reg += hReg;
+                        targetH_over += hOver;
                     }
 
                     if (pType) {
                         procMap[pType] = (procMap[pType] || 0) + h;
+                        encounteredProcs.add(pType);
                     }
 
                     if (wName) {
                         allWorkersSet.add(wName);
-                        if (!workerMap[wName]) workerMap[wName] = { weldH: 0, totH: 0 };
+                        if (!workerMap[wName]) workerMap[wName] = { targetH: 0, weldH: 0, totH: 0 };
                         workerMap[wName].totH += h;
-                        if (pType.includes('용접')) {
+                        if (isMatchedTarget) {
+                            workerMap[wName].targetH += h;
                             workerMap[wName].weldH += h;
                         }
                     }
@@ -4355,10 +4403,10 @@ function switchTmView(view) {
                     cost += Number(r.cost) || 0;
                 });
 
-                const weldTotal = weldH_reg + weldH_over;
-                sumWeld += weldTotal;
-                sumWeldReg += weldH_reg;
-                sumWeldOver += weldH_over;
+                const targetTotal = targetH_reg + targetH_over;
+                sumTarget += targetTotal;
+                sumTargetReg += targetH_reg;
+                sumTargetOver += targetH_over;
                 sumTotal += totalH;
 
                 const isSelected = selectedProjectsSet ? selectedProjectsSet.has(pName) : false;
@@ -4368,9 +4416,13 @@ function switchTmView(view) {
                     pair,
                     client: cName,
                     project: pName,
-                    weldReg: weldH_reg,
-                    weldOver: weldH_over,
-                    weldTotal,
+                    targetReg: targetH_reg,
+                    targetOver: targetH_over,
+                    targetTotal,
+                    // 기존 코드 호환성 보장
+                    weldReg: targetH_reg,
+                    weldOver: targetH_over,
+                    weldTotal: targetTotal,
                     totalH,
                     cost,
                     procMap,
@@ -4379,22 +4431,32 @@ function switchTmView(view) {
                 };
             });
 
-            const maxWeld = Math.max(...list.map(m => m.weldTotal), 0.1);
+            const maxTarget = Math.max(...list.map(m => m.targetTotal), 0.1);
 
+            // 타겟 공정에 이미 포함된 공정은 별도 컬럼에서 제외하여 중복 방지
             const activeProcs = [];
             stdOrder.forEach(p => {
-                if (encounteredProcs.has(p)) activeProcs.push(p);
+                if (encounteredProcs.has(p) && !targetProcList.includes(p)) activeProcs.push(p);
             });
-            Array.from(encounteredProcs).filter(p => !stdOrder.includes(p)).sort().forEach(p => {
+            Array.from(encounteredProcs).filter(p => !stdOrder.includes(p) && !targetProcList.includes(p)).sort().forEach(p => {
                 activeProcs.push(p);
             });
 
             return {
                 list,
-                maxWeld,
-                sumWeld,
-                sumWeldReg,
-                sumWeldOver,
+                targetLabel,
+                fullTargetLabel,
+                targetProcList,
+                isProcFiltered,
+                maxTarget,
+                sumTarget,
+                sumTargetReg,
+                sumTargetOver,
+                // 호환성 별칭
+                maxWeld: maxTarget,
+                sumWeld: sumTarget,
+                sumWeldReg: sumTargetReg,
+                sumWeldOver: sumTargetOver,
                 sumTotal,
                 totalProjects: list.length,
                 unselectedCount: list.filter(m => !m.isSelected).length,
@@ -4431,11 +4493,12 @@ function switchTmView(view) {
             const currentComp = document.getElementById('selCompany')?.value || '';
             const isAllProj = (selectedFilterProjects.size === 0);
 
+            const procLabel = metrics.targetLabel || '공정';
             let html = `
                 <button type="button" onclick="handleProjectChipClickByIndex(-1)"
                     class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isAllProj ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/30' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50'}">
                     <span>🌐</span> <span>전체 프로젝트 (${projectPairs.length})</span>
-                    ${metrics.sumWeld > 0 ? `<span class="text-[10px] font-mono font-black px-1.5 py-0.2 rounded ${isAllProj ? 'bg-blue-800 text-amber-200' : 'bg-amber-100 text-amber-800 border border-amber-300'}">용접 총 ${metrics.sumWeld.toFixed(1)}h</span>` : ''}
+                    ${metrics.sumTarget > 0 ? `<span class="text-[10px] font-mono font-black px-1.5 py-0.2 rounded ${isAllProj ? 'bg-blue-800 text-amber-200' : 'bg-amber-100 text-amber-800 border border-amber-300'}">${procLabel} 총 ${metrics.sumTarget.toFixed(1)}h</span>` : ''}
                 </button>
             `;
 
@@ -4445,16 +4508,16 @@ function switchTmView(view) {
                 const displayProj = currentComp ? pName : `[${cName}] ${pName}`;
                 const safeProj = displayProj.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
                 const m = metrics.list ? metrics.list[idx] : null;
-                const weldH = m ? m.weldTotal : 0;
-                const totH = m ? m.totalH : 0;
+                const targetH = m ? (m.targetTotal || 0) : 0;
+                const totH = m ? (m.totalH || 0) : 0;
 
                 html += `
                     <button type="button" onclick="handleProjectChipClickByIndex(${idx})"
-                        title="${safeProj} (용접: ${weldH.toFixed(1)}h / 총: ${totH.toFixed(1)}h)"
+                        title="${safeProj} (${procLabel}: ${targetH.toFixed(1)}h / 총공수: ${totH.toFixed(1)}h)"
                         class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 max-w-[320px] truncate ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/40 scale-[1.02]' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50 hover:border-blue-300'}">
                         <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-blue-500'}"></span>
                         <span class="truncate">${safeProj}</span>
-                        ${weldH > 0 ? `<span class="text-[10px] font-mono font-black px-1.5 py-0.2 rounded ${isSelected ? 'bg-blue-800 text-amber-200' : 'bg-amber-100 text-amber-800 border border-amber-300'} shrink-0">용접 ${weldH.toFixed(1)}h</span>` : (totH > 0 ? `<span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${isSelected ? 'bg-blue-800 text-blue-100' : 'bg-slate-100 text-slate-600 border border-slate-200'} shrink-0">${totH.toFixed(1)}h</span>` : '')}
+                        ${targetH > 0 ? `<span class="text-[10px] font-mono font-black px-1.5 py-0.2 rounded ${isSelected ? 'bg-blue-800 text-amber-200' : 'bg-amber-100 text-amber-800 border border-amber-300'} shrink-0">${procLabel} ${targetH.toFixed(1)}h</span>` : (totH > 0 ? `<span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${isSelected ? 'bg-blue-800 text-blue-100' : 'bg-slate-100 text-slate-600 border border-slate-200'} shrink-0">${totH.toFixed(1)}h</span>` : '')}
                         ${isSelected ? '<span class="text-[10px] font-black bg-blue-700/80 px-1 py-0.2 rounded text-white shrink-0">선택</span>' : ''}
                     </button>
                 `;
@@ -4502,8 +4565,8 @@ function switchTmView(view) {
                     <div class="p-2.5 bg-gradient-to-r from-amber-50/80 via-slate-50 to-indigo-50/40 rounded-xl border border-amber-200/80 shadow-2xs flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2 flex-wrap text-xs">
                             <span class="text-amber-500 font-bold">🔥</span>
-                            <span class="font-black text-slate-800">프로젝트별 용접시간 분석 매트릭스</span>
-                            <span class="text-[10px] font-mono font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">용접 합계: ${metrics.sumWeld.toFixed(1)}h</span>
+                            <span class="font-black text-slate-800">프로젝트별 ${metrics.targetLabel || '공정'}시간 분석 매트릭스</span>
+                            <span class="text-[10px] font-mono font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">${metrics.targetLabel || '공정'} 합계: ${metrics.sumTarget.toFixed(1)}h</span>
                             <span class="text-[10px] font-bold text-slate-500">(${metrics.unselectedCount}개 미선택 / 총 ${metrics.totalProjects}개 프로젝트)</span>
                         </div>
                         <button type="button" onclick="toggleMatrixCollapse()" class="px-2.5 py-1 text-xs font-black bg-white hover:bg-amber-50 text-amber-900 border border-amber-300 rounded-lg shadow-2xs transition-colors">
@@ -4522,10 +4585,10 @@ function switchTmView(view) {
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="text-xs font-black text-slate-900 flex items-center gap-1.5">
                                 <span class="p-1 rounded-lg bg-amber-500 text-white text-xs leading-none shadow-xs">🔥</span>
-                                <span>프로젝트별 용접시간 &amp; 공정 분석 매트릭스</span>
+                                <span>프로젝트별 ${metrics.targetLabel || '공정'}시간 &amp; 공정 분석 매트릭스</span>
                             </span>
                             <span class="text-[11px] font-mono font-black px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
-                                용접 총 ${metrics.sumWeld.toFixed(1)}h
+                                ${metrics.targetLabel || '공정'} 총 ${metrics.sumTarget.toFixed(1)}h
                             </span>
                             <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
                                 ${metrics.unselectedCount > 0 ? `<b class="text-amber-700">미선택 ${metrics.unselectedCount}개</b> / ` : ''}전체 ${metrics.totalProjects}개
@@ -4538,7 +4601,7 @@ function switchTmView(view) {
                                 ${window.tab1MatrixOnlyUnselected ? '✓ 미선택만 보기' : '전체 보기'}
                             </button>
                             <select onchange="changeMatrixSort(this.value)" class="h-7 px-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 outline-none">
-                                <option value="weld_desc" ${window.tab1MatrixSort === 'weld_desc' ? 'selected' : ''}>🔥 용접시간순</option>
+                                <option value="weld_desc" ${window.tab1MatrixSort === 'weld_desc' ? 'selected' : ''}>${`🔥 ${metrics.targetLabel || '공정'}시간순`}</option>
                                 <option value="total_desc" ${window.tab1MatrixSort === 'total_desc' ? 'selected' : ''}>⏱️ 총공수순</option>
                                 <option value="name_asc" ${window.tab1MatrixSort === 'name_asc' ? 'selected' : ''}>🔤 가나다순</option>
                             </select>
@@ -4556,7 +4619,7 @@ function switchTmView(view) {
                                     <th class="p-2 min-w-[170px]">프로젝트명</th>
                                     <th class="p-2 min-w-[145px] bg-amber-100/90 text-amber-900 border-x border-amber-300">
                                         <div class="flex items-center gap-1 font-black">
-                                            <span>🔥</span> <span>용접시간 (h)</span>
+                                            <span>🔥</span> <span>${metrics.targetLabel || '공정'}시간 (h)</span>
                                         </div>
                                     </th>
                                     ${metrics.activeProcs.map(p => `
@@ -5952,12 +6015,13 @@ function switchTmView(view) {
 
             const currentComp = document.getElementById('tmSelCompany')?.value || '';
             const isAllProj = (tmSelectedFilterProjects.size === 0);
+            const procLabel = metrics.targetLabel || '공정';
 
             let html = `
                 <button type="button" onclick="handleTmProjectChipClickByIndex(-1)"
                     class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isAllProj ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/30' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50'}">
                     <span>🌐</span> <span>전체 프로젝트 (${projectPairs.length})</span>
-                    ${metrics.sumWeld > 0 ? `<span class="text-[10px] font-mono font-black px-1.5 py-0.2 rounded ${isAllProj ? 'bg-blue-800 text-amber-200' : 'bg-amber-100 text-amber-800 border border-amber-300'}">용접 총 ${metrics.sumWeld.toFixed(1)}h</span>` : ''}
+                    ${metrics.sumTarget > 0 ? `<span class="text-[10px] font-mono font-black px-1.5 py-0.2 rounded ${isAllProj ? 'bg-blue-800 text-amber-200' : 'bg-amber-100 text-amber-800 border border-amber-300'}">${procLabel} 총 ${metrics.sumTarget.toFixed(1)}h</span>` : ''}
                 </button>
             `;
 
@@ -5967,16 +6031,16 @@ function switchTmView(view) {
                 const displayProj = (tmSelectedFilterCompanies.size === 1 || currentComp) ? pName : `[${cName}] ${pName}`;
                 const safeProj = displayProj.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
                 const m = metrics.list ? metrics.list[idx] : null;
-                const weldH = m ? m.weldTotal : 0;
-                const totH = m ? m.totalH : 0;
+                const targetH = m ? (m.targetTotal || 0) : 0;
+                const totH = m ? (m.totalH || 0) : 0;
 
                 html += `
                     <button type="button" onclick="handleTmProjectChipClickByIndex(${idx})"
-                        title="${safeProj} (용접: ${weldH.toFixed(1)}h / 총: ${totH.toFixed(1)}h)"
+                        title="${safeProj} (${procLabel}: ${targetH.toFixed(1)}h / 총공수: ${totH.toFixed(1)}h)"
                         class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 max-w-[320px] truncate ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/40 scale-[1.02]' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50 hover:border-blue-300'}">
                         <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-blue-500'}"></span>
                         <span class="truncate">${safeProj}</span>
-                        ${weldH > 0 ? `<span class="text-[10px] font-mono font-black px-1.5 py-0.2 rounded ${isSelected ? 'bg-blue-800 text-amber-200' : 'bg-amber-100 text-amber-800 border border-amber-300'} shrink-0">용접 ${weldH.toFixed(1)}h</span>` : (totH > 0 ? `<span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${isSelected ? 'bg-blue-800 text-blue-100' : 'bg-slate-100 text-slate-600 border border-slate-200'} shrink-0">${totH.toFixed(1)}h</span>` : '')}
+                        ${targetH > 0 ? `<span class="text-[10px] font-mono font-black px-1.5 py-0.2 rounded ${isSelected ? 'bg-blue-800 text-amber-200' : 'bg-amber-100 text-amber-800 border border-amber-300'} shrink-0">${procLabel} ${targetH.toFixed(1)}h</span>` : (totH > 0 ? `<span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${isSelected ? 'bg-blue-800 text-blue-100' : 'bg-slate-100 text-slate-600 border border-slate-200'} shrink-0">${totH.toFixed(1)}h</span>` : '')}
                         ${isSelected ? '<span class="text-[10px] font-black bg-blue-700/80 px-1 py-0.2 rounded text-white shrink-0">선택</span>' : ''}
                     </button>
                 `;
@@ -6024,8 +6088,8 @@ function switchTmView(view) {
                     <div class="p-2.5 bg-gradient-to-r from-amber-50/80 via-slate-50 to-indigo-50/40 rounded-xl border border-amber-200/80 shadow-2xs flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2 flex-wrap text-xs">
                             <span class="text-amber-500 font-bold">🔥</span>
-                            <span class="font-black text-slate-800">프로젝트별 용접시간 분석 매트릭스</span>
-                            <span class="text-[10px] font-mono font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">용접 합계: ${metrics.sumWeld.toFixed(1)}h</span>
+                            <span class="font-black text-slate-800">프로젝트별 ${metrics.targetLabel || '공정'}시간 분석 매트릭스</span>
+                            <span class="text-[10px] font-mono font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">${metrics.targetLabel || '공정'} 합계: ${metrics.sumTarget.toFixed(1)}h</span>
                             <span class="text-[10px] font-bold text-slate-500">(${metrics.unselectedCount}개 미선택 / 총 ${metrics.totalProjects}개 프로젝트)</span>
                         </div>
                         <button type="button" onclick="toggleTmMatrixCollapse()" class="px-2.5 py-1 text-xs font-black bg-white hover:bg-amber-50 text-amber-900 border border-amber-300 rounded-lg shadow-2xs transition-colors">
@@ -6044,10 +6108,10 @@ function switchTmView(view) {
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="text-xs font-black text-slate-900 flex items-center gap-1.5">
                                 <span class="p-1 rounded-lg bg-amber-500 text-white text-xs leading-none shadow-xs">🔥</span>
-                                <span>프로젝트별 용접시간 &amp; 공정 분석 매트릭스</span>
+                                <span>프로젝트별 ${metrics.targetLabel || '공정'}시간 &amp; 공정 분석 매트릭스</span>
                             </span>
                             <span class="text-[11px] font-mono font-black px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
-                                용접 총 ${metrics.sumWeld.toFixed(1)}h
+                                ${metrics.targetLabel || '공정'} 총 ${metrics.sumTarget.toFixed(1)}h
                             </span>
                             <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
                                 ${metrics.unselectedCount > 0 ? `<b class="text-amber-700">미선택 ${metrics.unselectedCount}개</b> / ` : ''}전체 ${metrics.totalProjects}개
@@ -6060,7 +6124,7 @@ function switchTmView(view) {
                                 ${window.tmMatrixOnlyUnselected ? '✓ 미선택만 보기' : '전체 보기'}
                             </button>
                             <select onchange="changeTmMatrixSort(this.value)" class="h-7 px-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 outline-none">
-                                <option value="weld_desc" ${window.tmMatrixSort === 'weld_desc' ? 'selected' : ''}>🔥 용접시간순</option>
+                                <option value="weld_desc" ${window.tmMatrixSort === 'weld_desc' ? 'selected' : ''}>${`🔥 ${metrics.targetLabel || '공정'}시간순`}</option>
                                 <option value="total_desc" ${window.tmMatrixSort === 'total_desc' ? 'selected' : ''}>⏱️ 총공수순</option>
                                 <option value="name_asc" ${window.tmMatrixSort === 'name_asc' ? 'selected' : ''}>🔤 가나다순</option>
                             </select>
@@ -6078,7 +6142,7 @@ function switchTmView(view) {
                                     <th class="p-2 min-w-[170px]">프로젝트명</th>
                                     <th class="p-2 min-w-[145px] bg-amber-100/90 text-amber-900 border-x border-amber-300">
                                         <div class="flex items-center gap-1 font-black">
-                                            <span>🔥</span> <span>용접시간 (h)</span>
+                                            <span>🔥</span> <span>${metrics.targetLabel || '공정'}시간 (h)</span>
                                         </div>
                                     </th>
                                     ${metrics.activeProcs.map(p => `
@@ -6511,12 +6575,24 @@ function switchTmView(view) {
             const totalProjCount = projectPairs.length;
 
             if (projSearchVal) {
-                const projKeywords = projSearchVal.split(/\s+/).filter(k => k.length > 0);
-                projectPairs = projectPairs.filter(pair => {
-                    const [cName, pName] = pair.split('|');
-                    const combined = ((pName || '') + ' ' + (cName || '')).toLowerCase();
-                    return projKeywords.every(kw => combined.includes(kw));
-                });
+                let isOr = (window.tab2ProjSearchMode === 'OR');
+                let rawSearch = projSearchVal;
+                if (rawSearch.includes('|') || /\bor\b/i.test(rawSearch)) {
+                    isOr = true;
+                    rawSearch = rawSearch.replace(/\bor\b/gi, ' ');
+                }
+                const projKeywords = rawSearch.split(/[\s,;/|]+/).map(k => k.trim()).filter(k => k.length > 0);
+                if (projKeywords.length > 0) {
+                    projectPairs = projectPairs.filter(pair => {
+                        const [cName, pName] = pair.split('|');
+                        const combined = ((pName || '') + ' ' + (cName || '')).toLowerCase();
+                        if (isOr) {
+                            return projKeywords.some(kw => combined.includes(kw));
+                        } else {
+                            return projKeywords.every(kw => combined.includes(kw));
+                        }
+                    });
+                }
             }
 
             if (projSel) {
@@ -6947,14 +7023,26 @@ function updateProjectList() {
             });
             const totalProjCount = projectPairs.length;
 
-            // 프로젝트 검색어 필터링 (공백 구분 복수 키워드 AND 조건)
+            // 프로젝트 검색어 필터링 (복수 키워드 AND / OR 조건)
             if (projSearchVal) {
-                const projKeywords = projSearchVal.split(/\s+/).filter(k => k.length > 0);
-                projectPairs = projectPairs.filter(pair => {
-                    const [cName, pName] = pair.split('|');
-                    const combined = ((pName || '') + ' ' + (cName || '')).toLowerCase();
-                    return projKeywords.every(kw => combined.includes(kw));
-                });
+                let isOr = (window.tab1ProjSearchMode === 'OR');
+                let rawSearch = projSearchVal;
+                if (rawSearch.includes('|') || /\bor\b/i.test(rawSearch)) {
+                    isOr = true;
+                    rawSearch = rawSearch.replace(/\bor\b/gi, ' ');
+                }
+                const projKeywords = rawSearch.split(/[\s,;/|]+/).map(k => k.trim()).filter(k => k.length > 0);
+                if (projKeywords.length > 0) {
+                    projectPairs = projectPairs.filter(pair => {
+                        const [cName, pName] = pair.split('|');
+                        const combined = ((pName || '') + ' ' + (cName || '')).toLowerCase();
+                        if (isOr) {
+                            return projKeywords.some(kw => combined.includes(kw));
+                        } else {
+                            return projKeywords.every(kw => combined.includes(kw));
+                        }
+                    });
+                }
             }
 
             const curProjValue = projSel.value;
@@ -7124,7 +7212,44 @@ function updateProjectList() {
         }
 
         // 프로젝트 검색 핸들러
-        function onProjectSearchInput() {
+        
+        // 🔍 프로젝트 검색 복수 검색 (AND / OR) 모드 제어 엔진
+        window.tab1ProjSearchMode = window.tab1ProjSearchMode || 'AND';
+        window.tab2ProjSearchMode = window.tab2ProjSearchMode || 'AND';
+
+        function setProjectSearchMode(mode) {
+            window.tab1ProjSearchMode = mode;
+            const btnAnd = document.getElementById('btnProjSearchModeAnd');
+            const btnOr = document.getElementById('btnProjSearchModeOr');
+            if (btnAnd && btnOr) {
+                if (mode === 'AND') {
+                    btnAnd.className = 'px-1.5 py-0.2 rounded transition-all bg-emerald-600 text-white shadow-2xs';
+                    btnOr.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                } else {
+                    btnAnd.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                    btnOr.className = 'px-1.5 py-0.2 rounded transition-all bg-emerald-600 text-white shadow-2xs';
+                }
+            }
+            updateProjectList();
+        }
+
+        function setTmProjectSearchMode(mode) {
+            window.tab2ProjSearchMode = mode;
+            const btnAnd = document.getElementById('btnTmProjSearchModeAnd');
+            const btnOr = document.getElementById('btnTmProjSearchModeOr');
+            if (btnAnd && btnOr) {
+                if (mode === 'AND') {
+                    btnAnd.className = 'px-1.5 py-0.2 rounded transition-all bg-indigo-600 text-white shadow-2xs';
+                    btnOr.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                } else {
+                    btnAnd.className = 'px-1.5 py-0.2 rounded transition-all text-slate-600 hover:text-slate-900';
+                    btnOr.className = 'px-1.5 py-0.2 rounded transition-all bg-indigo-600 text-white shadow-2xs';
+                }
+            }
+            updateTmFilterList();
+        }
+
+function onProjectSearchInput() {
             updateProjectList();
         }
 

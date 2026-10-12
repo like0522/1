@@ -1720,6 +1720,7 @@
                     <p id="pcModalSubtitle" class="text-purple-300 text-[11px] sm:text-[13px] font-black uppercase mt-0.5 tracking-wider flex flex-wrap items-center gap-x-3 gap-y-1">
                         <span>Loading...</span>
                     </p>
+                    <div id="pcModalLegend" class="hidden flex flex-wrap items-center gap-1.5 mt-2 pt-1.5 border-t border-purple-800/60"></div>
                 </div>
                 <!-- 확대/축소 및 모바일 맞춤 툴바 -->
                 <div class="flex items-center gap-2 self-end sm:self-auto">
@@ -9769,6 +9770,29 @@ function onProjectSearchInput() {
             }
         }
 
+        // =====================================================================
+        // 🎨 달력 모달: 복수 프로젝트 통합 분석 시 프로젝트별 고유 컬러 팔레트 & 헬퍼
+        // =====================================================================
+        const CAL_PROJECT_PALETTE = [
+            { bg: '#eff6ff', border: '#93c5fd', text: '#1d4ed8', badgeBg: '#dbeafe', badgeText: '#1e40af', bar: '#2563eb', name: '블루' },
+            { bg: '#fef3c7', border: '#fcd34d', text: '#b45309', badgeBg: '#fde68a', badgeText: '#78350f', bar: '#d97706', name: '앰버' },
+            { bg: '#f0fdf4', border: '#86efac', text: '#15803d', badgeBg: '#bbf7d0', badgeText: '#14532d', bar: '#16a34a', name: '그린' },
+            { bg: '#faf5ff', border: '#d8b4fe', text: '#7e22ce', badgeBg: '#e9d5ff', badgeText: '#581c87', bar: '#9333ea', name: '퍼플' },
+            { bg: '#fff1f2', border: '#fda4af', text: '#be123c', badgeBg: '#fecdd3', badgeText: '#881337', bar: '#e11d48', name: '로즈' },
+            { bg: '#ecfeff', border: '#67e8f9', text: '#0e7490', badgeBg: '#a5f3fc', badgeText: '#164e63', bar: '#0891b2', name: '시안' },
+            { bg: '#fff7ed', border: '#fdba74', text: '#c2410c', badgeBg: '#fed7aa', badgeText: '#7c2d12', bar: '#ea580c', name: '오렌지' },
+            { bg: '#fdf4ff', border: '#f0abfc', text: '#a21caf', badgeBg: '#f5d0fe', badgeText: '#701a75', bar: '#c026d3', name: '푸시아' },
+            { bg: '#f0fdfa', border: '#5eead4', text: '#0f766e', badgeBg: '#99f6e4', badgeText: '#134e4a', bar: '#0d9488', name: '틸' },
+            { bg: '#f8fafc', border: '#94a3b8', text: '#334155', badgeBg: '#cbd5e1', badgeText: '#0f172a', bar: '#475569', name: '슬레이트' }
+        ];
+
+        function getCalProjectColor(projectName, uProjsList) {
+            if (!uProjsList || uProjsList.length <= 1) return null;
+            const idx = uProjsList.indexOf(projectName);
+            const colorIdx = (idx >= 0 ? idx : Math.abs([...(projectName || '')].reduce((acc, c) => acc + c.charCodeAt(0), 0))) % CAL_PROJECT_PALETTE.length;
+            return CAL_PROJECT_PALETTE[colorIdx];
+        }
+
         function openProjectCalendarModal() {
             if (!currentProjectData || currentProjectData.length === 0) return;
 
@@ -9822,6 +9846,33 @@ function onProjectSearchInput() {
                 <span>📅 기간: ${currentProjectData[0].date} ~ ${currentProjectData[currentProjectData.length - 1].date}</span>
                 ${uProjs.length > 1 ? `<span class="cursor-help bg-purple-950/40 px-2 py-0.5 rounded border border-purple-400/30 text-amber-200 font-bold" title="통합된 프로젝트 목록 (${uProjs.length}개):\n${projTooltipText}">📁 마우스 오버 시 프로젝트 표출 (${uProjs.length}개)</span>` : ''}
             `;
+
+            // 🎨 프로젝트 색상 범례 렌더링
+            const legendEl = document.getElementById('pcModalLegend');
+            if (legendEl) {
+                if (uProjs.length > 1) {
+                    legendEl.innerHTML = `
+                        <span class="text-purple-300 font-bold text-[11px] flex items-center gap-1 flex-shrink-0">🎨 프로젝트별 색상 구분:</span>
+                        ${uProjs.map(p => {
+                            const color = getCalProjectColor(p, uProjs);
+                            const count = currentProjectData.filter(d => d.project === p).length;
+                            return `
+                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[11px] font-black shadow-2xs border transition-transform hover:scale-105 cursor-default"
+                                      style="background-color: ${color.bg}; border-color: ${color.border}; color: ${color.text};"
+                                      title="${p} (${count}건)">
+                                    <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-2xs" style="background-color: ${color.bar};"></span>
+                                    <span class="truncate max-w-[130px] sm:max-w-[200px]">${p}</span>
+                                    <span class="text-[10px] opacity-75">(${count}건)</span>
+                                </span>
+                            `;
+                        }).join('')}
+                    `;
+                    legendEl.classList.remove('hidden');
+                } else {
+                    legendEl.innerHTML = '';
+                    legendEl.classList.add('hidden');
+                }
+            }
 
             // 1. 기간(월별) 파악
             let minDate = new Date(currentProjectData[0].dateObj);
@@ -9920,27 +9971,39 @@ function onProjectSearchInput() {
                             const safeC = (t.client || '').replace(/"/g, '&quot;');
                             const safeW = (t.worker || '').replace(/"/g, '&quot;');
                             const safeT = (t.type || '').replace(/"/g, '&quot;');
+
+                            const pColor = getCalProjectColor(t.project, uProjs);
+                            const cardBg = pColor ? pColor.bg : `hsla(${hue}, 80%, 97%, 1)`;
+                            const cardBorder = pColor ? pColor.border : `hsla(${hue}, 70%, 90%, 1)`;
+                            const cardAccentBar = pColor ? `border-left: 4.5px solid ${pColor.bar};` : '';
+                            const workerColor = pColor ? pColor.text : `hsla(${hue}, 85%, 35%, 1)`;
+                            const hoursBadgeStyle = pColor ? `background-color: ${pColor.badgeBg}; color: ${pColor.badgeText};` : `color: hsla(${hue}, 85%, 35%, 1)`;
+                            const subtextColor = pColor ? pColor.text : `hsla(${hue}, 85%, 25%, 1)`;
+
                             return `
-                                            <div class="cal-task-card px-3.5 py-3 rounded-2xl text-left border shadow-sm flex flex-col hover:scale-[1.02] hover:shadow-md transition-all cursor-pointer mb-1.5 relative" 
+                                            <div class="cal-task-card px-3.5 py-3 rounded-2xl text-left border shadow-xs flex flex-col hover:scale-[1.02] hover:shadow-md transition-all cursor-pointer mb-1.5 relative" 
                                                  title="[프로젝트] ${safeP}&#10;[업체] ${safeC}&#10;[작업자] ${safeW}&#10;[공정] ${safeT} (${totalH}h)&#10;[투입비용] ₩${t.cost.toLocaleString()}"
-                                                 style="background-color: hsla(${hue}, 80%, 97%, 1); border-color: hsla(${hue}, 70%, 90%, 1);">
+                                                 style="background-color: ${cardBg}; border-color: ${cardBorder}; ${cardAccentBar}">
                                                 <div class="flex justify-between items-center w-full mb-1.5">
-                                                    <span class="text-[14px] font-black truncate max-w-[65%]" style="color: hsla(${hue}, 85%, 35%, 1)">${safeW}</span>
-                                                    <span class="text-[12px] font-black px-2 py-0.5 rounded-xl bg-white shadow-sm" style="color: hsla(${hue}, 85%, 35%, 1)">${totalH}h</span>
+                                                    <span class="text-[14px] font-black truncate max-w-[65%]" style="color: ${workerColor}">${safeW}</span>
+                                                    <span class="text-[12px] font-black px-2 py-0.5 rounded-xl bg-white shadow-sm" style="${hoursBadgeStyle}">${totalH}h</span>
                                                 </div>
-                                                <div class="text-[12px] font-bold opacity-80 flex justify-between items-center" style="color: hsla(${hue}, 85%, 25%, 1)">
+                                                <div class="text-[12px] font-bold opacity-90 flex justify-between items-center" style="color: ${subtextColor}">
                                                     <span>${safeT}</span>
-                                                    ${uProjs.length > 1 ? `
-                                                    <span class="cal-task-hint text-[10px] font-black text-indigo-600 bg-white/70 px-1.5 py-0.2 rounded border border-indigo-200/50 shadow-2xs">
-                                                        📁 프로젝트
+                                                    ${uProjs.length > 1 && pColor ? `
+                                                    <span class="cal-task-hint text-[10px] font-black px-1.5 py-0.2 rounded shadow-2xs truncate max-w-[55%]"
+                                                          style="background-color: ${pColor.badgeBg}; color: ${pColor.badgeText};"
+                                                          title="${safeP}">
+                                                        ● ${safeP}
                                                     </span>` : ''}
                                                 </div>
-                                                ${uProjs.length > 1 ? `
-                                                <!-- 📁 복수 프로젝트 통합 시 마우스 호버(Hover) 시 프로젝트명 표출 -->
-                                                <div class="cal-task-proj items-center gap-1.5 mt-2 pt-1.5 border-t border-indigo-200/80 text-[11px] font-black text-indigo-950 bg-white/95 px-2.5 py-1 rounded-xl border border-indigo-300 shadow-sm animate-in fade-in duration-150">
-                                                    <span class="text-xs flex-shrink-0">📁</span>
-                                                    <span class="truncate font-black text-indigo-900" title="${safeP}">${safeP}</span>
-                                                    ${uClients.length > 1 && safeC ? `<span class="text-[9px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200 flex-shrink-0 ml-auto">${safeC}</span>` : ''}
+                                                ${uProjs.length > 1 && pColor ? `
+                                                <!-- 📁 복수 프로젝트 통합 시 마우스 호버(Hover) 시 프로젝트명 및 상세 표출 -->
+                                                <div class="cal-task-proj items-center gap-1.5 mt-2 pt-1.5 border-t text-[11px] font-black bg-white/95 px-2.5 py-1 rounded-xl shadow-xs animate-in fade-in duration-150"
+                                                     style="border-color: ${pColor.border}; color: ${pColor.text};">
+                                                    <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${pColor.bar};"></span>
+                                                    <span class="truncate font-black" title="${safeP}">${safeP}</span>
+                                                    ${uClients.length > 1 && safeC ? `<span class="text-[9px] font-bold px-1.5 py-0.2 rounded flex-shrink-0 ml-auto" style="background-color: ${pColor.badgeBg}; color: ${pColor.badgeText};">${safeC}</span>` : ''}
                                                 </div>` : ''}
                                             </div>
                                         `;

@@ -44,6 +44,19 @@
             scrollbar-width: none;
         }
 
+        /* 📅 달력 모달: 복수 프로젝트 선택 시 마우스 오버(Hover) 시 프로젝트명 표출 */
+        .cal-task-card .cal-task-proj {
+            display: none;
+        }
+        .cal-task-card:hover .cal-task-proj,
+        .cal-task-card:focus .cal-task-proj,
+        .cal-task-card:active .cal-task-proj {
+            display: flex !important;
+        }
+        .cal-task-card:hover .cal-task-hint {
+            display: none !important;
+        }
+
         .matrix-table th,
         .matrix-table td {
             border: 1px solid #e2e8f0;
@@ -4299,6 +4312,11 @@ function switchTmView(view) {
             }
 
             label.innerText = `${yrText} / ${moText} / ${compText} / ${projText} / ${procText} / ${workerText}`;
+            if (typeof selectedFilterProjects !== 'undefined' && selectedFilterProjects.size > 1) {
+                label.title = `선택된 프로젝트 목록 (${selectedFilterProjects.size}개):\n• ` + Array.from(selectedFilterProjects).join('\n• ');
+            } else {
+                label.title = '';
+            }
         }
 
         // =====================================================================
@@ -6012,6 +6030,11 @@ function switchTmView(view) {
             }
 
             label.innerText = `${yrText} / ${moText} / ${compText} / ${projText} / ${procText} / ${workerText}`;
+            if (typeof tmSelectedFilterProjects !== 'undefined' && tmSelectedFilterProjects.size > 1) {
+                label.title = `선택된 프로젝트 목록 (${tmSelectedFilterProjects.size}개):\n• ` + Array.from(tmSelectedFilterProjects).join('\n• ');
+            } else {
+                label.title = '';
+            }
         }
 
         // =====================================================================
@@ -7972,6 +7995,17 @@ function onProjectSearchInput() {
                 if (viewPeriodEl) viewPeriodEl.textContent = `${start} ~ ${end}`;
                 const viewWorkDaysEl = document.getElementById('viewWorkDays');
                 if (viewWorkDaysEl) viewWorkDaysEl.textContent = `실제 작업: ${uniqueDates.length}일`;
+                const calCard = viewPeriodEl?.closest('.dashboard-card');
+                if (calCard) {
+                    const uP = [...new Set(currentProjectData.map(i => i.project))].filter(Boolean);
+                    if (uP.length > 1) {
+                        calCard.title = `[상세 달력 열기]\n선택된 프로젝트 (${uP.length}개):\n• ` + uP.join('\n• ');
+                    } else if (uP.length === 1) {
+                        calCard.title = `[상세 달력 열기] 프로젝트: ${uP[0]}`;
+                    } else {
+                        calCard.title = '[상세 달력 열기]';
+                    }
+                }
 
                 let totalH = 0, totalC = 0;
                 currentProjectData.forEach(i => { totalH += (i.h_reg + i.h_over); totalC += i.cost; });
@@ -9744,15 +9778,39 @@ function onProjectSearchInput() {
             const wrapper = document.getElementById('pcCalendarZoomWrapper');
 
             const firstData = currentProjectData[0];
-            const uProjs = [...new Set(currentProjectData.map(d => d.project))];
-            const uClients = [...new Set(currentProjectData.map(d => d.client))];
+            const uProjs = [...new Set(currentProjectData.map(d => d.project))].filter(Boolean);
+            const uClients = [...new Set(currentProjectData.map(d => d.client))].filter(Boolean);
+            const projTooltipText = uProjs.map((p, idx) => `${idx + 1}. ${p}`).join('\n');
 
             if (uProjs.length === 1) {
-                title.innerText = `🏢 ${firstData.client} - ${firstData.project} 상세 달력`;
+                title.innerHTML = `🏢 ${firstData.client} - <span class="text-amber-300 font-black">${firstData.project}</span> 상세 달력`;
+                title.title = `프로젝트: ${firstData.project}`;
             } else if (uClients.length === 1) {
-                title.innerText = `🏢 ${uClients[0]} (${uProjs.length}개 프로젝트 통합) 상세 달력`;
+                title.innerHTML = `
+                    <span class="inline-flex items-center flex-wrap gap-1.5">
+                        <span>🏢 ${uClients[0]}</span>
+                        <span class="inline-flex items-center gap-1 bg-purple-800/80 hover:bg-purple-700 text-amber-300 px-2.5 py-0.5 rounded-xl border border-purple-400/40 cursor-help transition-all shadow-sm"
+                              title="통합된 프로젝트 목록 (${uProjs.length}개):\n${projTooltipText}">
+                            <span>📦 ${uProjs.length}개 프로젝트 통합</span>
+                            <span class="text-[10px] text-purple-200">▾</span>
+                        </span>
+                        <span>상세 달력</span>
+                    </span>
+                `;
+                title.title = `선택된 프로젝트 목록 (${uProjs.length}개):\n${projTooltipText}`;
             } else {
-                title.innerText = `🌐 전사 통합 생산 일정 (${uClients.length}개사, ${uProjs.length}개 프로젝트) 상세 달력`;
+                title.innerHTML = `
+                    <span class="inline-flex items-center flex-wrap gap-1.5">
+                        <span>🌐 전사 통합 생산 일정</span>
+                        <span class="inline-flex items-center gap-1 bg-purple-800/80 hover:bg-purple-700 text-amber-300 px-2.5 py-0.5 rounded-xl border border-purple-400/40 cursor-help transition-all shadow-sm"
+                              title="통합된 프로젝트 목록 (${uProjs.length}개):\n${projTooltipText}">
+                            <span>📦 ${uProjs.length}개 프로젝트 통합 (${uClients.length}개사)</span>
+                            <span class="text-[10px] text-purple-200">▾</span>
+                        </span>
+                        <span>상세 달력</span>
+                    </span>
+                `;
+                title.title = `선택된 프로젝트 목록 (${uProjs.length}개):\n${projTooltipText}`;
             }
 
             let grandH = 0; let grandC = 0;
@@ -9762,6 +9820,7 @@ function onProjectSearchInput() {
                 <span>⏱️ 총 투입: ${grandH.toLocaleString()}h</span>
                 <span>💰 총 투입비용: ₩${grandC.toLocaleString()}</span>
                 <span>📅 기간: ${currentProjectData[0].date} ~ ${currentProjectData[currentProjectData.length - 1].date}</span>
+                ${uProjs.length > 1 ? `<span class="cursor-help bg-purple-950/40 px-2 py-0.5 rounded border border-purple-400/30 text-amber-200 font-bold" title="통합된 프로젝트 목록 (${uProjs.length}개):\n${projTooltipText}">📁 마우스 오버 시 프로젝트 표출 (${uProjs.length}개)</span>` : ''}
             `;
 
             // 1. 기간(월별) 파악
@@ -9807,6 +9866,8 @@ function onProjectSearchInput() {
 
             const targetMonthStr = `${year}-${(month + 1).toString().padStart(2, '0')}`;
             const monthData = currentProjectData.filter(d => d.date.startsWith(targetMonthStr));
+            const uProjs = [...new Set(currentProjectData.map(d => d.project))].filter(Boolean);
+            const uClients = [...new Set(currentProjectData.map(d => d.client))].filter(Boolean);
 
             let calHTML = `
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-x-auto custom-scroll mb-8">
@@ -9840,6 +9901,7 @@ function onProjectSearchInput() {
                     } else {
                         const dateStr = `${targetMonthStr}-${currentDay.toString().padStart(2, '0')}`;
                         const dayTasks = monthData.filter(t => t.date === dateStr);
+                        const dayProjs = [...new Set(dayTasks.map(t => t.project))].filter(Boolean);
                         weekDaysData.push(...dayTasks);
 
                         let dayColorClass = d === 0 ? "text-rose-500" : (d === 6 ? "text-blue-500" : "text-slate-500");
@@ -9848,22 +9910,38 @@ function onProjectSearchInput() {
                             <div class="bg-white p-3 min-h-[160px] flex flex-col border-r border-b border-slate-100 group hover:bg-slate-50 transition-colors">
                                 <div class="flex justify-between items-start mb-2">
                                     <span class="text-[18px] font-black ${dayColorClass} w-8 h-8 flex items-center justify-center rounded-full group-hover:bg-slate-200 transition-colors">${currentDay}</span>
-                                    ${dayTasks.length > 0 ? `<span class="text-[11px] font-black bg-slate-100 text-slate-500 px-2 py-1 rounded-lg shadow-sm border border-slate-200">${dayTasks.length}건</span>` : ''}
+                                    ${dayTasks.length > 0 ? `<span class="text-[11px] font-black bg-slate-100 text-slate-500 px-2 py-1 rounded-lg shadow-sm border border-slate-200 cursor-help" title="해당 일자 프로젝트 (${dayProjs.length}개):\n• ${dayProjs.join('\n• ')}">${dayTasks.length}건</span>` : ''}
                                 </div>
                                 <div class="flex flex-col gap-1.5 flex-1 mt-1">
                                     ${dayTasks.map(t => {
                             const hue = [...t.type].reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360;
                             const totalH = t.h_reg + t.h_over;
+                            const safeP = (t.project || '').replace(/"/g, '&quot;');
+                            const safeC = (t.client || '').replace(/"/g, '&quot;');
+                            const safeW = (t.worker || '').replace(/"/g, '&quot;');
+                            const safeT = (t.type || '').replace(/"/g, '&quot;');
                             return `
-                                            <div class="px-3.5 py-3 rounded-2xl text-left border shadow-sm flex flex-col hover:scale-[1.02] transition-transform cursor-default mb-1.5" 
+                                            <div class="cal-task-card px-3.5 py-3 rounded-2xl text-left border shadow-sm flex flex-col hover:scale-[1.02] hover:shadow-md transition-all cursor-pointer mb-1.5 relative" 
+                                                 title="[프로젝트] ${safeP}&#10;[업체] ${safeC}&#10;[작업자] ${safeW}&#10;[공정] ${safeT} (${totalH}h)&#10;[투입비용] ₩${t.cost.toLocaleString()}"
                                                  style="background-color: hsla(${hue}, 80%, 97%, 1); border-color: hsla(${hue}, 70%, 90%, 1);">
                                                 <div class="flex justify-between items-center w-full mb-1.5">
-                                                    <span class="text-[14px] font-black truncate max-w-[65%]" style="color: hsla(${hue}, 85%, 35%, 1)">${t.worker}</span>
+                                                    <span class="text-[14px] font-black truncate max-w-[65%]" style="color: hsla(${hue}, 85%, 35%, 1)">${safeW}</span>
                                                     <span class="text-[12px] font-black px-2 py-0.5 rounded-xl bg-white shadow-sm" style="color: hsla(${hue}, 85%, 35%, 1)">${totalH}h</span>
                                                 </div>
                                                 <div class="text-[12px] font-bold opacity-80 flex justify-between items-center" style="color: hsla(${hue}, 85%, 25%, 1)">
-                                                    <span>${t.type}</span>
+                                                    <span>${safeT}</span>
+                                                    ${uProjs.length > 1 ? `
+                                                    <span class="cal-task-hint text-[10px] font-black text-indigo-600 bg-white/70 px-1.5 py-0.2 rounded border border-indigo-200/50 shadow-2xs">
+                                                        📁 프로젝트
+                                                    </span>` : ''}
                                                 </div>
+                                                ${uProjs.length > 1 ? `
+                                                <!-- 📁 복수 프로젝트 통합 시 마우스 호버(Hover) 시 프로젝트명 표출 -->
+                                                <div class="cal-task-proj items-center gap-1.5 mt-2 pt-1.5 border-t border-indigo-200/80 text-[11px] font-black text-indigo-950 bg-white/95 px-2.5 py-1 rounded-xl border border-indigo-300 shadow-sm animate-in fade-in duration-150">
+                                                    <span class="text-xs flex-shrink-0">📁</span>
+                                                    <span class="truncate font-black text-indigo-900" title="${safeP}">${safeP}</span>
+                                                    ${uClients.length > 1 && safeC ? `<span class="text-[9px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200 flex-shrink-0 ml-auto">${safeC}</span>` : ''}
+                                                </div>` : ''}
                                             </div>
                                         `;
                         }).join('')}

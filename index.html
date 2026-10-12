@@ -324,7 +324,7 @@
                             oninput="onSmartSearchInput(this.value)"
                             onkeydown="onSmartSearchKeydown(event)"
                             class="w-full h-11 pl-10 pr-10 bg-white border-2 border-slate-200 focus:border-emerald-500 rounded-xl text-sm font-black text-slate-800 outline-none focus:ring-4 focus:ring-emerald-500/15 shadow-sm transition-all placeholder:text-slate-400 placeholder:font-normal"
-                            autocomplete="off">
+                            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                         <button type="button" id="btnSmartClear" onclick="clearSmartSearch()"
                             class="hidden absolute right-3 text-slate-400 hover:text-slate-600 text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors">✕</button>
                     </div>
@@ -445,7 +445,7 @@
                                 oninput="onCompanySearchInput()"
                                 onkeydown="onCompanySearchKeydown(event)"
                                 class="w-full h-8 px-2.5 pr-6 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-slate-400"
-                                autocomplete="off">
+                                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                             <button type="button" id="btnClearCompSearch" onclick="clearCompanyFilter()"
                                 class="hidden absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
                         </div>
@@ -474,7 +474,7 @@
                                 oninput="onProjectSearchInput()"
                                 onkeydown="onProjectSearchKeydown(event)"
                                 class="w-full h-8 px-2.5 pr-6 bg-white border-2 border-emerald-400 rounded-lg text-xs font-black text-slate-800 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-slate-400 placeholder:font-normal"
-                                autocomplete="off">
+                                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                             <button type="button" id="btnClearProjSearch" onclick="clearProjectFilter()"
                                 class="hidden absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
                         </div>
@@ -665,7 +665,7 @@
                             oninput="onTmSmartQuickSearchInput(this.value)"
                             onkeydown="onTmSmartQuickSearchKeydown(event)"
                             class="w-full h-11 pl-10 pr-10 bg-white border-2 border-slate-200 focus:border-indigo-500 rounded-xl text-sm font-black text-slate-800 outline-none focus:ring-4 focus:ring-indigo-500/15 shadow-sm transition-all placeholder:text-slate-400 placeholder:font-normal"
-                            autocomplete="off">
+                            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                         <button type="button" id="btnTmSmartClear" onclick="clearTmSmartSearch()"
                             class="hidden absolute right-3 text-slate-400 hover:text-slate-600 text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors">✕</button>
                     </div>
@@ -783,7 +783,7 @@
                                 oninput="onTmCompanySearchInput()"
                                 onkeydown="onTmCompanySearchKeydown(event)"
                                 class="w-full h-8 px-2.5 pr-6 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400"
-                                autocomplete="off">
+                                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                             <button type="button" id="btnTmClearCompSearch" onclick="clearTmCompanyFilter()"
                                 class="hidden absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
                         </div>
@@ -812,7 +812,7 @@
                                 oninput="onTmProjectSearchInput()"
                                 onkeydown="onTmProjectSearchKeydown(event)"
                                 class="w-full h-8 px-2.5 pr-6 bg-white border-2 border-indigo-400 rounded-lg text-xs font-black text-slate-800 outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400 placeholder:font-normal"
-                                autocomplete="off">
+                                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                             <button type="button" id="btnTmClearProjSearch" onclick="clearTmProjectFilter()"
                                 class="hidden absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
                         </div>
@@ -953,6 +953,7 @@
                             <div class="relative">
                                 <input type="text" id="seriesKeywordInput" value="H400" placeholder="예: H400, 400, 500, 슬라이드, 볼스터..."
                                     oninput="onSeriesKeywordInput()"
+                                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
                                     class="w-full h-10 px-3 pr-8 bg-white border-2 border-purple-400 rounded-xl text-xs font-black text-slate-900 outline-none focus:border-purple-600 focus:ring-4 focus:ring-purple-500/20 shadow-sm">
                                 <button type="button" onclick="clearSeriesKeyword()" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
                             </div>
@@ -1289,7 +1290,7 @@
                                 <div class="relative">
                                     <input type="text" id="compSearchInputA" placeholder="🔍 [A] 실시간 복수 검색 (공백 구분)..." oninput="onCompSearchInput('A')"
                                         class="w-full h-9 px-3 pr-7 bg-white border border-indigo-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-sm"
-                                        autocomplete="off">
+                                        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                                     <button type="button" onclick="clearCompSearch('A')" class="hidden absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs font-bold" id="btnClearCompA">✕</button>
                                 </div>
                                 <select id="compSelA" onchange="onCompSelectChange('A')"
@@ -1333,7 +1334,7 @@
                                 <div class="relative">
                                     <input type="text" id="compSearchInputB" placeholder="🔍 [B] 실시간 복수 검색 (공백 구분)..." oninput="onCompSearchInput('B')"
                                         class="w-full h-9 px-3 pr-7 bg-white border border-emerald-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-sm"
-                                        autocomplete="off">
+                                        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                                     <button type="button" onclick="clearCompSearch('B')" class="hidden absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs font-bold" id="btnClearCompB">✕</button>
                                 </div>
                                 <select id="compSelB" onchange="onCompSelectChange('B')"
@@ -2394,11 +2395,16 @@ function onSeriesCompanyChange() {
             renderSeriesCohort();
         }
 
+        let _seriesKeywordTimer = null;
         function onSeriesKeywordInput() {
-            renderSeriesCohort();
+            clearTimeout(_seriesKeywordTimer);
+            _seriesKeywordTimer = setTimeout(() => {
+                renderSeriesCohort();
+            }, 250);
         }
 
         function clearSeriesKeyword() {
+            clearTimeout(_seriesKeywordTimer);
             const input = document.getElementById('seriesKeywordInput');
             if (input) input.value = '';
             renderSeriesCohort();
@@ -4709,7 +4715,9 @@ function switchTmView(view) {
                             <tbody class="divide-y divide-slate-100 font-bold text-slate-700">
             `;
 
-            displayList.forEach((item, rowIdx) => {
+            const maxRows = 60;
+            const renderList = displayList.slice(0, maxRows);
+            renderList.forEach((item, rowIdx) => {
                 const isSel = item.isSelected;
                 const weldPct = (metrics.maxWeld > 0 ? (item.weldTotal / metrics.maxWeld) * 100 : 0).toFixed(0);
                 const displayProj = (selectedFilterCompanies.size === 1 || currentComp) ? item.project : `[${item.client}] ${item.project}`;
@@ -4761,6 +4769,16 @@ function switchTmView(view) {
                     </tr>
                 `;
             });
+
+            if (displayList.length > maxRows) {
+                html += `
+                    <tr>
+                        <td colspan="${4 + metrics.activeProcs.length}" class="p-2.5 text-center text-xs text-slate-400 font-bold bg-slate-50">
+                            외 ${displayList.length - maxRows}개 프로젝트 (검색창으로 정밀 조회)
+                        </td>
+                    </tr>
+                `;
+            }
 
             const totWeld = displayList.reduce((acc, c) => acc + c.weldTotal, 0);
             const totWeldReg = displayList.reduce((acc, c) => acc + c.weldReg, 0);
@@ -6232,7 +6250,9 @@ function switchTmView(view) {
                             <tbody class="divide-y divide-slate-100 font-bold text-slate-700">
             `;
 
-            displayList.forEach((item, rowIdx) => {
+            const maxRows = 60;
+            const renderList = displayList.slice(0, maxRows);
+            renderList.forEach((item, rowIdx) => {
                 const isSel = item.isSelected;
                 const weldPct = (metrics.maxWeld > 0 ? (item.weldTotal / metrics.maxWeld) * 100 : 0).toFixed(0);
                 const displayProj = (tmSelectedFilterCompanies.size === 1 || currentComp) ? item.project : `[${item.client}] ${item.project}`;
@@ -6284,6 +6304,16 @@ function switchTmView(view) {
                     </tr>
                 `;
             });
+
+            if (displayList.length > maxRows) {
+                html += `
+                    <tr>
+                        <td colspan="${4 + metrics.activeProcs.length}" class="p-2.5 text-center text-xs text-slate-400 font-bold bg-slate-50">
+                            외 ${displayList.length - maxRows}개 프로젝트 (검색창으로 정밀 조회)
+                        </td>
+                    </tr>
+                `;
+            }
 
             const totWeld = displayList.reduce((acc, c) => acc + c.weldTotal, 0);
             const totWeldReg = displayList.reduce((acc, c) => acc + c.weldReg, 0);
@@ -6518,8 +6548,9 @@ function switchTmView(view) {
         // =====================================================================
         // 🔄 [TAB 2] 전사 필터 데이터 오케스트레이터 (Update Tab 2 Filter List)
         // =====================================================================
-        function updateTmFilterList() {
+        function updateTmFilterList(options = {}) {
             if (!rawData || rawData.length === 0) return;
+            const skipCharts = (options && options.skipCharts === true);
 
             const compSel = document.getElementById('tmSelCompany');
             const projSel = document.getElementById('tmSelProject');
@@ -6797,124 +6828,164 @@ function switchTmView(view) {
             updateTmPeriodSummaryText();
 
             // 5. 전사 시각화 및 차트 즉시 재계산 구동!
-            runTreeMap();
+            if (!skipCharts) {
+                runTreeMap();
+            }
         }
 
+        let _tmCompSearchTimer = null;
+        let _tmProjSearchTimer = null;
+
         function onTmCompanySearchInput() {
-            updateTmFilterList();
+            const btnClear = document.getElementById('btnTmClearCompSearch');
+            const val = document.getElementById('tmSearchCompanyInput')?.value || '';
+            if (btnClear) btnClear.classList.toggle('hidden', !val.trim());
+
+            if (_tmCompSearchTimer) clearTimeout(_tmCompSearchTimer);
+            _tmCompSearchTimer = setTimeout(() => {
+                updateTmFilterList({ skipCharts: true });
+            }, 250);
         }
 
         function onTmCompanySearchKeydown(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
+                if (_tmCompSearchTimer) clearTimeout(_tmCompSearchTimer);
                 const compSel = document.getElementById('tmSelCompany');
                 if (compSel && compSel.options.length > 1) {
                     compSel.selectedIndex = 1;
                     onTmSelectCompanyChange();
                     const projInput = document.getElementById('tmSearchProjectInput');
                     if (projInput) projInput.focus();
+                } else {
+                    updateTmFilterList({ skipCharts: false });
                 }
             }
         }
 
         function clearTmCompanyFilter() {
+            if (_tmCompSearchTimer) clearTimeout(_tmCompSearchTimer);
             const input = document.getElementById('tmSearchCompanyInput');
             if (input) input.value = '';
-            updateTmFilterList();
+            const btnClear = document.getElementById('btnTmClearCompSearch');
+            if (btnClear) btnClear.classList.add('hidden');
+            updateTmFilterList({ skipCharts: true });
             if (input) input.focus();
         }
 
         function onTmProjectSearchInput() {
-            updateTmFilterList();
+            const btnClear = document.getElementById('btnTmClearProjSearch');
+            const val = document.getElementById('tmSearchProjectInput')?.value || '';
+            if (btnClear) btnClear.classList.toggle('hidden', !val.trim());
+
+            if (_tmProjSearchTimer) clearTimeout(_tmProjSearchTimer);
+            _tmProjSearchTimer = setTimeout(() => {
+                updateTmFilterList({ skipCharts: true });
+            }, 250);
         }
 
         function onTmProjectSearchKeydown(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
+                if (_tmProjSearchTimer) clearTimeout(_tmProjSearchTimer);
                 const projSel = document.getElementById('tmSelProject');
                 if (projSel && projSel.options.length > 1) {
                     projSel.selectedIndex = 1;
                     onTmSelectProjectChange();
+                } else {
+                    updateTmFilterList({ skipCharts: false });
                 }
             }
         }
 
         function clearTmProjectFilter() {
+            if (_tmProjSearchTimer) clearTimeout(_tmProjSearchTimer);
             const input = document.getElementById('tmSearchProjectInput');
             if (input) input.value = '';
-            updateTmFilterList();
+            const btnClear = document.getElementById('btnTmClearProjSearch');
+            if (btnClear) btnClear.classList.add('hidden');
+            updateTmFilterList({ skipCharts: true });
             if (input) input.focus();
         }
 
         // =====================================================================
         // ⚡ [TAB 2] 통합 스마트 프로젝트 검색 바 (Autocomplete Dropdown)
         // =====================================================================
-        function onTmSmartQuickSearchInput(val) {
-            const dropdown = document.getElementById('tmSmartSearchDropdown');
-            const btnClear = document.getElementById('btnTmSmartClear');
-            if (!dropdown) return;
+        let _tmSmartSearchTimer = null;
 
+        function onTmSmartQuickSearchInput(val) {
+            const btnClear = document.getElementById('btnTmSmartClear');
             const q = (val || '').trim().toLowerCase();
             if (btnClear) btnClear.classList.toggle('hidden', !q);
 
+            if (_tmSmartSearchTimer) clearTimeout(_tmSmartSearchTimer);
+
             if (!q || !rawData || rawData.length === 0) {
-                dropdown.classList.add('hidden');
-                dropdown.innerHTML = '';
+                const dropdown = document.getElementById('tmSmartSearchDropdown');
+                if (dropdown) {
+                    dropdown.classList.add('hidden');
+                    dropdown.innerHTML = '';
+                }
                 tmSmartSearchKeywords = [];
                 return;
             }
 
-            tmSmartSearchKeywords = q.split(/\s+/).filter(k => k.length > 0);
+            _tmSmartSearchTimer = setTimeout(() => {
+                const dropdown = document.getElementById('tmSmartSearchDropdown');
+                if (!dropdown) return;
 
-            // 전체 프로젝트에서 검색
-            const matchedPairs = [];
-            const seen = new Set();
+                tmSmartSearchKeywords = q.split(/\s+/).filter(k => k.length > 0);
 
-            for (let i = 0; i < rawData.length; i++) {
-                const item = rawData[i];
-                const p = item.project || '';
-                const c = item.client || '';
-                const key = `${c}|${p}`;
-                if (seen.has(key)) continue;
+                // 전체 프로젝트에서 검색
+                const matchedPairs = [];
+                const seen = new Set();
 
-                const combined = `${p} ${c} ${item.type || ''}`.toLowerCase();
-                const matchAll = matchQueryKeywords(combined, q, window.tmSmartSearchMode);
-                if (matchAll) {
-                    seen.add(key);
-                    matchedPairs.push({ client: c, project: p, date: item.date || '' });
-                    if (matchedPairs.length >= 15) break;
+                for (let i = 0; i < rawData.length; i++) {
+                    const item = rawData[i];
+                    const p = item.project || '';
+                    const c = item.client || '';
+                    const key = `${c}|${p}`;
+                    if (seen.has(key)) continue;
+
+                    const combined = `${p} ${c} ${item.type || ''}`.toLowerCase();
+                    const matchAll = matchQueryKeywords(combined, q, window.tmSmartSearchMode);
+                    if (matchAll) {
+                        seen.add(key);
+                        matchedPairs.push({ client: c, project: p, date: item.date || '' });
+                        if (matchedPairs.length >= 15) break;
+                    }
                 }
-            }
 
-            if (matchedPairs.length === 0) {
-                dropdown.innerHTML = `
-                    <div class="p-3 text-center text-xs font-bold text-slate-400">
-                        검색어 <span class="text-indigo-600 font-black">"${q}"</span> 에 일치하는 프로젝트가 없습니다.
-                    </div>
-                `;
-                dropdown.classList.remove('hidden');
-                return;
-            }
-
-            let html = '';
-            matchedPairs.forEach((item, idx) => {
-                const safeP = (item.project || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-                const safeC = (item.client || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-                html += `
-                    <div onclick="selectTmSmartSearchResult('${safeC}', '${safeP}')"
-                        class="p-2.5 hover:bg-indigo-50/80 cursor-pointer flex items-center justify-between transition-colors group">
-                        <div class="flex items-center gap-2 min-w-0">
-                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0"></span>
-                            <span class="text-xs font-black text-slate-800 group-hover:text-indigo-700 truncate">${safeP}</span>
-                            <span class="text-[10px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200 flex-shrink-0">${safeC}</span>
+                if (matchedPairs.length === 0) {
+                    dropdown.innerHTML = `
+                        <div class="p-3 text-center text-xs font-bold text-slate-400">
+                            검색어 <span class="text-indigo-600 font-black">"${q}"</span> 에 일치하는 프로젝트가 없습니다.
                         </div>
-                        <span class="text-[10px] text-slate-400 font-bold flex-shrink-0 group-hover:text-indigo-600">선택 ➔</span>
-                    </div>
-                `;
-            });
+                    `;
+                    dropdown.classList.remove('hidden');
+                    return;
+                }
 
-            dropdown.innerHTML = html;
-            dropdown.classList.remove('hidden');
+                let html = '';
+                matchedPairs.forEach((item, idx) => {
+                    const safeP = (item.project || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                    const safeC = (item.client || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                    html += `
+                        <div onclick="selectTmSmartSearchResult('${safeC}', '${safeP}')"
+                            class="p-2.5 hover:bg-indigo-50/80 cursor-pointer flex items-center justify-between transition-colors group">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0"></span>
+                                <span class="text-xs font-black text-slate-800 group-hover:text-indigo-700 truncate">${safeP}</span>
+                                <span class="text-[10px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200 flex-shrink-0">${safeC}</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-bold flex-shrink-0 group-hover:text-indigo-600">선택 ➔</span>
+                        </div>
+                    `;
+                });
+
+                dropdown.innerHTML = html;
+                dropdown.classList.remove('hidden');
+            }, 200);
         }
 
         function onTmSmartQuickSearchKeydown(e) {
@@ -6942,6 +7013,7 @@ function switchTmView(view) {
         }
 
         function clearTmSmartSearch() {
+            if (_tmSmartSearchTimer) clearTimeout(_tmSmartSearchTimer);
             const input = document.getElementById('tmSmartQuickSearch');
             const btnClear = document.getElementById('btnTmSmartClear');
             const dropdown = document.getElementById('tmSmartSearchDropdown');
@@ -6953,7 +7025,9 @@ function switchTmView(view) {
         }
 
 
-function updateProjectList() {
+function updateProjectList(options = {}) {
+            if (!rawData || rawData.length === 0) return;
+            const skipAnalysis = (options && options.skipAnalysis === true);
             const year = document.getElementById('selYear').value;
             const month = document.getElementById('selMonth').value;
             const compSel = document.getElementById('selCompany');
@@ -7252,32 +7326,50 @@ function updateProjectList() {
             }
 
             // 🚀 선택된 조건(연도, 월, 업체, 프로젝트, 공정)에 대한 분석 즉시 실행!
-            runAnalysis(false);
+            if (!skipAnalysis) {
+                runAnalysis(false);
+            }
         }
+
+        let _compSearchTimer = null;
+        let _projSearchTimer = null;
 
         // 업체 검색 핸들러
         function onCompanySearchInput() {
-            updateProjectList();
+            const btnClear = document.getElementById('btnClearCompSearch');
+            const val = document.getElementById('searchCompanyInput')?.value || '';
+            if (btnClear) btnClear.classList.toggle('hidden', !val.trim());
+
+            if (_compSearchTimer) clearTimeout(_compSearchTimer);
+            _compSearchTimer = setTimeout(() => {
+                updateProjectList({ skipAnalysis: true });
+            }, 250);
         }
 
         function onCompanySearchKeydown(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
+                if (_compSearchTimer) clearTimeout(_compSearchTimer);
                 const compSel = document.getElementById('selCompany');
                 if (compSel && compSel.options.length > 1) {
                     compSel.selectedIndex = 1;
                     updateProjectList();
                     const projInput = document.getElementById('searchProjectInput');
                     if (projInput) projInput.focus();
+                } else {
+                    updateProjectList({ skipAnalysis: false });
                 }
             }
         }
 
         function clearCompanyFilter() {
+            if (_compSearchTimer) clearTimeout(_compSearchTimer);
             const input = document.getElementById('searchCompanyInput');
             if (input) input.value = '';
-            updateProjectList();
-            input.focus();
+            const btnClear = document.getElementById('btnClearCompSearch');
+            if (btnClear) btnClear.classList.add('hidden');
+            updateProjectList({ skipAnalysis: true });
+            if (input) input.focus();
         }
 
         // 프로젝트 검색 핸들러
@@ -7466,28 +7558,42 @@ function updateProjectList() {
         }
 
 function onProjectSearchInput() {
-            updateProjectList();
+            const btnClear = document.getElementById('btnClearProjSearch');
+            const val = document.getElementById('searchProjectInput')?.value || '';
+            if (btnClear) btnClear.classList.toggle('hidden', !val.trim());
+
+            if (_projSearchTimer) clearTimeout(_projSearchTimer);
+            _projSearchTimer = setTimeout(() => {
+                updateProjectList({ skipAnalysis: true });
+            }, 250);
         }
 
         function onProjectSearchKeydown(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
+                if (_projSearchTimer) clearTimeout(_projSearchTimer);
                 const projSel = document.getElementById('selProject');
                 if (projSel && projSel.options.length > 1) {
                     projSel.selectedIndex = 1;
                     runAnalysis();
+                } else {
+                    updateProjectList({ skipAnalysis: false });
                 }
             }
         }
 
         function clearProjectFilter() {
+            if (_projSearchTimer) clearTimeout(_projSearchTimer);
             const input = document.getElementById('searchProjectInput');
             if (input) input.value = '';
-            updateProjectList();
-            input.focus();
+            const btnClear = document.getElementById('btnClearProjSearch');
+            if (btnClear) btnClear.classList.add('hidden');
+            updateProjectList({ skipAnalysis: true });
+            if (input) input.focus();
         }
 
         // ⚡ 초고속 스마트 프로젝트 검색 로직
+        let _smartSearchTimer = null;
         let smartSearchActiveIndex = -1;
 
         function onSmartSearchInput(val) {
@@ -7496,90 +7602,100 @@ function onProjectSearchInput() {
             const btnClear = document.getElementById('btnSmartClear');
             if (btnClear) btnClear.classList.toggle('hidden', !q);
 
+            if (_smartSearchTimer) clearTimeout(_smartSearchTimer);
+
             if (!q || q.length < 1) {
-                dropdown.classList.add('hidden');
-                dropdown.innerHTML = '';
-                smartSearchActiveIndex = -1;
-                return;
-            }
-
-            // rawData에서 고유 프로젝트 추출
-            const map = new Map();
-            for (let i = 0; i < rawData.length; i++) {
-                const item = rawData[i];
-                const key = `${item.client}||${item.project}`;
-                if (!map.has(key)) {
-                    map.set(key, {
-                        client: item.client || '',
-                        project: item.project || '',
-                        workplace: item.workplace || '',
-                        year: item.year || '',
-                        month: item.month || '',
-                        count: 1
-                    });
-                } else {
-                    map.get(key).count++;
+                if (dropdown) {
+                    dropdown.classList.add('hidden');
+                    dropdown.innerHTML = '';
                 }
-            }
-
-            const allProjects = Array.from(map.values());
-            const matches = allProjects.filter(p => {
-                const combined = (p.project + ' ' + p.client).toLowerCase();
-                return matchQueryKeywords(combined, q, window.smartSearchMode);
-            }).slice(0, 30);
-
-            if (matches.length === 0) {
-                dropdown.innerHTML = `
-                    <div class="p-5 text-center text-xs font-bold text-slate-400">
-                        일치하는 프로젝트가 없습니다: <span class="text-rose-500 font-black">"${keywords.join(' + ')}"</span>
-                        <div class="text-[10px] text-slate-400 mt-1">입력한 모든 키워드를 동시에 포함하는 결과가 없습니다.</div>
-                    </div>
-                `;
-                dropdown.classList.remove('hidden');
                 smartSearchActiveIndex = -1;
                 return;
             }
 
-            let html = `<div class="p-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
-                <span>검색 결과: <strong class="text-emerald-600 font-black">${matches.length}</strong>건 (키워드 ${keywords.length}개 AND 매칭)</span>
-                <span class="text-[10px] text-slate-400">↑↓ 키보드 탐색, Enter 선택, ESC 닫기</span>
-            </div>`;
+            _smartSearchTimer = setTimeout(() => {
+                if (!dropdown || !rawData || rawData.length === 0) return;
 
-            matches.forEach((item, idx) => {
-                // 복수 키워드 각각에 대해 순차적으로 하이라이트 적용
-                let pHighlight = item.project;
-                let cHighlight = item.client;
-                keywords.forEach(kw => {
-                    const reg = new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-                    pHighlight = pHighlight.replace(reg, '<span class="bg-amber-200 text-amber-950 px-0.5 rounded font-black">$1</span>');
-                    cHighlight = cHighlight.replace(reg, '<span class="bg-amber-200 text-amber-950 px-0.5 rounded font-black">$1</span>');
+                const keywords = q.split(/[\s,;/|]+/).map(k => k.trim()).filter(k => k.length > 0);
+
+                // rawData에서 고유 프로젝트 추출
+                const map = new Map();
+                for (let i = 0; i < rawData.length; i++) {
+                    const item = rawData[i];
+                    const key = `${item.client}||${item.project}`;
+                    if (!map.has(key)) {
+                        map.set(key, {
+                            client: item.client || '',
+                            project: item.project || '',
+                            workplace: item.workplace || '',
+                            year: item.year || '',
+                            month: item.month || '',
+                            count: 1
+                        });
+                    } else {
+                        map.get(key).count++;
+                    }
+                }
+
+                const allProjects = Array.from(map.values());
+                const matches = allProjects.filter(p => {
+                    const combined = (p.project + ' ' + p.client).toLowerCase();
+                    return matchQueryKeywords(combined, q, window.smartSearchMode);
+                }).slice(0, 30);
+
+                if (matches.length === 0) {
+                    dropdown.innerHTML = `
+                        <div class="p-5 text-center text-xs font-bold text-slate-400">
+                            일치하는 프로젝트가 없습니다: <span class="text-rose-500 font-black">"${keywords.join(' + ')}"</span>
+                            <div class="text-[10px] text-slate-400 mt-1">입력한 모든 키워드를 동시에 포함하는 결과가 없습니다.</div>
+                        </div>
+                    `;
+                    dropdown.classList.remove('hidden');
+                    smartSearchActiveIndex = -1;
+                    return;
+                }
+
+                let html = `<div class="p-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
+                    <span>검색 결과: <strong class="text-emerald-600 font-black">${matches.length}</strong>건 (키워드 ${keywords.length}개 ${window.smartSearchMode || 'AND'} 매칭)</span>
+                    <span class="text-[10px] text-slate-400">↑↓ 키보드 탐색, Enter 선택, ESC 닫기</span>
+                </div>`;
+
+                matches.forEach((item, idx) => {
+                    // 복수 키워드 각각에 대해 순차적으로 하이라이트 적용
+                    let pHighlight = item.project;
+                    let cHighlight = item.client;
+                    keywords.forEach(kw => {
+                        const reg = new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                        pHighlight = pHighlight.replace(reg, '<span class="bg-amber-200 text-amber-950 px-0.5 rounded font-black">$1</span>');
+                        cHighlight = cHighlight.replace(reg, '<span class="bg-amber-200 text-amber-950 px-0.5 rounded font-black">$1</span>');
+                    });
+
+                    html += `
+                        <div class="smart-search-item px-4 py-3 hover:bg-emerald-50/80 cursor-pointer flex items-center justify-between transition-colors border-b border-slate-50 last:border-b-0"
+                             data-idx="${idx}"
+                             onclick="selectSmartSearchResult('${item.client.replace(/'/g, "\\'")}', '${item.project.replace(/'/g, "\\'")}')">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0">
+                                <span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-black flex-shrink-0 border border-slate-200">
+                                    ${cHighlight}
+                                </span>
+                                <span class="text-sm font-black text-slate-800 truncate">
+                                    ${pHighlight}
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+                                <span class="text-[10px] text-slate-400 font-bold hidden sm:inline">${item.workplace || ''}</span>
+                                <span class="text-[11px] font-black text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition-colors">
+                                    선택 ➔
+                                </span>
+                            </div>
+                        </div>
+                    `;
                 });
 
-                html += `
-                    <div class="smart-search-item px-4 py-3 hover:bg-emerald-50/80 cursor-pointer flex items-center justify-between transition-colors border-b border-slate-50 last:border-b-0"
-                         data-idx="${idx}"
-                         onclick="selectSmartSearchResult('${item.client.replace(/'/g, "\\'")}', '${item.project.replace(/'/g, "\\'")}')">
-                        <div class="flex items-center gap-2 overflow-hidden min-w-0">
-                            <span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-black flex-shrink-0 border border-slate-200">
-                                ${cHighlight}
-                            </span>
-                            <span class="text-sm font-black text-slate-800 truncate">
-                                ${pHighlight}
-                            </span>
-                        </div>
-                        <div class="flex items-center gap-2 flex-shrink-0 ml-2">
-                            <span class="text-[10px] text-slate-400 font-bold hidden sm:inline">${item.workplace || ''}</span>
-                            <span class="text-[11px] font-black text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition-colors">
-                                선택 ➔
-                            </span>
-                        </div>
-                    </div>
-                `;
-            });
-
-            dropdown.innerHTML = html;
-            dropdown.classList.remove('hidden');
-            smartSearchActiveIndex = -1;
+                dropdown.innerHTML = html;
+                dropdown.classList.remove('hidden');
+                smartSearchActiveIndex = -1;
+            }, 200);
         }
 
         function selectSmartSearchResult(clientName, projectName) {
@@ -7628,6 +7744,7 @@ function onProjectSearchInput() {
         }
 
         function clearSmartSearch() {
+            if (_smartSearchTimer) clearTimeout(_smartSearchTimer);
             const input = document.getElementById('smartQuickSearch');
             if (input) input.value = '';
             const dropdown = document.getElementById('smartSearchDropdown');
@@ -7638,7 +7755,7 @@ function onProjectSearchInput() {
             const btnClear = document.getElementById('btnSmartClear');
             if (btnClear) btnClear.classList.add('hidden');
             smartSearchActiveIndex = -1;
-            input.focus();
+            if (input) input.focus();
         }
 
         function onSmartSearchKeydown(e) {
@@ -10118,21 +10235,27 @@ function onProjectSearchInput() {
             }
         }
 
+        const _compSearchTimers = { A: null, B: null };
+
         function onCompSearchInput(side) {
             const input = document.getElementById(`compSearchInput${side}`);
             const btnClear = document.getElementById(`btnClearComp${side}`);
-            if (btnClear) btnClear.classList.toggle('hidden', !input.value);
+            if (btnClear && input) btnClear.classList.toggle('hidden', !input.value.trim());
 
-            populateCompDropdowns();
-            const sel = document.getElementById(`compSel${side}`);
-            if (sel && sel.options.length > 0) {
-                if (side === 'A') compTargetA = sel.value;
-                else compTargetB = sel.value;
-                runComparison();
-            }
+            if (_compSearchTimers[side]) clearTimeout(_compSearchTimers[side]);
+            _compSearchTimers[side] = setTimeout(() => {
+                populateCompDropdowns();
+                const sel = document.getElementById(`compSel${side}`);
+                if (sel && sel.options.length > 0) {
+                    if (side === 'A') compTargetA = sel.value;
+                    else compTargetB = sel.value;
+                    runComparison();
+                }
+            }, 250);
         }
 
         function clearCompSearch(side, trigger = true) {
+            if (_compSearchTimers[side]) clearTimeout(_compSearchTimers[side]);
             const input = document.getElementById(`compSearchInput${side}`);
             if (input) input.value = '';
             const btnClear = document.getElementById(`btnClearComp${side}`);

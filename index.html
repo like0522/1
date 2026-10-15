@@ -10188,8 +10188,10 @@ function onProjectSearchInput() {
             const selB = document.getElementById('compSelB');
             if (!selA || !selB || !rawData || rawData.length === 0) return;
 
-            const searchA = (document.getElementById('compSearchInputA')?.value || '').trim().toLowerCase();
-            const searchB = (document.getElementById('compSearchInputB')?.value || '').trim().toLowerCase();
+            const rawKwA = (document.getElementById('compSearchInputA')?.value || '').trim();
+            const rawKwB = (document.getElementById('compSearchInputB')?.value || '').trim();
+            const kwA = rawKwA.toLowerCase().split(/\s+/).filter(k => k.length > 0);
+            const kwB = rawKwB.toLowerCase().split(/\s+/).filter(k => k.length > 0);
 
             // 상단 기간 연동 여부 확인
             const isSync = document.getElementById('chkCompSyncPeriod')?.checked;
@@ -10338,11 +10340,11 @@ function onProjectSearchInput() {
                 }
 
                 let listA = allProjs;
-                if (kwA.length > 0) {
+                if (rawKwA) {
                     listA = listA.filter(k => {
                         const [c, p] = k.split('|');
                         const comb = `${c} ${p}`.toLowerCase();
-                        return kwA.every(kw => comb.includes(kw));
+                        return matchQueryKeywords(comb, rawKwA, window.compSearchModeA);
                     });
                 }
                 selA.innerHTML = '';
@@ -10355,11 +10357,11 @@ function onProjectSearchInput() {
                 if (allProjs.includes(compTargetA)) selA.value = compTargetA;
 
                 let listB = allProjs;
-                if (kwB.length > 0) {
+                if (rawKwB) {
                     listB = listB.filter(k => {
                         const [c, p] = k.split('|');
                         const comb = `${c} ${p}`.toLowerCase();
-                        return kwB.every(kw => comb.includes(kw));
+                        return matchQueryKeywords(comb, rawKwB, window.compSearchModeB);
                     });
                 }
                 selB.innerHTML = '';

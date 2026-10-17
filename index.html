@@ -8862,6 +8862,57 @@ function onProjectSearchInput() {
             renderWorkerCalendar();
         }
 
+        // =====================================================================
+        // 🎨 프로젝트별 고유 컬러 팔레트 & 헬퍼 (근태 달력 및 상세 달력 모달 공용)
+        // =====================================================================
+        const CAL_PROJECT_PALETTE = [
+            { bg: '#eff6ff', border: '#93c5fd', text: '#1d4ed8', badgeBg: '#dbeafe', badgeText: '#1e40af', bar: '#2563eb', name: '블루' },
+            { bg: '#fef3c7', border: '#fcd34d', text: '#b45309', badgeBg: '#fde68a', badgeText: '#78350f', bar: '#d97706', name: '앰버' },
+            { bg: '#f0fdf4', border: '#86efac', text: '#15803d', badgeBg: '#bbf7d0', badgeText: '#14532d', bar: '#16a34a', name: '그린' },
+            { bg: '#faf5ff', border: '#d8b4fe', text: '#7e22ce', badgeBg: '#e9d5ff', badgeText: '#581c87', bar: '#9333ea', name: '퍼플' },
+            { bg: '#fff1f2', border: '#fda4af', text: '#be123c', badgeBg: '#fecdd3', badgeText: '#881337', bar: '#e11d48', name: '로즈' },
+            { bg: '#ecfeff', border: '#67e8f9', text: '#0e7490', badgeBg: '#a5f3fc', badgeText: '#164e63', bar: '#0891b2', name: '시안' },
+            { bg: '#fff7ed', border: '#fdba74', text: '#c2410c', badgeBg: '#fed7aa', badgeText: '#7c2d12', bar: '#ea580c', name: '오렌지' },
+            { bg: '#fdf4ff', border: '#f0abfc', text: '#a21caf', badgeBg: '#f5d0fe', badgeText: '#701a75', bar: '#c026d3', name: '푸시아' },
+            { bg: '#f0fdfa', border: '#5eead4', text: '#0f766e', badgeBg: '#99f6e4', badgeText: '#134e4a', bar: '#0d9488', name: '틸' },
+            { bg: '#f8fafc', border: '#94a3b8', text: '#334155', badgeBg: '#cbd5e1', badgeText: '#0f172a', bar: '#475569', name: '슬레이트' },
+            { bg: '#eef2ff', border: '#a5b4fc', text: '#4338ca', badgeBg: '#e0e7ff', badgeText: '#3730a3', bar: '#4f46e5', name: '인디고' },
+            { bg: '#ecfdf5', border: '#6ee7b7', text: '#047857', badgeBg: '#d1fae5', badgeText: '#065f46', bar: '#059669', name: '에메랄드' },
+            { bg: '#f5f3ff', border: '#c4b5fd', text: '#6d28d9', badgeBg: '#ede9fe', badgeText: '#5b21b6', bar: '#7c3aed', name: '바이올렛' },
+            { bg: '#f7fee7', border: '#bef264', text: '#4d7c0f', badgeBg: '#ecfccb', badgeText: '#3f6212', bar: '#65a30d', name: '라임' },
+            { bg: '#fdf2f8', border: '#f472b6', text: '#be185d', badgeBg: '#fce7f3', badgeText: '#9d174d', bar: '#db2777', name: '핑크' },
+            { bg: '#fefce8', border: '#fde047', text: '#a16207', badgeBg: '#fef9c3', badgeText: '#854d0e', bar: '#ca8a04', name: '옐로우' }
+        ];
+
+        function getWAProjectColor(projectName, uProjsList) {
+            if (!projectName) return CAL_PROJECT_PALETTE[0];
+            if (uProjsList && uProjsList.length > 0) {
+                const idx = uProjsList.indexOf(projectName);
+                if (idx >= 0) return CAL_PROJECT_PALETTE[idx % CAL_PROJECT_PALETTE.length];
+            }
+            const colorIdx = Math.abs([...projectName].reduce((acc, c) => acc + c.charCodeAt(0), 0)) % CAL_PROJECT_PALETTE.length;
+            return CAL_PROJECT_PALETTE[colorIdx];
+        }
+
+        function getCalProjectColor(projectName, uProjsList) {
+            if (!uProjsList || uProjsList.length <= 1) return null;
+            return getWAProjectColor(projectName, uProjsList);
+        }
+
+        function selectOnlyWAProject(projectName) {
+            const checkboxes = document.querySelectorAll('input[name="waProj"]');
+            if (!checkboxes || checkboxes.length === 0) return;
+            const checked = Array.from(checkboxes).filter(cb => cb.checked);
+            if (checked.length === 1 && checked[0].value === projectName) {
+                checkboxes.forEach(cb => cb.checked = true);
+            } else {
+                checkboxes.forEach(cb => {
+                    cb.checked = (cb.value === projectName);
+                });
+            }
+            renderWorkerCalendar();
+        }
+
         // 작업자 캘린더 렌더링 엔진
         function renderWorkerCalendar() {
             const selectedYears = Array.from(document.querySelectorAll('input[name="waYearChk"]:checked')).map(cb => parseInt(cb.value)).sort((a, b) => a - b);
@@ -9022,15 +9073,43 @@ function onProjectSearchInput() {
                     titleText += ` 근태 현황`;
                 }
 
+                // 🎨 프로젝트 색상 구분 목록 생성
+                const blockProjects = Array.from(new Set(blockData.map(d => d.project).filter(Boolean))).sort();
+                let legendHTML = '';
+                if (blockProjects.length > 0) {
+                    legendHTML = `
+                        <div class="flex flex-wrap items-center gap-1.5 mt-2.5 pt-2.5 border-t border-slate-700/80">
+                            <span class="text-slate-300 font-bold text-[11px] flex items-center gap-1 flex-shrink-0">🎨 프로젝트별 색상 구분:</span>
+                            ${blockProjects.map(p => {
+                                const color = getWAProjectColor(p, blockProjects);
+                                const count = blockData.filter(d => d.project === p).length;
+                                return `
+                                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[11px] font-black shadow-2xs border transition-transform hover:scale-105 cursor-pointer"
+                                          style="background-color: ${color.bg}; border-color: ${color.border}; color: ${color.text};"
+                                          onclick="selectOnlyWAProject('${p.replace(/'/g, "\\'")}')"
+                                          title="[클릭 시 단독 필터링 토글]&#10;${p} (${count}건)">
+                                        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-2xs" style="background-color: ${color.bar};"></span>
+                                        <span class="truncate max-w-[130px] sm:max-w-[200px]">${p}</span>
+                                        <span class="text-[10px] opacity-75">(${count}건)</span>
+                                    </span>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                }
+
                 let blockHTML = `
                     <div class="dashboard-card overflow-x-auto custom-scroll mb-6">
-                        <div class="bg-slate-800 p-4 flex justify-between items-center">
-                            <h4 class="text-white font-black italic uppercase tracking-widest text-lg">${titleText}</h4>
-                            <div class="flex gap-1">
-                                <div class="w-3 h-3 bg-rose-500 rounded-full"></div>
-                                <div class="w-3 h-3 bg-rose-400 rounded-full"></div>
-                                <div class="w-3 h-3 bg-rose-300 rounded-full"></div>
+                        <div class="bg-slate-800 p-4">
+                            <div class="flex justify-between items-center">
+                                <h4 class="text-white font-black italic uppercase tracking-widest text-lg">${titleText}</h4>
+                                <div class="flex gap-1">
+                                    <div class="w-3 h-3 bg-rose-500 rounded-full"></div>
+                                    <div class="w-3 h-3 bg-rose-400 rounded-full"></div>
+                                    <div class="w-3 h-3 bg-rose-300 rounded-full"></div>
+                                </div>
                             </div>
+                            ${legendHTML}
                         </div>
                         <div class="p-4 bg-white flex flex-col gap-6">
                             
@@ -9107,7 +9186,7 @@ function onProjectSearchInput() {
                         const dayTasks = isDayInBlock ? filteredStatsData.filter(t => t.date === dateStr) : [];
                         
                         weekDaysData.push(...dayTasks);
-                        blockHTML += generateCalendarCellHTML(curD, isDayInBlock, dayTasks, selectedWorkers, showAllSelected);
+                        blockHTML += generateCalendarCellHTML(curD, isDayInBlock, dayTasks, selectedWorkers, showAllSelected, blockProjects);
                         
                         current.setDate(current.getDate() + 1);
                     }
@@ -9211,7 +9290,7 @@ function onProjectSearchInput() {
             }
         }
 
-        function generateCalendarCellHTML(day, isCurrentMonth, tasks, allSelectedWorkers, showAllSelected) {
+        function generateCalendarCellHTML(day, isCurrentMonth, tasks, allSelectedWorkers, showAllSelected, blockProjects) {
             let html = `<div class="min-h-[160px] p-1.5 bg-white flex flex-col gap-1 transition-all border-r border-b border-slate-100 ${isCurrentMonth ? 'hover:bg-slate-50' : 'bg-slate-50/20 opacity-30'}">`;
 
             let badgeHTML = '';
@@ -9231,17 +9310,18 @@ function onProjectSearchInput() {
                 allSelectedWorkers.forEach(worker => {
                     const task = tasks.find(t => t.worker === worker);
                     if (task) {
-                        const hue = [...task.project].reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360;
+                        const pColor = getWAProjectColor(task.project, blockProjects);
                         const totalH = task.h_reg + task.h_over;
                         html += `
-                            <div class="h-12 flex flex-col justify-center px-3 rounded-xl border transition-all overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 leading-tight shadow-sm"
-                                 style="background-color: hsla(${hue}, 75%, 96%, 1); border-color: hsla(${hue}, 70%, 85%, 1);"
-                                 onclick="openWorkerDetailModal('${worker.replace(/'/g, "\\'")}')">
+                            <div class="h-12 flex flex-col justify-center px-3 rounded-xl border transition-all overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 leading-tight shadow-sm relative"
+                                 style="background-color: ${pColor.bg}; border-color: ${pColor.border}; border-left: 4.5px solid ${pColor.bar};"
+                                 onclick="openWorkerDetailModal('${worker.replace(/'/g, "\\'")}')"
+                                 title="[프로젝트] ${task.project}&#10;[작업자] ${worker}&#10;[공정] ${task.type || ''}&#10;[시간] ${totalH}h">
                                 <div class="flex items-center justify-between w-full">
-                                    <span class="text-[12px] font-black truncate max-w-[70%]" style="color: hsla(${hue}, 80%, 30%, 1)">${worker}</span>
-                                    <span class="text-[11px] font-black px-1.5 rounded-lg bg-white shadow-sm text-slate-500">${totalH}h</span>
+                                    <span class="text-[12px] font-black truncate max-w-[70%]" style="color: ${pColor.text}">${worker}</span>
+                                    <span class="text-[11px] font-black px-1.5 rounded-lg shadow-2xs" style="background-color: ${pColor.badgeBg || '#ffffff'}; color: ${pColor.badgeText || pColor.text}">${totalH}h</span>
                                 </div>
-                                <div class="text-[11px] font-bold opacity-80 truncate mt-0.5" style="color: hsla(${hue}, 85%, 35%, 1)">${task.project}</div>
+                                <div class="text-[11px] font-bold opacity-85 truncate mt-0.5" style="color: ${pColor.text}">${task.project}</div>
                             </div>
                         `;
                     } else if (isCurrentMonth && showAllSelected) {
@@ -9602,9 +9682,11 @@ function onProjectSearchInput() {
 
                 listContainer.innerHTML = projectList.map(p => {
                     const isChecked = projectStates.has(p) ? projectStates.get(p) : true;
+                    const pColor = getWAProjectColor(p, projectList);
                     return `
                     <label class="flex items-center gap-2 p-2.5 bg-white border border-slate-100 rounded-xl shadow-sm cursor-pointer hover:bg-slate-50 transition-all group">
                         <input type="checkbox" name="waProj" value="${p}" onchange="renderWorkerCalendar()" class="w-3.5 h-3.5 text-rose-500 rounded focus:ring-rose-500" ${isChecked ? 'checked' : ''}>
+                        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-2xs" style="background-color: ${pColor.bar};"></span>
                         <span class="text-[11px] font-bold text-slate-700 truncate group-hover:text-rose-600 transition-colors" onclick="event.preventDefault(); event.stopPropagation(); jumpToProjectAnalysis('${p.replace(/'/g, "\\'")}')">
                             ${p}
                         </span>
@@ -9770,28 +9852,7 @@ function onProjectSearchInput() {
             }
         }
 
-        // =====================================================================
-        // 🎨 달력 모달: 복수 프로젝트 통합 분석 시 프로젝트별 고유 컬러 팔레트 & 헬퍼
-        // =====================================================================
-        const CAL_PROJECT_PALETTE = [
-            { bg: '#eff6ff', border: '#93c5fd', text: '#1d4ed8', badgeBg: '#dbeafe', badgeText: '#1e40af', bar: '#2563eb', name: '블루' },
-            { bg: '#fef3c7', border: '#fcd34d', text: '#b45309', badgeBg: '#fde68a', badgeText: '#78350f', bar: '#d97706', name: '앰버' },
-            { bg: '#f0fdf4', border: '#86efac', text: '#15803d', badgeBg: '#bbf7d0', badgeText: '#14532d', bar: '#16a34a', name: '그린' },
-            { bg: '#faf5ff', border: '#d8b4fe', text: '#7e22ce', badgeBg: '#e9d5ff', badgeText: '#581c87', bar: '#9333ea', name: '퍼플' },
-            { bg: '#fff1f2', border: '#fda4af', text: '#be123c', badgeBg: '#fecdd3', badgeText: '#881337', bar: '#e11d48', name: '로즈' },
-            { bg: '#ecfeff', border: '#67e8f9', text: '#0e7490', badgeBg: '#a5f3fc', badgeText: '#164e63', bar: '#0891b2', name: '시안' },
-            { bg: '#fff7ed', border: '#fdba74', text: '#c2410c', badgeBg: '#fed7aa', badgeText: '#7c2d12', bar: '#ea580c', name: '오렌지' },
-            { bg: '#fdf4ff', border: '#f0abfc', text: '#a21caf', badgeBg: '#f5d0fe', badgeText: '#701a75', bar: '#c026d3', name: '푸시아' },
-            { bg: '#f0fdfa', border: '#5eead4', text: '#0f766e', badgeBg: '#99f6e4', badgeText: '#134e4a', bar: '#0d9488', name: '틸' },
-            { bg: '#f8fafc', border: '#94a3b8', text: '#334155', badgeBg: '#cbd5e1', badgeText: '#0f172a', bar: '#475569', name: '슬레이트' }
-        ];
-
-        function getCalProjectColor(projectName, uProjsList) {
-            if (!uProjsList || uProjsList.length <= 1) return null;
-            const idx = uProjsList.indexOf(projectName);
-            const colorIdx = (idx >= 0 ? idx : Math.abs([...(projectName || '')].reduce((acc, c) => acc + c.charCodeAt(0), 0))) % CAL_PROJECT_PALETTE.length;
-            return CAL_PROJECT_PALETTE[colorIdx];
-        }
+        // (CAL_PROJECT_PALETTE and getCalProjectColor moved above renderWorkerCalendar for unified attendance and modal usage)
 
         function openProjectCalendarModal() {
             if (!currentProjectData || currentProjectData.length === 0) return;

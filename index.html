@@ -621,14 +621,28 @@
                 </div>
 
                 <div class="dashboard-card flex flex-col min-h-[400px]">
-                    <div class="p-6 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
-                        <h4 class="text-lg font-black text-slate-800 italic uppercase tracking-widest">공정별 작업 분석 매트릭스
-                        </h4>
-                        <div class="flex bg-slate-200 p-1 rounded-xl">
-                            <button onclick="toggleUnit('h')" id="btnUnitH"
-                                class="px-6 py-2.5 text-xs font-black rounded-lg bg-white shadow-sm transition-all">시간(h)</button>
-                            <button onclick="toggleUnit('md')" id="btnUnitMD"
-                                class="px-6 py-2.5 text-xs font-black rounded-lg text-slate-500 transition-all ml-1">공수(MD)</button>
+                    <div class="p-4 sm:p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5 flex-wrap">
+                            <h4 class="text-base sm:text-lg font-black text-slate-800 italic uppercase tracking-widest flex items-center gap-1.5">
+                                <span>⚙️</span>
+                                <span>공정별 작업 분석 매트릭스</span>
+                            </h4>
+                            <span id="lowerMatrixSyncBadge" class="text-[11px] font-black px-2.5 py-0.5 rounded-lg border transition-all inline-flex items-center gap-1 bg-slate-100 text-slate-600 border-slate-200">
+                                <span>✓</span> <span>위쪽 조건 연동 중</span>
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap self-end sm:self-auto">
+                            <button type="button" onclick="openMatrixProcSettingsModal('groups')"
+                                class="px-2.5 py-1.5 text-xs font-black bg-white hover:bg-slate-100 text-indigo-700 border border-indigo-200 rounded-xl shadow-2xs transition-colors flex items-center gap-1"
+                                title="위쪽 공정 통합(그룹) 및 표기 설정 모달 열기">
+                                <span>⚙️</span> <span>공정 통합 설정</span>
+                            </button>
+                            <div class="flex bg-slate-200 p-1 rounded-xl">
+                                <button onclick="toggleUnit('h')" id="btnUnitH"
+                                    class="px-4 sm:px-6 py-2 text-xs font-black rounded-lg bg-white shadow-sm transition-all">시간(h)</button>
+                                <button onclick="toggleUnit('md')" id="btnUnitMD"
+                                    class="px-4 sm:px-6 py-2 text-xs font-black rounded-lg text-slate-500 transition-all ml-1">공수(MD)</button>
+                            </div>
                         </div>
                     </div>
                     <div class="flex-1 overflow-auto custom-scroll p-4" id="matrixContainer"></div>
@@ -5609,6 +5623,16 @@ function switchTmView(view) {
             if (window._tmCurrentProjectPairs && window._tmCurrentProjectPairs.length > 0 && typeof renderTmProjectChips === 'function') {
                 renderTmProjectChips(window._tmCurrentProjectPairs, null, window._tmLastPFiltered);
             }
+            // 🚀 아래쪽 공정별 작업 분석 매트릭스 및 상세 이력도 위쪽 조건(통합/숨김)에 즉시 연동 갱신!
+            const weightInput = parseFloat((document.getElementById('inputWeight')?.value || '').replace(/,/g, '')) || 0;
+            const compSel = document.getElementById('selCompany');
+            const company = compSel ? compSel.value : "";
+            if (typeof renderMatrix === 'function' && Array.isArray(currentProjectData) && currentProjectData.length > 0) {
+                renderMatrix(weightInput, company);
+            }
+            if (typeof renderHistory === 'function' && Array.isArray(currentProjectData) && currentProjectData.length > 0) {
+                renderHistory();
+            }
         }
         window.toggleMatrixProcMerge = toggleAllMatrixProcGroups;
 
@@ -8925,8 +8949,71 @@ function onProjectSearchInput() {
 
         function renderMatrix(weight, company) {
             const container = document.getElementById('matrixContainer');
-            const processes = [...new Set(currentProjectData.map(i => i.type))].sort();
-            const workers = [...new Set(currentProjectData.map(i => i.worker))].sort();
+            if (!container) return;
+
+            // 1. 상단 공정 통합 및 숨김 조건 로드
+            const activeMergeMap = {};
+            const activeMergedHeads = new Set();
+            const activeMergedChildren = new Set();
+            (window.matrixMergeGroups || []).forEach(g => {
+                if (g && g.enabled && g.head && Array.isArray(g.children) && g.children.length > 0) {
+                    activeMergedHeads.add(g.head);
+                    g.children.forEach(child => {
+                        const trimmedChild = (child || '').trim();
+                        if (trimmedChild && trimmedChild !== g.head) {
+                            activeMergeMap[trimmedChild] = g.head;
+                            activeMergedChildren.add(trimmedChild);
+                        }
+                    });
+                }
+            });
+
+            const hiddenSet = window.matrixHiddenProcs || new Set();
+            const stdOrder = ['절단', '홀가공', '제관', '용접', '사상', '교정', '수정', '도장', '검사', '포장', '출장'];
+            const effectiveProcsSet = new Set();
+            const rawWorkersSet = new Set();
+
+            (currentProjectData || []).forEach(i => {
+                const rawP = (i.type || '').trim();
+                const w = (i.worker || '').trim();
+                if (w) rawWorkersSet.add(w);
+                if (rawP) {
+                    const eff = activeMergeMap[rawP] || rawP;
+                    if (!hiddenSet.has(eff)) {
+                        effectiveProcsSet.add(eff);
+                    }
+                }
+            });
+
+            // 대표 정렬 순서 적용 (표준 공정 우선 + 기타 가나다순)
+            const processes = [];
+            stdOrder.forEach(p => {
+                if (effectiveProcsSet.has(p)) processes.push(p);
+            });
+            Array.from(effectiveProcsSet).filter(p => !stdOrder.includes(p)).sort().forEach(p => {
+                processes.push(p);
+            });
+
+            const workers = Array.from(rawWorkersSet).sort();
+
+            // 상단-하단 연동 뱃지 업데이트
+            const badgeEl = document.getElementById('lowerMatrixSyncBadge');
+            if (badgeEl) {
+                const activeGroups = (window.matrixMergeGroups || []).filter(g => g.enabled && g.children && g.children.length > 0);
+                if (activeGroups.length > 0 && hiddenSet.size > 0) {
+                    badgeEl.innerHTML = `<span>🔗</span> <span>위쪽 통합 (${activeGroups.map(g => g.head).join(', ')}) · ${hiddenSet.size}개 숨김 연동</span>`;
+                    badgeEl.className = 'text-[11px] font-black px-2.5 py-0.5 rounded-lg bg-indigo-100 text-indigo-900 border border-indigo-300 shadow-2xs inline-flex items-center gap-1';
+                } else if (activeGroups.length > 0) {
+                    badgeEl.innerHTML = `<span>🔗</span> <span>위쪽 공정 통합 연동됨 (${activeGroups.map(g => g.head).join(', ')})</span>`;
+                    badgeEl.className = 'text-[11px] font-black px-2.5 py-0.5 rounded-lg bg-indigo-100 text-indigo-900 border border-indigo-300 shadow-2xs inline-flex items-center gap-1';
+                } else if (hiddenSet.size > 0) {
+                    badgeEl.innerHTML = `<span>👁️</span> <span>위쪽 공정 표기 연동 (${hiddenSet.size}개 숨김)</span>`;
+                    badgeEl.className = 'text-[11px] font-black px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs inline-flex items-center gap-1';
+                } else {
+                    badgeEl.innerHTML = `<span>✓</span> <span>위쪽 조건 연동 중 (개별 공정)</span>`;
+                    badgeEl.className = 'text-[11px] font-bold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 border border-slate-200 inline-flex items-center gap-1';
+                }
+            }
 
             let isHanil = false;
             if (company) isHanil = company.includes("한일너클프레스");
@@ -8936,20 +9023,33 @@ function onProjectSearchInput() {
             }
 
             const dataMap = {};
+            const procBreakdownMap = {}; // 통합 공정 내 원래 하위 공정별 기여 시간 추적
             processes.forEach(p => {
                 dataMap[p] = {};
+                procBreakdownMap[p] = {};
                 workers.forEach(w => dataMap[p][w] = { h: 0, c: 0 });
             });
 
             let grandTotalH = 0; let grandTotalC = 0;
-            currentProjectData.forEach(i => {
-                const h = (i.h_reg + i.h_over);
-                dataMap[i.type][i.worker].h += h;
-                dataMap[i.type][i.worker].c += i.cost;
-                grandTotalH += h; grandTotalC += i.cost;
+            (currentProjectData || []).forEach(i => {
+                const rawP = (i.type || '').trim();
+                const effP = activeMergeMap[rawP] || rawP;
+                const w = (i.worker || '').trim();
+
+                // 숨겨진 공정이면 제외
+                if (hiddenSet.has(effP)) return;
+                if (!dataMap[effP] || !dataMap[effP][w]) return;
+
+                const h = (Number(i.h_reg) || 0) + (Number(i.h_over) || 0);
+                const c = Number(i.cost) || 0;
+                dataMap[effP][w].h += h;
+                dataMap[effP][w].c += c;
+                grandTotalH += h; grandTotalC += c;
+
+                procBreakdownMap[effP][rawP] = (procBreakdownMap[effP][rawP] || 0) + h;
             });
 
-            let html = `<table class="matrix-table w-full"><thead><tr><th class="sticky left-0 bg-slate-100 z-20 shadow text-slate-500 font-bold text-xs uppercase tracking-tighter">공정 \ 작업자</th>`;
+            let html = `<table class="matrix-table w-full"><thead><tr><th class="sticky left-0 bg-slate-100 z-20 shadow text-slate-500 font-bold text-xs uppercase tracking-tighter">공정 \\ 작업자</th>`;
             workers.forEach(w => html += `<th class="text-slate-900 font-black">${w}</th>`);
             html += `<th class="bg-slate-200 shadow text-slate-700" style="min-width: 140px;">공정별 합계</th>`;
             if (weight > 0) {
@@ -8961,12 +9061,35 @@ function onProjectSearchInput() {
             processes.forEach(p => {
                 let rowSumH = 0; let rowSumC = 0;
                 workers.forEach(w => { rowSumH += dataMap[p][w].h; rowSumC += dataMap[p][w].c; });
-                const procAvgH = processAverages[p] || 0;
+
+                // 통합 공정일 경우 계열 평균도 하위 공정 평균들을 합산하여 정밀 비교
+                let procAvgH = processAverages[p] || 0;
+                const headGrp = (window.matrixMergeGroups || []).find(g => g.enabled && g.head === p && g.children && g.children.length > 0);
+                if (headGrp) {
+                    headGrp.children.forEach(subP => {
+                        procAvgH += (processAverages[subP] || 0);
+                    });
+                }
                 const displayProcAvg = displayUnit === 'h' ? procAvgH.toFixed(1) : (procAvgH / 8).toFixed(1);
 
-                html += `<tr><td class="sticky left-0 bg-slate-50 font-black text-slate-700 shadow p-3">
-                    <div class="text-[15px] leading-tight font-black">${p}</div>
-                    <div class="avg-label-box">
+                // 통합 여부 및 툴팁 구성
+                const isMergedRow = Boolean(headGrp);
+                let tooltipDetail = '';
+                if (isMergedRow) {
+                    const bd = procBreakdownMap[p] || {};
+                    const bdParts = Object.entries(bd)
+                        .filter(([subP, subH]) => subH > 0)
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([subP, subH]) => `${subP}: ${subH.toFixed(1)}h`);
+                    tooltipDetail = `[통합 공정] ${p} (하위: ${headGrp.children.join(', ')})` + (bdParts.length > 0 ? `\n\n[하위 공수 상세]\n${bdParts.join('\n')}\n합계: ${rowSumH.toFixed(1)}h` : '');
+                }
+
+                html += `<tr><td class="sticky left-0 ${isMergedRow ? 'bg-indigo-50/80 border-r-2 border-indigo-400' : 'bg-slate-50'} font-black text-slate-700 shadow p-3" title="${tooltipDetail}">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-[15px] leading-tight font-black ${isMergedRow ? 'text-indigo-950' : 'text-slate-700'}">${p}</span>
+                        ${isMergedRow ? `<span class="text-[10px] font-black text-indigo-700 bg-white border border-indigo-300 px-1.5 py-0.2 rounded shadow-2xs" title="${tooltipDetail}">🔗 통합 (${headGrp.children.length}개)</span>` : ''}
+                    </div>
+                    <div class="avg-label-box mt-1">
                         <div class="text-[10px] text-slate-400 font-bold leading-none mb-1">계열 평균</div>
                         <div class="avg-value-text">${displayProcAvg}${displayUnit === 'h' ? 'h' : 'd'}</div>
                     </div>
@@ -8975,7 +9098,7 @@ function onProjectSearchInput() {
                 workers.forEach(w => {
                     const hVal = dataMap[p][w].h; const cVal = dataMap[p][w].c;
                     const displayH = displayUnit === 'h' ? hVal : (hVal / 8).toFixed(1);
-                    html += `<td class="${hVal > 0 ? 'cell-highlight' : ''}">
+                    html += `<td class="${hVal > 0 ? (isMergedRow ? 'bg-indigo-50/40 text-indigo-950 font-bold' : 'cell-highlight') : ''}">
                         <div class="font-black text-slate-800 text-x1">${hVal > 0 ? displayH + (displayUnit === 'h' ? 'h' : '') : ''}</div>
                         <div class="text-[11px] text-slate-400 mt-1">${cVal > 0 ? '₩' + cVal.toLocaleString() : ''}</div>
                     </td>`;
@@ -8988,8 +9111,11 @@ function onProjectSearchInput() {
                 const procSign = procPerfRatio > 100 ? '+' : '';
                 const procDiff = (procPerfRatio - 100).toFixed(1);
 
-                html += `<td class="bg-slate-100 font-bold p-3 text-left border-l-2 border-slate-200">${rowSumH > 0 ? `
-                    <div class="text-slate-900 text-[13px] font-black underline decoration-slate-300 underline-offset-4 mb-1">${p} 합계</div>
+                html += `<td class="${isMergedRow ? 'bg-indigo-50/60' : 'bg-slate-100'} font-bold p-3 text-left border-l-2 border-slate-200" title="${tooltipDetail}">${rowSumH > 0 ? `
+                    <div class="flex items-center justify-between gap-1 mb-1">
+                        <div class="text-slate-900 text-[13px] font-black underline decoration-slate-300 underline-offset-4">${p} 합계</div>
+                        ${isMergedRow ? '<span class="text-[10px] text-indigo-600 font-black">🔗 통합</span>' : ''}
+                    </div>
                     <div class="text-[15px] font-black text-slate-900">${sumH}h <span class="text-indigo-600 text-[12px]">(${sumMD}MD)</span></div>
                     <div class="flex flex-wrap gap-x-2 gap-y-1 mt-1.5">
                         <span class="text-[11px] bg-white border border-slate-200 px-1.5 rounded font-bold text-indigo-500">비율: ${procRatioOfTotal}%</span>
@@ -9088,11 +9214,36 @@ function onProjectSearchInput() {
             if (!body) return;
             let html = '';
             const isMultiProj = new Set(currentProjectData.map(i => i.project)).size > 1;
-            const displayRows = currentProjectData.slice(0, 500);
+
+            // 상단 공정 통합 및 숨김 조건 반영
+            const hiddenSet = window.matrixHiddenProcs || new Set();
+            const activeMergeMap = {};
+            (window.matrixMergeGroups || []).forEach(g => {
+                if (g && g.enabled && g.head && Array.isArray(g.children)) {
+                    g.children.forEach(c => {
+                        if (c && c !== g.head) activeMergeMap[c] = g.head;
+                    });
+                }
+            });
+
+            // 숨김 처리된 공정은 상세 이력에서도 필터링
+            const visibleRows = (currentProjectData || []).filter(row => {
+                const rawP = (row.type || '').trim();
+                const effP = activeMergeMap[rawP] || rawP;
+                return !hiddenSet.has(effP);
+            });
+            const displayRows = visibleRows.slice(0, 500);
 
             displayRows.forEach(row => {
                 const totalH = row.h_reg + row.h_over;
                 const projBadge = isMultiProj ? `<div class="text-[10px] text-indigo-600 font-bold mt-0.5 truncate max-w-[190px]">[${row.client}] ${row.project}</div>` : '';
+                const rawP = (row.type || '').trim();
+                const effP = activeMergeMap[rawP] || rawP;
+                const isMerged = (effP !== rawP);
+                const procBadge = isMerged
+                    ? `<span class="px-2 py-0.5 bg-indigo-100 border border-indigo-300 rounded text-[11px] font-black text-indigo-900 inline-flex items-center gap-1" title="통합 대표 공정: ${effP}"><span>🔗</span><span>${row.type}</span><span class="text-[9px] text-indigo-600">➔ ${effP}</span></span>`
+                    : `<span class="px-2 py-0.5 bg-slate-100 rounded text-[11px] font-bold text-slate-600">${row.type}</span>`;
+
                 html += `
                 <tr class="hover:bg-slate-50 transition-colors">
                     <td class="text-slate-500 font-medium">
@@ -9100,7 +9251,7 @@ function onProjectSearchInput() {
                         ${projBadge}
                     </td>
                     <td class="font-bold text-slate-700">${row.worker}</td>
-                    <td><span class="px-2 py-0.5 bg-slate-100 rounded text-[11px] font-bold text-slate-600">${row.type}</span></td>
+                    <td>${procBadge}</td>
                     <td class="text-slate-600 font-medium">${row.h_reg > 0 ? row.h_reg + 'h' : ''}</td>
                     <td class="text-amber-600 font-black">${row.h_over > 0 ? row.h_over + 'h' : ''}</td>
                     <td class="font-black text-slate-800">${totalH}h</td>
@@ -9108,8 +9259,8 @@ function onProjectSearchInput() {
                 </tr>`;
             });
 
-            if (currentProjectData.length > 500) {
-                html += `<tr><td colspan="7" class="p-3 text-center text-xs text-slate-400 font-bold bg-slate-50">외 ${currentProjectData.length - 500}건의 상세 이력이 더 있습니다 (상단 필터로 기간/공정/프로젝트를 좁혀보세요)</td></tr>`;
+            if (visibleRows.length > 500) {
+                html += `<tr><td colspan="7" class="p-3 text-center text-xs text-slate-400 font-bold bg-slate-50">외 ${visibleRows.length - 500}건의 상세 이력이 더 있습니다 (상단 필터로 기간/공정/프로젝트를 좁혀보세요)</td></tr>`;
             }
 
             body.innerHTML = html;

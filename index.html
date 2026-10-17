@@ -597,10 +597,15 @@
                                 <span id="viewTotalHours" class="text-5xl font-black text-slate-900">0</span>
                                 <span class="text-sm font-bold text-slate-400 uppercase tracking-tighter">시간</span>
                             </div>
-                            <div class="mt-1 pl-1">
-                                <span class="text-xs font-bold text-slate-400 italic mr-1">공수:</span>
-                                <span id="viewTotalMD" class="text-lg font-black text-amber-600">0.0</span>
-                                <span class="text-[10px] font-bold text-amber-500/70 ml-0.5">MD</span>
+                            <div class="mt-1 pl-1 flex items-center justify-between flex-wrap gap-1">
+                                <div>
+                                    <span class="text-xs font-bold text-slate-400 italic mr-1">공수:</span>
+                                    <span id="viewTotalMD" class="text-lg font-black text-amber-600">0.0</span>
+                                    <span class="text-[10px] font-bold text-amber-500/70 ml-0.5">MD</span>
+                                </div>
+                                <div id="viewMultiProjAvgBadge" class="hidden text-[11px] font-black text-amber-900 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-lg shadow-2xs">
+                                    <span id="viewMultiProjAvgH">0.0h</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -8786,25 +8791,46 @@ function onProjectSearchInput() {
             } else {
                 // 복수 프로젝트 중복선택 or 전체 프로젝트 통합 분석
                 const uClients = [...new Set(currentProjectData.map(i => i.client))];
-                const uProjs = [...new Set(currentProjectData.map(i => i.project))];
+                const uProjs = [...new Set(currentProjectData.map(i => i.project))].filter(Boolean);
                 const uWorkers = [...new Set(currentProjectData.map(i => i.worker))];
                 const uProcs = [...new Set(currentProjectData.map(i => i.type))];
+
+                const numProjs = uProjs.length;
+                let totalHAll = 0;
+                currentProjectData.forEach(i => totalHAll += ((Number(i.h_reg) || 0) + (Number(i.h_over) || 0)));
+
+                if (numProjs > 1) {
+                    currentAvgH = totalHAll / numProjs;
+
+                    processAverages = {};
+                    const procList = [...new Set(currentProjectData.map(i => (i.type || '').trim()))];
+                    procList.forEach(p => {
+                        const procH = currentProjectData
+                            .filter(i => (i.type || '').trim() === p)
+                            .reduce((acc, curr) => acc + ((Number(curr.h_reg) || 0) + (Number(curr.h_over) || 0)), 0);
+                        processAverages[p] = procH / numProjs;
+                    });
+                } else {
+                    currentAvgH = 0;
+                    processAverages = {};
+                }
 
                 if (hintContainer && hintText) {
                     hintContainer.classList.remove('hidden');
                     let procLabel = (typeof selectedFilterProcesses !== 'undefined' && !selectedFilterProcesses.has('ALL')) ? ` · 공정: ${Array.from(selectedFilterProcesses).join(', ')}` : '';
                     if (selectedFilterProjects && selectedFilterProjects.size > 1) {
-                        hintText.innerHTML = `📦 <b>중복 프로젝트 합산 분석:</b> ${uProjs.length}개 프로젝트 동시 집계 (${uProjs.slice(0, 3).join(', ')}${uProjs.length > 3 ? ' 외 ' + (uProjs.length - 3) + '개' : ''}), ${uWorkers.length}명 작업자, ${uProcs.length}개 공정 완료${procLabel}`;
+                        const avgStr = numProjs > 1 ? ` · <b>1대(프로젝트)당 평균: ${(totalHAll / numProjs).toFixed(1)}시간 (${((totalHAll / numProjs) / 8).toFixed(1)}MD)</b>` : '';
+                        hintText.innerHTML = `📦 <b>중복 프로젝트 합산 분석:</b> ${uProjs.length}개 프로젝트 동시 집계 (${uProjs.slice(0, 3).join(', ')}${uProjs.length > 3 ? ' 외 ' + (uProjs.length - 3) + '개' : ''})${avgStr}, ${uWorkers.length}명 작업자, ${uProcs.length}개 공정 완료${procLabel}`;
                     } else if (selectedFilterCompanies && selectedFilterCompanies.size > 1) {
                         let cList = Array.from(selectedFilterCompanies);
-                        hintText.innerHTML = `📦 <b>중복 업체 합산 분석:</b> ${cList.length}개 업체 동시 집계 (${cList.slice(0, 3).join(', ')}${cList.length > 3 ? ' 외 ' + (cList.length - 3) + '개' : ''}), ${uProjs.length}개 프로젝트, ${uWorkers.length}명 작업자, ${uProcs.length}개 공정 집계 완료${procLabel}`;
+                        const avgStr = numProjs > 1 ? ` · <b>1대당 평균: ${(totalHAll / numProjs).toFixed(1)}시간</b>` : '';
+                        hintText.innerHTML = `📦 <b>중복 업체 합산 분석:</b> ${cList.length}개 업체 동시 집계 (${cList.slice(0, 3).join(', ')}${cList.length > 3 ? ' 외 ' + (cList.length - 3) + '개' : ''})${avgStr}, ${uProjs.length}개 프로젝트, ${uWorkers.length}명 작업자, ${uProcs.length}개 공정 집계 완료${procLabel}`;
                     } else {
                         let condLabel = (company && company !== '__MULTI_SELECTED__') ? `[🏢 ${company}]` : `[🌐 ${uClients.length}개 협력업체]`;
-                        hintText.innerHTML = `📊 <b>조건별 종합 분석:</b> ${condLabel} ${uProjs.length}개 프로젝트, ${uWorkers.length}명 작업자, ${uProcs.length}개 공정 집계 완료${procLabel}`;
+                        const avgStr = numProjs > 1 ? ` · <b>1대당 평균: ${(totalHAll / numProjs).toFixed(1)}시간</b>` : '';
+                        hintText.innerHTML = `📊 <b>조건별 종합 분석:</b> ${condLabel} ${uProjs.length}개 프로젝트${avgStr}, ${uWorkers.length}명 작업자, ${uProcs.length}개 공정 집계 완료${procLabel}`;
                     }
                 }
-                currentAvgH = 0;
-                processAverages = {};
             }
 
             if (currentProjectData.length > 0) {
@@ -8837,6 +8863,20 @@ function onProjectSearchInput() {
                 if (vMD) vMD.textContent = (totalH / 8).toFixed(1);
                 const vCost = document.getElementById('viewTotalCost');
                 if (vCost) vCost.textContent = totalC.toLocaleString();
+
+                const avgBadge = document.getElementById('viewMultiProjAvgBadge');
+                const avgHText = document.getElementById('viewMultiProjAvgH');
+                const uniqueProjsInRun = [...new Set(currentProjectData.map(i => i.project))].filter(Boolean);
+                if (avgBadge && avgHText) {
+                    if (uniqueProjsInRun.length > 1 && totalH > 0) {
+                        avgBadge.classList.remove('hidden');
+                        const hAvg = (totalH / uniqueProjsInRun.length).toFixed(1);
+                        const mdAvg = ((totalH / uniqueProjsInRun.length) / 8).toFixed(1);
+                        avgHText.textContent = `1대당: ${hAvg}h (${mdAvg}MD) [${uniqueProjsInRun.length}대 평균]`;
+                    } else {
+                        avgBadge.classList.add('hidden');
+                    }
+                }
 
                 const profitLossElem = document.getElementById('viewProfitLoss');
                 if (profitLossElem) {
@@ -9058,16 +9098,22 @@ function onProjectSearchInput() {
             }
             html += `</tr></thead><tbody>`;
 
+            const uProjsInMatrix = [...new Set(currentProjectData.map(i => i.project))].filter(Boolean);
+            const matrixProjCount = uProjsInMatrix.length;
+            const isMultiProjMode = (matrixProjCount > 1);
+
             processes.forEach(p => {
                 let rowSumH = 0; let rowSumC = 0;
                 workers.forEach(w => { rowSumH += dataMap[p][w].h; rowSumC += dataMap[p][w].c; });
 
-                // 통합 공정일 경우 계열 평균도 하위 공정 평균들을 합산하여 정밀 비교
+                // 통합 공정일 경우 계열/선택 평균도 하위 공정 평균들을 합산하여 정밀 비교
                 let procAvgH = processAverages[p] || 0;
                 const headGrp = (window.matrixMergeGroups || []).find(g => g.enabled && g.head === p && g.children && g.children.length > 0);
                 if (headGrp) {
                     headGrp.children.forEach(subP => {
-                        procAvgH += (processAverages[subP] || 0);
+                        if (subP !== p) {
+                            procAvgH += (processAverages[subP] || 0);
+                        }
                     });
                 }
                 const displayProcAvg = displayUnit === 'h' ? procAvgH.toFixed(1) : (procAvgH / 8).toFixed(1);
@@ -9075,23 +9121,49 @@ function onProjectSearchInput() {
                 // 통합 여부 및 툴팁 구성
                 const isMergedRow = Boolean(headGrp);
                 let tooltipDetail = '';
-                if (isMergedRow) {
-                    const bd = procBreakdownMap[p] || {};
-                    const bdParts = Object.entries(bd)
-                        .filter(([subP, subH]) => subH > 0)
+                const bd = procBreakdownMap[p] || {};
+                const bdParts = Object.entries(bd)
+                    .filter(([subP, subH]) => subH > 0)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([subP, subH]) => `• ${subP}: ${subH.toFixed(1)}h`);
+
+                let projParts = [];
+                if (isMultiProjMode) {
+                    const projBd = {};
+                    currentProjectData.forEach(i => {
+                        const rawP = (i.type || '').trim();
+                        const effP = activeMergeMap[rawP] || rawP;
+                        if (effP === p) {
+                            const pr = (i.project || '').trim() || '기타';
+                            const h = (Number(i.h_reg) || 0) + (Number(i.h_over) || 0);
+                            projBd[pr] = (projBd[pr] || 0) + h;
+                        }
+                    });
+                    projParts = Object.entries(projBd)
                         .sort((a, b) => b[1] - a[1])
-                        .map(([subP, subH]) => `${subP}: ${subH.toFixed(1)}h`);
-                    tooltipDetail = `[통합 공정] ${p} (하위: ${headGrp.children.join(', ')})` + (bdParts.length > 0 ? `\n\n[하위 공수 상세]\n${bdParts.join('\n')}\n합계: ${rowSumH.toFixed(1)}h` : '');
+                        .map(([pr, prH]) => `• ${pr}: ${prH.toFixed(1)}h`);
                 }
+
+                if (isMergedRow) {
+                    tooltipDetail = `[통합 공정] ${p} (하위: ${headGrp.children.join(', ')})\n\n[하위 공수 상세]\n${bdParts.join('\n')}\n합계: ${rowSumH.toFixed(1)}h`;
+                }
+                if (isMultiProjMode && projParts.length > 0) {
+                    tooltipDetail += (tooltipDetail ? '\n\n' : '') + `[선택 ${matrixProjCount}개 프로젝트별 공수]\n${projParts.join('\n')}\n1대당 평균: ${displayProcAvg}${displayUnit === 'h' ? 'h' : 'MD'}`;
+                }
+
+                const avgLabelTitle = isMultiProjMode ? `선택(${matrixProjCount}개) 평균` : '계열 평균';
+                const avgBoxTooltip = isMultiProjMode 
+                    ? `선택된 ${matrixProjCount}개 프로젝트의 1대당 평균 공수: ${displayProcAvg}${displayUnit === 'h' ? 'h' : 'MD'}`
+                    : `동일 계열 모델 평균 공수: ${displayProcAvg}${displayUnit === 'h' ? 'h' : 'MD'}`;
 
                 html += `<tr><td class="sticky left-0 ${isMergedRow ? 'bg-indigo-50/80 border-r-2 border-indigo-400' : 'bg-slate-50'} font-black text-slate-700 shadow p-3" title="${tooltipDetail}">
                     <div class="flex items-center gap-1.5 flex-wrap">
                         <span class="text-[15px] leading-tight font-black ${isMergedRow ? 'text-indigo-950' : 'text-slate-700'}">${p}</span>
                         ${isMergedRow ? `<span class="text-[10px] font-black text-indigo-700 bg-white border border-indigo-300 px-1.5 py-0.2 rounded shadow-2xs" title="${tooltipDetail}">🔗 통합 (${headGrp.children.length}개)</span>` : ''}
                     </div>
-                    <div class="avg-label-box mt-1">
-                        <div class="text-[10px] text-slate-400 font-bold leading-none mb-1">계열 평균</div>
-                        <div class="avg-value-text">${displayProcAvg}${displayUnit === 'h' ? 'h' : 'd'}</div>
+                    <div class="avg-label-box mt-1" title="${avgBoxTooltip}">
+                        <div class="text-[10px] ${isMultiProjMode ? 'text-amber-700 font-black' : 'text-slate-400 font-bold'} leading-none mb-1">${avgLabelTitle}</div>
+                        <div class="avg-value-text ${isMultiProjMode ? 'text-amber-600' : ''}">${displayProcAvg}${displayUnit === 'h' ? 'h' : 'd'}</div>
                     </div>
                 </td>`;
 
@@ -9111,6 +9183,14 @@ function onProjectSearchInput() {
                 const procSign = procPerfRatio > 100 ? '+' : '';
                 const procDiff = (procPerfRatio - 100).toFixed(1);
 
+                const avgBadgeHTML = isMultiProjMode 
+                    ? `<span class="text-[11px] bg-amber-50 border border-amber-300 px-1.5 rounded font-black text-amber-800" title="선택 ${matrixProjCount}개 1대당 평균">1대당: ${displayProcAvg}${displayUnit === 'h' ? 'h' : 'MD'}</span>`
+                    : `<span class="text-[11px] bg-white border border-slate-200 px-1.5 rounded font-black ${procPerfColor}">대비: ${procSign}${procDiff}%</span>`;
+
+                const costPerProjText = isMultiProjMode 
+                    ? `<span class="text-slate-500 font-bold">(대당 ₩${Math.round(rowSumC / matrixProjCount).toLocaleString()})</span>` 
+                    : '';
+
                 html += `<td class="${isMergedRow ? 'bg-indigo-50/60' : 'bg-slate-100'} font-bold p-3 text-left border-l-2 border-slate-200" title="${tooltipDetail}">${rowSumH > 0 ? `
                     <div class="flex items-center justify-between gap-1 mb-1">
                         <div class="text-slate-900 text-[13px] font-black underline decoration-slate-300 underline-offset-4">${p} 합계</div>
@@ -9119,9 +9199,12 @@ function onProjectSearchInput() {
                     <div class="text-[15px] font-black text-slate-900">${sumH}h <span class="text-indigo-600 text-[12px]">(${sumMD}MD)</span></div>
                     <div class="flex flex-wrap gap-x-2 gap-y-1 mt-1.5">
                         <span class="text-[11px] bg-white border border-slate-200 px-1.5 rounded font-bold text-indigo-500">비율: ${procRatioOfTotal}%</span>
-                        <span class="text-[11px] bg-white border border-slate-200 px-1.5 rounded font-black ${procPerfColor}">대비: ${procSign}${procDiff}%</span>
+                        ${avgBadgeHTML}
                     </div>
-                    <div class="text-[11px] text-slate-400 font-medium italic mt-1.5">총액: ₩${rowSumC.toLocaleString()}</div>
+                    <div class="text-[11px] text-slate-400 font-medium italic mt-1.5 flex justify-between">
+                        <span>총액: ₩${rowSumC.toLocaleString()}</span>
+                        ${costPerProjText}
+                    </div>
                     ` : ''}</td>`;
 
                 if (weight > 0) {
@@ -9153,8 +9236,9 @@ function onProjectSearchInput() {
             });
 
             const finalAvgDisplay = (displayUnit === 'h' ? currentAvgH : currentAvgH / 8).toFixed(1);
+            const totalAvgLabel = isMultiProjMode ? `선택(${matrixProjCount}개) 총 평균` : '계열 총 평균';
             html += `<tr class="border-t-4 border-slate-300"><td class="sticky left-0 bg-slate-900 text-white font-black p-4 z-20">
-                <div class="text-[11px] opacity-70 font-bold uppercase tracking-wider">계열 총 평균</div>
+                <div class="text-[11px] opacity-70 font-bold uppercase tracking-wider">${totalAvgLabel}</div>
                 <div class="text-2xl text-amber-400 mt-1 font-black">${finalAvgDisplay}${displayUnit === 'h' ? 'h' : 'd'}</div>
             </td>`;
 
@@ -9174,11 +9258,19 @@ function onProjectSearchInput() {
             const totalPerfRatio = currentAvgH > 0 ? ((grandTotalH / currentAvgH) * 100) : 100;
             const totalPerfColor = totalPerfRatio > 100 ? 'text-white bg-red-600' : (totalPerfRatio < 100 ? 'text-white bg-blue-600' : 'text-white bg-amber-500');
 
+            const totalPerfOrAvgHTML = isMultiProjMode 
+                ? `<div class="text-[12px] mt-2 border-t border-white/30 pt-1.5 font-black text-amber-200">1대당 평균: ${finalAvgDisplay}${displayUnit === 'h' ? 'h' : 'MD'}</div>`
+                : `<div class="text-[12px] mt-2 border-t border-white/30 pt-1.5 font-black">평균대비: ${(totalPerfRatio - 100).toFixed(1)}%</div>`;
+
+            const totalCostPerProjText = isMultiProjMode 
+                ? ` <div class="text-[11px] opacity-80 font-normal mt-0.5">(1대당 ₩${Math.round(grandTotalC / matrixProjCount).toLocaleString()})</div>` 
+                : '';
+
             html += `<td class="${totalPerfColor} font-black p-4">
                 <div class="text-[15px] leading-tight font-black">전체 ${finalDisplayH}h</div>
                 <div class="text-[12px] opacity-90 mt-0.5 font-bold">(${finalDisplayMD}MD)</div>
-                <div class="text-[12px] mt-2 border-t border-white/30 pt-1.5 font-black">평균대비: ${(totalPerfRatio - 100).toFixed(1)}%</div>
-                <div class="text-[13px] font-black mt-1">₩${grandTotalC.toLocaleString()}</div>
+                ${totalPerfOrAvgHTML}
+                <div class="text-[13px] font-black mt-1">₩${grandTotalC.toLocaleString()}${totalCostPerProjText}</div>
             </td>`;
 
             if (weight > 0) {

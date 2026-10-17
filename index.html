@@ -57,6 +57,52 @@
             display: none !important;
         }
 
+        /* 🎨 근태 달력: 프로젝트 뱃지 & 달력 작업자 카드 상호작용 (꿈틀 인터랙션) */
+        @keyframes waWiggle {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.18) rotate(-1.5deg); }
+            60% { transform: scale(1.12) rotate(1.5deg); }
+            100% { transform: scale(1.14) rotate(0deg); }
+        }
+
+        @keyframes waCardPop {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.09) translateY(-2px); }
+            70% { transform: scale(1.05); }
+            100% { transform: scale(1.07); }
+        }
+
+        .wa-proj-badge, .wa-worker-card {
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, opacity 0.2s ease, filter 0.2s ease !important;
+            will-change: transform, opacity;
+        }
+
+        .wa-badge-highlight {
+            animation: waWiggle 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+            z-index: 40 !important;
+            box-shadow: 0 0 0 2.5px #ffffff, 0 8px 20px rgba(0, 0, 0, 0.45) !important;
+            filter: brightness(1.12) !important;
+        }
+
+        .wa-badge-dimmed {
+            opacity: 0.3 !important;
+            transform: scale(0.95) !important;
+            filter: grayscale(40%) !important;
+        }
+
+        .wa-highlight-active {
+            animation: waCardPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+            z-index: 30 !important;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22), 0 0 0 2.5px #3b82f6 !important;
+            filter: brightness(1.08) !important;
+        }
+
+        .wa-dimmed {
+            opacity: 0.22 !important;
+            transform: scale(0.98) !important;
+            filter: grayscale(60%) !important;
+        }
+
         .matrix-table th,
         .matrix-table td {
             border: 1px solid #e2e8f0;
@@ -1568,7 +1614,7 @@
                 </div>
 
                 <!-- 오른쪽: 캘린더 영역 (모바일 대응 가로 스크롤 추가) -->
-                <div class="lg:col-span-3 flex flex-col gap-6 overflow-x-auto custom-scroll" id="waMultiCalendarContainer">
+                <div class="lg:col-span-3 flex flex-col gap-6" id="waMultiCalendarContainer">
                     <div class="dashboard-card overflow-hidden">
                         <div class="bg-slate-800 p-8 flex justify-center items-center">
                             <h4 class="text-white font-black italic uppercase tracking-widest text-sm">연도와 월을 선택해주세요
@@ -8931,6 +8977,42 @@ function onProjectSearchInput() {
             renderWorkerCalendar();
         }
 
+        // 🎨 프로젝트 뱃지 및 달력 작업자 카드 양방향 꿈틀 하이라이트 인터랙션
+        function highlightWAProject(projectName, isHovered, sourceEl) {
+            if (!projectName) return;
+            const container = document.getElementById('waMultiCalendarContainer');
+            if (!container) return;
+
+            const badges = container.querySelectorAll('.wa-proj-badge');
+            const cards = container.querySelectorAll('.wa-worker-card');
+
+            if (!isHovered) {
+                badges.forEach(b => b.classList.remove('wa-badge-highlight', 'wa-badge-dimmed'));
+                cards.forEach(c => c.classList.remove('wa-highlight-active', 'wa-dimmed'));
+                return;
+            }
+
+            badges.forEach(b => {
+                if (b.getAttribute('data-project') === projectName) {
+                    b.classList.add('wa-badge-highlight');
+                    b.classList.remove('wa-badge-dimmed');
+                } else {
+                    b.classList.add('wa-badge-dimmed');
+                    b.classList.remove('wa-badge-highlight');
+                }
+            });
+
+            cards.forEach(c => {
+                if (c.getAttribute('data-project') === projectName) {
+                    c.classList.add('wa-highlight-active');
+                    c.classList.remove('wa-dimmed');
+                } else {
+                    c.classList.add('wa-dimmed');
+                    c.classList.remove('wa-highlight-active');
+                }
+            });
+        }
+
         // 작업자 캘린더 렌더링 엔진
         function renderWorkerCalendar() {
             const selectedYears = Array.from(document.querySelectorAll('input[name="waYearChk"]:checked')).map(cb => parseInt(cb.value)).sort((a, b) => a - b);
@@ -9096,14 +9178,18 @@ function onProjectSearchInput() {
                 let legendHTML = '';
                 if (blockProjects.length > 0) {
                     legendHTML = `
-                        <div class="flex flex-wrap items-center gap-1.5 mt-2.5 pt-2.5 border-t border-slate-700/80">
+                        <div class="flex flex-wrap items-center gap-1.5 mt-2.5 pt-2.5 border-t border-slate-700/80 max-h-[140px] overflow-y-auto custom-scroll pr-1">
                             <span class="text-slate-300 font-bold text-[11px] flex items-center gap-1 flex-shrink-0">🎨 프로젝트별 색상 구분:</span>
                             ${blockProjects.map(p => {
                                 const color = getWAProjectColor(p, blockProjects);
                                 const count = blockData.filter(d => d.project === p).length;
+                                const safeP = p.replace(/"/g, '&quot;');
                                 return `
-                                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[11px] font-black shadow-2xs border transition-transform hover:scale-105 cursor-pointer"
+                                    <span class="wa-proj-badge inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[11px] font-black shadow-2xs border transition-all duration-200 cursor-pointer"
+                                          data-project="${safeP}"
                                           style="background-color: ${color.bg}; border-color: ${color.border}; color: ${color.text};"
+                                          onmouseenter="highlightWAProject('${p.replace(/'/g, "\\'")}', true, this)"
+                                          onmouseleave="highlightWAProject('${p.replace(/'/g, "\\'")}', false, this)"
                                           onclick="selectOnlyWAProject('${p.replace(/'/g, "\\'")}')"
                                           title="[클릭 시 단독 필터링 토글]&#10;${p} (${count}건)">
                                         <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-2xs" style="background-color: ${color.bar};"></span>
@@ -9117,8 +9203,8 @@ function onProjectSearchInput() {
                 }
 
                 let blockHTML = `
-                    <div class="dashboard-card overflow-x-auto custom-scroll mb-6">
-                        <div class="bg-slate-800 p-4">
+                    <div class="dashboard-card mb-6 overflow-visible">
+                        <div class="bg-slate-800 p-4 sticky top-[68px] z-30 shadow-lg rounded-t-2xl border-b border-slate-700">
                             <div class="flex justify-between items-center">
                                 <h4 class="text-white font-black italic uppercase tracking-widest text-lg">${titleText}</h4>
                                 <div class="flex gap-1">
@@ -9129,7 +9215,7 @@ function onProjectSearchInput() {
                             </div>
                             ${legendHTML}
                         </div>
-                        <div class="p-4 bg-white flex flex-col gap-6">
+                        <div class="p-4 bg-white flex flex-col gap-6 rounded-b-2xl">
                             
                             <!-- [캘린더 영역] -->
                             <div class="flex-1 overflow-x-auto custom-scroll">
@@ -9330,9 +9416,13 @@ function onProjectSearchInput() {
                     if (task) {
                         const pColor = getWAProjectColor(task.project, blockProjects);
                         const totalH = task.h_reg + task.h_over;
+                        const safeP = (task.project || '').replace(/"/g, '&quot;');
                         html += `
-                            <div class="h-12 flex flex-col justify-center px-3 rounded-xl border transition-all overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 leading-tight shadow-sm relative"
+                            <div class="wa-worker-card h-12 flex flex-col justify-center px-3 rounded-xl border transition-all duration-200 overflow-hidden cursor-pointer active:scale-95 leading-tight shadow-sm relative"
+                                 data-project="${safeP}"
                                  style="background-color: ${pColor.bg}; border-color: ${pColor.border}; border-left: 4.5px solid ${pColor.bar};"
+                                 onmouseenter="highlightWAProject('${task.project.replace(/'/g, "\\'")}', true, this)"
+                                 onmouseleave="highlightWAProject('${task.project.replace(/'/g, "\\'")}', false, this)"
                                  onclick="openWorkerDetailModal('${worker.replace(/'/g, "\\'")}')"
                                  title="[프로젝트] ${task.project}&#10;[작업자] ${worker}&#10;[공정] ${task.type || ''}&#10;[시간] ${totalH}h">
                                 <div class="flex items-center justify-between w-full">

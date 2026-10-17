@@ -4728,7 +4728,7 @@ function switchTmView(view) {
                                         <th class="p-2 text-center min-w-[65px] font-bold text-slate-600 border-r border-slate-200/60">${p}</th>
                                     `).join('')}
                                     <th class="p-2 text-right min-w-[75px] font-black text-slate-800 border-r border-slate-200">총공수</th>
-                                    <th class="p-2 min-w-[140px] font-bold text-slate-600">투입 작업자</th>
+                                    <th class="p-2 min-w-[200px] font-bold text-slate-600">투입 작업자</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 font-bold text-slate-700">
@@ -4742,6 +4742,15 @@ function switchTmView(view) {
                 const displayProj = (selectedFilterCompanies.size === 1 || currentComp) ? item.project : `[${item.client}] ${item.project}`;
                 const safeProj = displayProj.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
                 const workersList = Object.entries(item.workerMap || {}).map(([w, hInfo]) => `${w}(${hInfo.totH.toFixed(1)}h)`).join(', ') || '-';
+
+                const targetLabel = metrics.targetLabel || '용접';
+                const weldWorkersEntries = Object.entries(item.workerMap || {})
+                    .filter(([w, hInfo]) => ((hInfo.weldH || hInfo.targetH || 0) > 0))
+                    .sort((a, b) => ((b[1].weldH || b[1].targetH || 0) - (a[1].weldH || a[1].targetH || 0)));
+                const weldWorkersList = weldWorkersEntries
+                    .map(([w, hInfo]) => `${w}(${(hInfo.weldH || hInfo.targetH || 0).toFixed(1)}h)`)
+                    .join(', ');
+                const weldTooltip = weldWorkersList ? `[${targetLabel} 작업자] ${weldWorkersList}` : (item.weldTotal > 0 ? `${targetLabel}: ${item.weldTotal.toFixed(1)}h` : '-');
 
                 html += `
                     <tr class="transition-colors hover:bg-amber-50/50 ${isSel ? 'bg-blue-50/70 font-black' : ''}">
@@ -4758,15 +4767,15 @@ function switchTmView(view) {
                                 ${isSel ? '<span class="text-[9px] font-black px-1.5 py-0.2 rounded bg-blue-600 text-white shrink-0">선택</span>' : '<span class="text-[9px] font-bold px-1 py-0.2 rounded bg-slate-100 text-slate-500 shrink-0">미선택</span>'}
                             </div>
                         </td>
-                        <td class="p-2 bg-amber-50/70 border-x border-amber-200 cursor-pointer" onclick="handleMatrixRowClickByIndex(${rowIdx}, false)">
+                        <td class="p-2 bg-amber-50/70 border-x border-amber-200 cursor-pointer" onclick="handleMatrixRowClickByIndex(${rowIdx}, false)" title="${weldTooltip}">
                             <div class="flex items-baseline justify-between gap-1">
-                                <span class="font-mono font-black text-xs ${item.weldTotal > 0 ? 'text-amber-800' : 'text-slate-400'}">
+                                <span class="font-mono font-black text-xs hover:underline cursor-help ${item.weldTotal > 0 ? 'text-amber-800' : 'text-slate-400'}" title="${weldTooltip}">
                                     ${item.weldTotal > 0 ? item.weldTotal.toFixed(1) + 'h' : '-'}
                                 </span>
-                                ${item.weldTotal > 0 ? `<span class="text-[10px] text-amber-700 font-bold">(정 ${item.weldReg.toFixed(0)}/연 ${item.weldOver.toFixed(0)})</span>` : ''}
+                                ${item.weldTotal > 0 ? `<span class="text-[10px] text-amber-700 font-bold" title="${weldTooltip}">(정 ${item.weldReg.toFixed(0)}/연 ${item.weldOver.toFixed(0)})</span>` : ''}
                             </div>
                             ${item.weldTotal > 0 ? `
-                                <div class="w-full bg-amber-200/80 rounded-full h-1 mt-1 overflow-hidden">
+                                <div class="w-full bg-amber-200/80 rounded-full h-1 mt-1 overflow-hidden" title="${weldTooltip}">
                                     <div class="bg-amber-500 h-full rounded-full" style="width: ${weldPct}%"></div>
                                 </div>
                             ` : ''}
@@ -4782,7 +4791,7 @@ function switchTmView(view) {
                         <td class="p-2 text-right font-mono font-black text-slate-800 border-r border-slate-200">
                             ${item.totalH.toFixed(1)}h
                         </td>
-                        <td class="p-2 text-slate-600 truncate max-w-[180px] text-[11px]" title="${workersList}">
+                        <td class="p-2 text-slate-700 text-[11px] min-w-[200px] max-w-[320px] whitespace-normal break-words leading-relaxed" title="${workersList}">
                             ${workersList}
                         </td>
                     </tr>
@@ -6268,7 +6277,7 @@ function switchTmView(view) {
                                         <th class="p-2 text-center min-w-[65px] font-bold text-slate-600 border-r border-slate-200/60">${p}</th>
                                     `).join('')}
                                     <th class="p-2 text-right min-w-[75px] font-black text-slate-800 border-r border-slate-200">총공수</th>
-                                    <th class="p-2 min-w-[140px] font-bold text-slate-600">투입 작업자</th>
+                                    <th class="p-2 min-w-[200px] font-bold text-slate-600">투입 작업자</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 font-bold text-slate-700">
@@ -6282,6 +6291,15 @@ function switchTmView(view) {
                 const displayProj = (tmSelectedFilterCompanies.size === 1 || currentComp) ? item.project : `[${item.client}] ${item.project}`;
                 const safeProj = displayProj.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
                 const workersList = Object.entries(item.workerMap || {}).map(([w, hInfo]) => `${w}(${hInfo.totH.toFixed(1)}h)`).join(', ') || '-';
+
+                const targetLabel = metrics.targetLabel || '용접';
+                const weldWorkersEntries = Object.entries(item.workerMap || {})
+                    .filter(([w, hInfo]) => ((hInfo.weldH || hInfo.targetH || 0) > 0))
+                    .sort((a, b) => ((b[1].weldH || b[1].targetH || 0) - (a[1].weldH || a[1].targetH || 0)));
+                const weldWorkersList = weldWorkersEntries
+                    .map(([w, hInfo]) => `${w}(${(hInfo.weldH || hInfo.targetH || 0).toFixed(1)}h)`)
+                    .join(', ');
+                const weldTooltip = weldWorkersList ? `[${targetLabel} 작업자] ${weldWorkersList}` : (item.weldTotal > 0 ? `${targetLabel}: ${item.weldTotal.toFixed(1)}h` : '-');
 
                 html += `
                     <tr class="transition-colors hover:bg-amber-50/50 ${isSel ? 'bg-blue-50/70 font-black' : ''}">
@@ -6298,15 +6316,15 @@ function switchTmView(view) {
                                 ${isSel ? '<span class="text-[9px] font-black px-1.5 py-0.2 rounded bg-blue-600 text-white shrink-0">선택</span>' : '<span class="text-[9px] font-bold px-1 py-0.2 rounded bg-slate-100 text-slate-500 shrink-0">미선택</span>'}
                             </div>
                         </td>
-                        <td class="p-2 bg-amber-50/70 border-x border-amber-200 cursor-pointer" onclick="handleTmMatrixRowClickByIndex(${rowIdx}, false)">
+                        <td class="p-2 bg-amber-50/70 border-x border-amber-200 cursor-pointer" onclick="handleTmMatrixRowClickByIndex(${rowIdx}, false)" title="${weldTooltip}">
                             <div class="flex items-baseline justify-between gap-1">
-                                <span class="font-mono font-black text-xs ${item.weldTotal > 0 ? 'text-amber-800' : 'text-slate-400'}">
+                                <span class="font-mono font-black text-xs hover:underline cursor-help ${item.weldTotal > 0 ? 'text-amber-800' : 'text-slate-400'}" title="${weldTooltip}">
                                     ${item.weldTotal > 0 ? item.weldTotal.toFixed(1) + 'h' : '-'}
                                 </span>
-                                ${item.weldTotal > 0 ? `<span class="text-[10px] text-amber-700 font-bold">(정 ${item.weldReg.toFixed(0)}/연 ${item.weldOver.toFixed(0)})</span>` : ''}
+                                ${item.weldTotal > 0 ? `<span class="text-[10px] text-amber-700 font-bold" title="${weldTooltip}">(정 ${item.weldReg.toFixed(0)}/연 ${item.weldOver.toFixed(0)})</span>` : ''}
                             </div>
                             ${item.weldTotal > 0 ? `
-                                <div class="w-full bg-amber-200/80 rounded-full h-1 mt-1 overflow-hidden">
+                                <div class="w-full bg-amber-200/80 rounded-full h-1 mt-1 overflow-hidden" title="${weldTooltip}">
                                     <div class="bg-amber-500 h-full rounded-full" style="width: ${weldPct}%"></div>
                                 </div>
                             ` : ''}
@@ -6322,7 +6340,7 @@ function switchTmView(view) {
                         <td class="p-2 text-right font-mono font-black text-slate-800 border-r border-slate-200">
                             ${item.totalH.toFixed(1)}h
                         </td>
-                        <td class="p-2 text-slate-600 truncate max-w-[180px] text-[11px]" title="${workersList}">
+                        <td class="p-2 text-slate-700 text-[11px] min-w-[200px] max-w-[320px] whitespace-normal break-words leading-relaxed" title="${workersList}">
                             ${workersList}
                         </td>
                     </tr>

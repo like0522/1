@@ -1897,6 +1897,11 @@
                     </button>
                 </div>
                 <div class="flex items-center gap-1.5 pb-1">
+                    <button type="button" id="btnToggleRelevantProcs" onclick="toggleModalRelevantOnly()"
+                        class="px-2.5 py-1 text-[11px] font-black bg-indigo-100 hover:bg-indigo-200 text-indigo-900 border border-indigo-300 rounded-lg shadow-2xs transition-all flex items-center gap-1"
+                        title="클릭 시 데이터베이스 전체 공정 목록 표시로 전환">
+                        <span>🎯</span> <span>관련 공정만</span>
+                    </button>
                     <button type="button" onclick="addNewProcGroup()" class="px-2.5 py-1 text-[11px] font-black bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-2xs transition-colors flex items-center gap-1">
                         <span>+</span> <span>새 그룹 추가</span>
                     </button>
@@ -4642,6 +4647,7 @@ function switchTmView(view) {
             const stdOrder = ['절단', '홀가공', '제관', '용접', '사상', '교정', '수정', '도장', '검사', '포장', '출장'];
             const encounteredProcs = new Set();
             const allEncounteredRawProcs = new Set(stdOrder);
+            const currentRelevantProcs = new Set();
             let sumTarget = 0;
             let sumTargetReg = 0;
             let sumTargetOver = 0;
@@ -4691,7 +4697,10 @@ function switchTmView(view) {
                     const pType = (r.type || '').trim();
                     const wName = (r.worker || '').trim();
 
-                    if (pType) allEncounteredRawProcs.add(pType);
+                    if (pType) {
+                        allEncounteredRawProcs.add(pType);
+                        if (h > 0) currentRelevantProcs.add(pType);
+                    }
 
                     // 공정 그룹 합치기 처리 (하위 공정 ➔ 대표(머리) 공정으로 매핑)
                     const effectiveProc = activeMergeMap[pType] || pType;
@@ -4760,7 +4769,28 @@ function switchTmView(view) {
 
             const maxTarget = Math.max(...list.map(m => m.targetTotal), 0.1);
 
-            // 전체 알려진 공정 목록 보존 (설정 모달 체크박스 목록용)
+            // 현재 화면/프로젝트에서 실제 작업 시간(h > 0)이 발생했거나 통합 그룹에 포함된 '관련 공정' 세트 구성
+            const relevantSet = new Set(currentRelevantProcs);
+            targetProcList.forEach(tp => { if (tp) relevantSet.add(tp); });
+            (window.matrixMergeGroups || []).forEach(g => {
+                if (g.head) relevantSet.add(g.head);
+                if (Array.isArray(g.children)) g.children.forEach(c => { if (c) relevantSet.add(c); });
+            });
+
+            let relevantOrdered = [];
+            stdOrder.forEach(p => {
+                if (relevantSet.has(p)) relevantOrdered.push(p);
+            });
+            Array.from(relevantSet).filter(p => !stdOrder.includes(p)).sort().forEach(p => {
+                relevantOrdered.push(p);
+            });
+
+            if (relevantOrdered.length === 0) {
+                relevantOrdered = Array.from(encounteredProcs);
+                if (relevantOrdered.length === 0) relevantOrdered = [...stdOrder];
+            }
+
+            window._matrixRelevantProcs = relevantOrdered;
             window._matrixAllKnownProcs = Array.from(allEncounteredRawProcs);
 
             // 타겟 공정에 이미 포함된 공정, 하위로 통합된 공정, 개별 숨김 공정 제외
@@ -5233,11 +5263,14 @@ function switchTmView(view) {
         function addNewProcGroup() {
             if (!Array.isArray(window.matrixMergeGroups)) window.matrixMergeGroups = [];
             const stdOrder = ['절단', '홀가공', '제관', '용접', '사상', '교정', '수정', '도장', '검사', '포장', '출장'];
-            const allKnown = window._matrixAllKnownProcs || stdOrder;
+            const relevantProcs = window._matrixRelevantProcs && window._matrixRelevantProcs.length > 0 
+                ? window._matrixRelevantProcs 
+                : stdOrder;
+            const pool = (window._matrixModalOnlyRelevant !== false) ? relevantProcs : (window._matrixAllKnownProcs || stdOrder);
 
             // 이미 사용 중인 head 피하기
             const usedHeads = new Set(window.matrixMergeGroups.map(g => g.head));
-            let pickHead = allKnown.find(p => !usedHeads.has(p)) || '기타';
+            let pickHead = pool.find(p => !usedHeads.has(p)) || pool[0] || '기타';
 
             const newGrp = {
                 id: 'grp_' + Date.now(),
@@ -5311,14 +5344,43 @@ function switchTmView(view) {
             refreshMatrixViews();
         }
 
+        // 🎯 관련 공정만 보기 vs 전체 공정 보기 모달 토글
+        function toggleModalRelevantOnly() {
+            window._matrixModalOnlyRelevant = (window._matrixModalOnlyRelevant === undefined) ? false : !window._matrixModalOnlyRelevant;
+            renderProcGroupsEditor();
+            populateModalProcCheckboxes();
+        }
+
         // 통합 그룹 편집기 카드 렌더링
         function renderProcGroupsEditor() {
             const container = document.getElementById('modalProcGroupsContainer');
             if (!container) return;
 
             const stdOrder = ['절단', '홀가공', '제관', '용접', '사상', '교정', '수정', '도장', '검사', '포장', '출장'];
+            if (window._matrixModalOnlyRelevant === undefined) window._matrixModalOnlyRelevant = true;
+
+            const relevantProcs = window._matrixRelevantProcs && window._matrixRelevantProcs.length > 0 
+                ? window._matrixRelevantProcs 
+                : stdOrder;
             const allKnown = window._matrixAllKnownProcs || stdOrder;
+
+            // 현재 모드에 따른 표시 대상 공정 목록
+            const activePool = (window._matrixModalOnlyRelevant !== false) ? relevantProcs : allKnown;
             const groups = window.matrixMergeGroups || [];
+
+            // 상단 토글 버튼 UI 갱신
+            const toggleBtn = document.getElementById('btnToggleRelevantProcs');
+            if (toggleBtn) {
+                if (window._matrixModalOnlyRelevant !== false) {
+                    toggleBtn.innerHTML = `<span>🎯</span> <span>관련 공정만 (${relevantProcs.length}개)</span>`;
+                    toggleBtn.className = 'px-2.5 py-1 text-[11px] font-black bg-indigo-100 hover:bg-indigo-200 text-indigo-900 border border-indigo-300 rounded-lg shadow-2xs transition-all flex items-center gap-1';
+                    toggleBtn.title = '클릭 시 데이터베이스 전체 공정 목록 표시로 전환';
+                } else {
+                    toggleBtn.innerHTML = `<span>🌐</span> <span>전체 공정 (${allKnown.length}개)</span>`;
+                    toggleBtn.className = 'px-2.5 py-1 text-[11px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg shadow-2xs transition-all flex items-center gap-1';
+                    toggleBtn.title = '클릭 시 현재 도면 관련 공정만 보기로 전환';
+                }
+            }
 
             if (groups.length === 0) {
                 container.innerHTML = `
@@ -5338,13 +5400,27 @@ function switchTmView(view) {
                 const isEnabled = Boolean(g.enabled);
                 const childrenSet = new Set(g.children || []);
 
-                // 머리 공정 선택 드롭다운 옵션
-                const headOptions = allKnown.map(p => {
+                // 머리 공정 선택 드롭다운 옵션 (activePool 기반, 현재 g.head 누락 방지)
+                const headPool = activePool.includes(g.head) ? activePool : [g.head, ...activePool];
+                const headOptions = headPool.map(p => {
                     return `<option value="${p}" ${g.head === p ? 'selected' : ''}>${p}</option>`;
                 }).join('');
 
-                // 하위 공정 선택 체크박스 알약 목록 (자신의 머리 공정 제외)
-                const availableChildren = allKnown.filter(p => p !== g.head);
+                // 하위 공정 선택 체크박스 알약 목록 (자신의 머리 공정 제외, 현재 선택된 children 누락 방지)
+                const childPoolSet = new Set(activePool);
+                (g.children || []).forEach(c => childPoolSet.add(c));
+                const availableChildren = Array.from(childPoolSet).filter(p => p !== g.head);
+
+                // 정렬: stdOrder 우선, 그 외 가나다순
+                availableChildren.sort((a, b) => {
+                    const idxA = stdOrder.indexOf(a);
+                    const idxB = stdOrder.indexOf(b);
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                    if (idxA !== -1) return -1;
+                    if (idxB !== -1) return 1;
+                    return a.localeCompare(b);
+                });
+
                 const childPills = availableChildren.map(p => {
                     const isChecked = childrenSet.has(p);
                     return `
@@ -5386,13 +5462,20 @@ function switchTmView(view) {
 
                         <!-- Sub processes selection pills -->
                         <div class="space-y-1.5">
-                            <div class="flex items-center justify-between">
+                            <div class="flex items-center justify-between flex-wrap gap-1">
                                 <span class="text-[11px] font-bold text-slate-600">
                                     🔽 <b class="text-indigo-900">${g.head}</b> 공정으로 합칠 하위 공정 선택:
                                 </span>
-                                <span class="text-[11px] font-mono font-black ${childrenSet.size > 0 ? 'text-indigo-700 bg-indigo-50 px-1.5 py-0.2 rounded border border-indigo-200' : 'text-slate-400'}">
-                                    ${childrenSet.size}개 공정 선택됨
-                                </span>
+                                <div class="flex items-center gap-1.5">
+                                    <button type="button" onclick="toggleModalRelevantOnly()"
+                                        title="${window._matrixModalOnlyRelevant !== false ? '클릭 시 데이터베이스 전체 공정 목록 표시' : '클릭 시 현재 도면 관련 공정만 표시'}"
+                                        class="text-[10px] font-black px-2 py-0.5 rounded-md border transition-all ${window._matrixModalOnlyRelevant !== false ? 'bg-indigo-50 text-indigo-800 border-indigo-200 hover:bg-indigo-100' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'}">
+                                        ${window._matrixModalOnlyRelevant !== false ? `🎯 관련 공정만 (${availableChildren.length}개)` : `🌐 전체 공정 (${availableChildren.length}개)`}
+                                    </button>
+                                    <span class="text-[11px] font-mono font-black ${childrenSet.size > 0 ? 'text-indigo-700 bg-indigo-50 px-1.5 py-0.2 rounded border border-indigo-200' : 'text-slate-400'}">
+                                        ${childrenSet.size}개 공정 선택됨
+                                    </span>
+                                </div>
                             </div>
                             <div class="flex flex-wrap gap-1.5 p-2 bg-slate-50/90 rounded-xl border border-slate-200">
                                 ${childPills}
@@ -5414,7 +5497,17 @@ function switchTmView(view) {
             if (!grid) return;
 
             const stdOrder = ['절단', '홀가공', '제관', '용접', '사상', '교정', '수정', '도장', '검사', '포장', '출장'];
+            const relevantProcs = window._matrixRelevantProcs && window._matrixRelevantProcs.length > 0 
+                ? window._matrixRelevantProcs 
+                : stdOrder;
             const allKnown = window._matrixAllKnownProcs || stdOrder;
+
+            // 관련 공정 모드일 때는 관련 공정 + 숨김 공정 표시
+            const basePool = (window._matrixModalOnlyRelevant !== false) ? relevantProcs : allKnown;
+            const poolSet = new Set(basePool);
+            if (window.matrixHiddenProcs) {
+                window.matrixHiddenProcs.forEach(hp => poolSet.add(hp));
+            }
 
             // 현재 활성화된 통합 그룹의 하위 공정 파악
             const activeMergedChildrenMap = {};
@@ -5426,8 +5519,18 @@ function switchTmView(view) {
                 }
             });
 
+            const poolList = Array.from(poolSet);
+            poolList.sort((a, b) => {
+                const idxA = stdOrder.indexOf(a);
+                const idxB = stdOrder.indexOf(b);
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                if (idxA !== -1) return -1;
+                if (idxB !== -1) return 1;
+                return a.localeCompare(b);
+            });
+
             let html = '';
-            allKnown.forEach(p => {
+            poolList.forEach(p => {
                 const isHidden = window.matrixHiddenProcs && window.matrixHiddenProcs.has(p);
                 const parentHead = activeMergedChildrenMap[p];
                 const isMergedChild = Boolean(parentHead);

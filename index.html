@@ -1858,21 +1858,21 @@
         </div>
     </div>
 
-    <!-- ⚙️ 공정 표기 & 통합 설정 모달 -->
+    <!-- ⚙️ 공정 그룹(합치기) & 표기 설정 모달 -->
     <div id="matrixProcSettingsModal"
         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs hidden transition-opacity duration-200"
         onclick="if(event.target === this) closeMatrixProcSettingsModal()">
-        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-150" onclick="event.stopPropagation()">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-150" onclick="event.stopPropagation()">
             <!-- Header -->
             <div class="px-5 py-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between border-b border-indigo-900/40">
                 <div class="flex items-center gap-2.5">
-                    <span class="p-1.5 rounded-xl bg-indigo-600/80 text-white text-base leading-none shadow-xs">⚙️</span>
+                    <span class="p-1.5 rounded-xl bg-indigo-600 text-white text-base leading-none shadow-xs">⚙️</span>
                     <div>
                         <h3 class="text-sm sm:text-base font-black tracking-tight text-white flex items-center gap-2">
-                            공정 표기 &amp; 통합 설정
+                            공정 통합 그룹(합치기) &amp; 표기 설정
                         </h3>
                         <p class="text-[11px] text-indigo-300 font-bold mt-0.5">
-                            프로젝트 분석 매트릭스의 공정 컬럼 통합 및 표시/숨김 관리
+                            대표(머리) 공정을 선택하고 하위 목록을 묶어 원하는 대로 그룹을 편집하세요.
                         </p>
                     </div>
                 </div>
@@ -1884,74 +1884,74 @@
                 </button>
             </div>
 
+            <!-- Tab Navigation Bar -->
+            <div class="px-5 pt-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-1.5">
+                    <button type="button" id="tabBtnProcGroups" onclick="switchProcSettingsTab('groups')"
+                        class="px-3.5 py-2 text-xs font-black rounded-t-xl border-t-2 border-x border-indigo-600 bg-white text-indigo-700 shadow-2xs">
+                        🔗 공정 통합(그룹) 편집
+                    </button>
+                    <button type="button" id="tabBtnProcVisibility" onclick="switchProcSettingsTab('visibility')"
+                        class="px-3.5 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors">
+                        👁️ 공정 컬럼 개별 표시/숨김
+                    </button>
+                </div>
+                <div class="flex items-center gap-1.5 pb-1">
+                    <button type="button" onclick="addNewProcGroup()" class="px-2.5 py-1 text-[11px] font-black bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-2xs transition-colors flex items-center gap-1">
+                        <span>+</span> <span>새 그룹 추가</span>
+                    </button>
+                    <button type="button" onclick="resetProcGroupsToDefault()" class="px-2 py-1 text-[11px] font-bold bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-lg transition-colors" title="제관 기본 그룹으로 복원">
+                        기본값
+                    </button>
+                </div>
+            </div>
+
             <!-- Body -->
-            <div class="p-4 sm:p-5 overflow-y-auto custom-scroll space-y-4 text-xs">
-                <!-- Section 1: 공정 합치기 (통합) -->
-                <div class="p-3.5 rounded-xl bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 border border-indigo-200/80 shadow-2xs space-y-2.5">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-1.5">
-                                <span class="font-black text-slate-900 text-xs flex items-center gap-1">
-                                    <span>🔗</span> <span>제관 공정 통합 (홀가공·사상·교정·수정 ➔ 제관)</span>
-                                </span>
-                                <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-800 border border-indigo-300">권장</span>
-                            </div>
-                            <p class="text-[11px] text-slate-600 leading-relaxed font-bold">
-                                홀가공, 사상, 교정, 수정의 작업 공수를 <b class="text-indigo-900 underline decoration-indigo-400">제관</b> 공정으로 합산하여 단일 컬럼으로 축약합니다.
-                            </p>
+            <div class="p-4 sm:p-5 overflow-y-auto custom-scroll space-y-4 text-xs flex-1">
+                <!-- Tab 1: 공정 통합 그룹 편집 -->
+                <div id="secProcGroupsTab" class="space-y-3">
+                    <div class="p-2.5 bg-indigo-50/70 rounded-xl border border-indigo-200/80 text-[11px] text-indigo-950 font-bold flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <span>💡</span>
+                            <span>대표(머리) 공정을 고르고 하위 공정을 체크하면 매트릭스 표에서 대표 공정으로 시간이 합산됩니다.</span>
                         </div>
-                        <label class="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
-                            <input type="checkbox" id="modalProcMergeCheckbox" onchange="onModalProcMergeToggle(this.checked)" class="sr-only peer">
-                            <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                        </label>
                     </div>
-                    <div class="pt-2 border-t border-indigo-100/80 flex items-center gap-1.5 text-[11px] font-bold text-indigo-800 flex-wrap">
-                        <span class="text-indigo-500">통합 대상:</span>
-                        <span class="px-1.5 py-0.5 bg-white rounded border border-indigo-200">홀가공</span>
-                        <span class="text-slate-400">+</span>
-                        <span class="px-1.5 py-0.5 bg-white rounded border border-indigo-200">사상</span>
-                        <span class="text-slate-400">+</span>
-                        <span class="px-1.5 py-0.5 bg-white rounded border border-indigo-200">교정</span>
-                        <span class="text-slate-400">+</span>
-                        <span class="px-1.5 py-0.5 bg-white rounded border border-indigo-200">수정</span>
-                        <span class="text-slate-400">➔</span>
-                        <span class="px-2 py-0.5 bg-indigo-600 text-white rounded font-black shadow-2xs">제관</span>
+
+                    <!-- Groups List Container (Rendered dynamically) -->
+                    <div id="modalProcGroupsContainer" class="space-y-3">
+                        <!-- JS renders group cards here -->
                     </div>
                 </div>
 
-                <!-- Section 2: 공정 컬럼 개별 표시/숨김 -->
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-1.5">
-                            <span class="font-black text-slate-900 text-xs flex items-center gap-1">
-                                <span>👁️</span> <span>공정 컬럼 개별 표시 / 숨기기</span>
-                            </span>
-                            <span id="modalHiddenProcsCountBadge" class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">전체 표시 중</span>
+                <!-- Tab 2: 공정 컬럼 개별 표시/숨김 -->
+                <div id="secProcVisibilityTab" class="space-y-3 hidden">
+                    <div class="flex items-center justify-between pb-1 border-b border-slate-100">
+                        <div>
+                            <span class="font-black text-slate-900 text-xs">매트릭스 표에 표시할 공정 컬럼 선택</span>
+                            <p class="text-[11px] text-slate-500 font-bold mt-0.5">체크 해제 시 해당 공정 컬럼이 매트릭스 표에서 즉시 숨겨집니다.</p>
                         </div>
                         <div class="flex items-center gap-1">
+                            <span id="modalHiddenProcsCountBadge" class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">전체 표시 중</span>
                             <button type="button" onclick="setAllProcsVisibility(true)" class="px-2 py-0.8 text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-200 transition-colors">
                                 모두 표시
                             </button>
-                            <button type="button" onclick="resetProcsSettings()" class="px-2 py-0.8 text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-200 transition-colors">
-                                기본값
+                            <button type="button" onclick="resetProcsVisibilitySettings()" class="px-2 py-0.8 text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-200 transition-colors">
+                                초기화
                             </button>
                         </div>
                     </div>
-                    <p class="text-[11px] text-slate-500 font-bold">
-                        체크를 해제하면 매트릭스 테이블에서 해당 공정 컬럼이 즉시 숨겨집니다.
-                    </p>
 
                     <!-- Process checkboxes grid -->
-                    <div id="modalProcCheckboxGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 max-h-56 overflow-y-auto custom-scroll p-1">
-                        <!-- Javascript dynamically fills this -->
+                    <div id="modalProcCheckboxGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 max-h-64 overflow-y-auto custom-scroll p-1">
+                        <!-- JS dynamically fills this -->
                     </div>
                 </div>
             </div>
 
             <!-- Footer -->
             <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-                <span class="text-[11px] text-slate-400 font-bold">
-                    💡 설정은 브라우저에 자동 저장됩니다.
+                <span class="text-[11px] text-slate-400 font-bold flex items-center gap-1">
+                    <span>💾</span> <span>편집한 그룹 및 설정은 브라우저에 자동 저장됩니다.</span>
                 </span>
                 <button type="button" onclick="closeMatrixProcSettingsModal()"
                     class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-xs transition-colors">
@@ -4553,21 +4553,34 @@ function switchTmView(view) {
         }
 
         // =========================================================================
-        // 🔧 공정 합치기(통합) 및 공정 개별 숨기기 전역 설정 및 상태
+        // 🔧 공정 합치기(그룹 통합) 및 공정 개별 숨기기 전역 설정 및 상태
         // =========================================================================
-        const DEFAULT_PROC_MERGE_TARGET = '제관';
-        const DEFAULT_PROC_MERGED_SOURCES = ['홀가공', '사상', '교정', '수정'];
-        const DEFAULT_PROC_MERGE_MAP = {
-            '홀가공': '제관',
-            '사상': '제관',
-            '교정': '제관',
-            '수정': '제관'
-        };
+        const DEFAULT_MATRIX_MERGE_GROUPS = [
+            {
+                id: 'grp_default_jegwan',
+                head: '제관',
+                children: ['홀가공', '사상', '교정', '수정'],
+                enabled: true
+            }
+        ];
 
-        // 제관 공정 통합 활성화 여부 (기본값: true - 사용자 요청 사전 반영, localStorage 보존)
-        if (typeof window.matrixProcMergeEnabled === 'undefined') {
-            const savedMerge = localStorage.getItem('pwaa_matrix_proc_merge');
-            window.matrixProcMergeEnabled = savedMerge !== null ? (savedMerge === 'true') : true;
+        // 사용자 정의 통합 그룹 배열 (localStorage 보존)
+        if (typeof window.matrixMergeGroups === 'undefined') {
+            try {
+                const savedGroups = localStorage.getItem('pwaa_matrix_merge_groups');
+                if (savedGroups) {
+                    const parsed = JSON.parse(savedGroups);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        window.matrixMergeGroups = parsed;
+                    } else {
+                        window.matrixMergeGroups = JSON.parse(JSON.stringify(DEFAULT_MATRIX_MERGE_GROUPS));
+                    }
+                } else {
+                    window.matrixMergeGroups = JSON.parse(JSON.stringify(DEFAULT_MATRIX_MERGE_GROUPS));
+                }
+            } catch(e) {
+                window.matrixMergeGroups = JSON.parse(JSON.stringify(DEFAULT_MATRIX_MERGE_GROUPS));
+            }
         }
 
         // 개별 숨김 처리된 공정 Set (localStorage 보존)
@@ -4635,7 +4648,23 @@ function switchTmView(view) {
             let sumTotal = 0;
             const allWorkersSet = new Set();
 
-            const isMergeActive = Boolean(window.matrixProcMergeEnabled);
+            // 🔧 활성화된 통합 그룹들로부터 매핑 테이블 및 세트 구성
+            const activeMergeMap = {}; // childProc -> headProc
+            const activeMergedHeads = new Set();
+            const activeMergedChildren = new Set();
+
+            (window.matrixMergeGroups || []).forEach(g => {
+                if (g && g.enabled && g.head && Array.isArray(g.children) && g.children.length > 0) {
+                    activeMergedHeads.add(g.head);
+                    g.children.forEach(child => {
+                        const trimmedChild = (child || '').trim();
+                        if (trimmedChild && trimmedChild !== g.head) {
+                            activeMergeMap[trimmedChild] = g.head;
+                            activeMergedChildren.add(trimmedChild);
+                        }
+                    });
+                }
+            });
 
             const list = projectPairs.map((pair, idx) => {
                 const parts = pair.split('|');
@@ -4664,10 +4693,8 @@ function switchTmView(view) {
 
                     if (pType) allEncounteredRawProcs.add(pType);
 
-                    // 공정 합치기 처리 (홀가공/사상/교정/수정 ➔ 제관)
-                    const effectiveProc = (isMergeActive && DEFAULT_PROC_MERGE_MAP[pType])
-                        ? DEFAULT_PROC_MERGE_MAP[pType]
-                        : pType;
+                    // 공정 그룹 합치기 처리 (하위 공정 ➔ 대표(머리) 공정으로 매핑)
+                    const effectiveProc = activeMergeMap[pType] || pType;
 
                     // 선택된 공정(들) 매칭 여부
                     const isMatchedTarget = isProcFiltered
@@ -4736,15 +4763,15 @@ function switchTmView(view) {
             // 전체 알려진 공정 목록 보존 (설정 모달 체크박스 목록용)
             window._matrixAllKnownProcs = Array.from(allEncounteredRawProcs);
 
-            // 타겟 공정에 이미 포함된 공정 및 개별 숨김 공정 제외
+            // 타겟 공정에 이미 포함된 공정, 하위로 통합된 공정, 개별 숨김 공정 제외
             const hiddenSet = window.matrixHiddenProcs || new Set();
             const activeProcs = [];
             stdOrder.forEach(p => {
-                if (encounteredProcs.has(p) && !targetProcList.includes(p) && !hiddenSet.has(p)) {
+                if (encounteredProcs.has(p) && !targetProcList.includes(p) && !activeMergedChildren.has(p) && !hiddenSet.has(p)) {
                     activeProcs.push(p);
                 }
             });
-            Array.from(encounteredProcs).filter(p => !stdOrder.includes(p) && !targetProcList.includes(p) && !hiddenSet.has(p)).sort().forEach(p => {
+            Array.from(encounteredProcs).filter(p => !stdOrder.includes(p) && !targetProcList.includes(p) && !activeMergedChildren.has(p) && !hiddenSet.has(p)).sort().forEach(p => {
                 activeProcs.push(p);
             });
 
@@ -4885,6 +4912,19 @@ function switchTmView(view) {
 
             const currentComp = document.getElementById('selCompany')?.value || '';
 
+            // 활성화된 통합 그룹 상태 파악
+            const activeGroups = (window.matrixMergeGroups || []).filter(g => g.enabled && g.children && g.children.length > 0);
+            let mergeBtnText = '공정 통합 OFF';
+            let mergeBtnTitle = '공정 통합 그룹 켜기';
+            if (activeGroups.length === 1) {
+                mergeBtnText = `🔗 ${activeGroups[0].head} 통합 ON (${activeGroups[0].children.length}개)`;
+                mergeBtnTitle = `${activeGroups[0].head} 공정으로 [${activeGroups[0].children.join(', ')}] 합산 중 (클릭 시 전체 해제)`;
+            } else if (activeGroups.length > 1) {
+                mergeBtnText = `🔗 공정 통합 ON (${activeGroups.length}개 그룹)`;
+                mergeBtnTitle = `${activeGroups.length}개 통합 그룹 적용 중 (클릭 시 전체 해제)`;
+            }
+            const isAnyGroupActive = activeGroups.length > 0;
+
             let html = `
                 <div class="p-3 bg-white rounded-2xl border-2 border-amber-300/80 shadow-sm space-y-2.5">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-2 border-b border-slate-100">
@@ -4903,16 +4943,16 @@ function switchTmView(view) {
                         </div>
                         <div class="flex items-center gap-1.5 flex-wrap self-end md:self-auto">
                             <!-- 🔗 공정 통합 토글 버튼 -->
-                            <button type="button" onclick="toggleMatrixProcMerge()"
-                                title="${window.matrixProcMergeEnabled ? '제관 공정 통합 해제 (개별 공정으로 분리)' : '제관 공정 통합 (홀가공·사상·교정·수정을 제관으로 합치기)'}"
-                                class="px-2.5 py-1 rounded-lg text-xs font-black border transition-all flex items-center gap-1 ${window.matrixProcMergeEnabled ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs hover:bg-indigo-700' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'}">
-                                <span>🔗</span> <span>${window.matrixProcMergeEnabled ? '제관 통합 ON (홀·사·교·수)' : '제관 통합 OFF'}</span>
+                            <button type="button" onclick="toggleAllMatrixProcGroups()"
+                                title="${mergeBtnTitle}"
+                                class="px-2.5 py-1 rounded-lg text-xs font-black border transition-all flex items-center gap-1 ${isAnyGroupActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs hover:bg-indigo-700' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'}">
+                                <span>${mergeBtnText}</span>
                             </button>
                             <!-- ⚙️ 공정 표기/숨김 설정 모달 버튼 -->
-                            <button type="button" onclick="openMatrixProcSettingsModal()"
-                                title="공정 컬럼 개별 숨기기 / 표시 설정"
+                            <button type="button" onclick="openMatrixProcSettingsModal('groups')"
+                                title="대표(머리) 공정 및 하위 공정 그룹 편집"
                                 class="px-2.5 py-1 rounded-lg text-xs font-black border transition-all flex items-center gap-1 ${window.matrixHiddenProcs && window.matrixHiddenProcs.size > 0 ? 'bg-amber-100 text-amber-900 border-amber-300 shadow-2xs' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'}">
-                                <span>⚙️</span> <span>공정 표기 설정${window.matrixHiddenProcs && window.matrixHiddenProcs.size > 0 ? ` (${window.matrixHiddenProcs.size}개 숨김)` : ''}</span>
+                                <span>⚙️</span> <span>공정 그룹/표기 설정${window.matrixHiddenProcs && window.matrixHiddenProcs.size > 0 ? ` (${window.matrixHiddenProcs.size}개 숨김)` : ''}</span>
                             </button>
                             <button type="button" onclick="toggleMatrixUnselectedOnly()"
                                 class="px-2.5 py-1 rounded-lg text-xs font-black border transition-all ${window.tab1MatrixOnlyUnselected ? 'bg-amber-600 text-white border-amber-600 shadow-2xs' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'}">
@@ -4941,9 +4981,10 @@ function switchTmView(view) {
                                         </div>
                                     </th>
                                     ${metrics.activeProcs.map(p => {
-                                        const isMergedHeader = (window.matrixProcMergeEnabled && p === '제관');
+                                        const headGrp = activeGroups.find(g => g.head === p);
+                                        const isMergedHeader = Boolean(headGrp);
                                         const headerTitle = isMergedHeader 
-                                            ? '[통합 공정] 제관 + 홀가공 + 사상 + 교정 + 수정 합산' 
+                                            ? `[통합 공정] ${p} (합산 하위 공정: ${headGrp.children.join(', ')})` 
                                             : p;
                                         return `
                                             <th class="p-2 text-center min-w-[65px] font-bold border-r border-slate-200/60 ${isMergedHeader ? 'bg-indigo-50 text-indigo-900 font-black' : 'text-slate-600'}"
@@ -5021,7 +5062,7 @@ function switchTmView(view) {
                                     cellTitle = `[${p} 통합 상세]\n${bdParts.join('\n')}\n(합계: ${val.toFixed(1)}h)`;
                                 }
                             }
-                            const isMergedCell = (window.matrixProcMergeEnabled && p === '제관');
+                            const isMergedCell = activeGroups.some(g => g.head === p);
                             return `
                                 <td class="p-2 text-center border-r border-slate-200/60 font-mono text-[11px] ${val > 0 ? (isMergedCell ? 'text-indigo-950 font-black bg-indigo-50/40' : 'text-slate-800 font-bold') : 'text-slate-300'}"
                                     title="${cellTitle}">
@@ -5069,7 +5110,7 @@ function switchTmView(view) {
                                     </td>
                                     ${metrics.activeProcs.map(p => {
                                         const sumP = displayList.reduce((acc, c) => acc + (c.procMap[p] || 0), 0);
-                                        const isMergedCell = (window.matrixProcMergeEnabled && p === '제관');
+                                        const isMergedCell = activeGroups.some(g => g.head === p);
                                         return `
                                             <td class="p-2 text-center border-r border-slate-200/60 font-mono ${isMergedCell ? 'bg-indigo-50/70 text-indigo-950 font-black' : (sumP > 0 ? 'text-slate-800' : 'text-slate-300')}">
                                                 ${sumP > 0 ? sumP.toFixed(1) : '-'}
@@ -5130,25 +5171,55 @@ function switchTmView(view) {
         }
 
         // =========================================================================
-        // ⚙️ 공정 통합 및 개별 숨기기 모달 & 컨트롤 헬퍼 함수
+        // ⚙️ 공정 통합 그룹(머리/하위) & 개별 숨기기 모달 & 컨트롤 헬퍼 함수
         // =========================================================================
-        function toggleMatrixProcMerge() {
-            window.matrixProcMergeEnabled = !window.matrixProcMergeEnabled;
-            try {
-                localStorage.setItem('pwaa_matrix_proc_merge', String(window.matrixProcMergeEnabled));
-            } catch(e) {}
+
+        // 전체 공정 통합 그룹 일괄 토글 (상단 바 원클릭 버튼)
+        function toggleAllMatrixProcGroups() {
+            if (!Array.isArray(window.matrixMergeGroups) || window.matrixMergeGroups.length === 0) {
+                window.matrixMergeGroups = JSON.parse(JSON.stringify(DEFAULT_MATRIX_MERGE_GROUPS));
+            }
+            const anyActive = window.matrixMergeGroups.some(g => g.enabled);
+            window.matrixMergeGroups.forEach(g => {
+                g.enabled = !anyActive;
+            });
+            saveMatrixMergeGroups();
             refreshMatrixViews();
         }
 
-        function openMatrixProcSettingsModal() {
+        function saveMatrixMergeGroups() {
+            try {
+                localStorage.setItem('pwaa_matrix_merge_groups', JSON.stringify(window.matrixMergeGroups));
+            } catch(e) {}
+        }
+
+        // 모달 탭 전환: 'groups' vs 'visibility'
+        function switchProcSettingsTab(tabName) {
+            window._currentProcSettingsTab = tabName;
+            const tabGroupsBtn = document.getElementById('tabBtnProcGroups');
+            const tabVisBtn = document.getElementById('tabBtnProcVisibility');
+            const secGroups = document.getElementById('secProcGroupsTab');
+            const secVis = document.getElementById('secProcVisibilityTab');
+
+            if (tabName === 'groups') {
+                if (tabGroupsBtn) tabGroupsBtn.className = 'px-3.5 py-2 text-xs font-black rounded-t-xl border-t-2 border-x border-indigo-600 bg-white text-indigo-700 shadow-2xs';
+                if (tabVisBtn) tabVisBtn.className = 'px-3.5 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors';
+                if (secGroups) secGroups.classList.remove('hidden');
+                if (secVis) secVis.classList.add('hidden');
+            } else {
+                if (tabGroupsBtn) tabGroupsBtn.className = 'px-3.5 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors';
+                if (tabVisBtn) tabVisBtn.className = 'px-3.5 py-2 text-xs font-black rounded-t-xl border-t-2 border-x border-indigo-600 bg-white text-indigo-700 shadow-2xs';
+                if (secGroups) secGroups.classList.add('hidden');
+                if (secVis) secVis.classList.remove('hidden');
+            }
+        }
+
+        function openMatrixProcSettingsModal(initialTab) {
             const modal = document.getElementById('matrixProcSettingsModal');
             if (!modal) return;
 
-            const mergeChk = document.getElementById('modalProcMergeCheckbox');
-            if (mergeChk) {
-                mergeChk.checked = Boolean(window.matrixProcMergeEnabled);
-            }
-
+            switchProcSettingsTab(initialTab || 'groups');
+            renderProcGroupsEditor();
             populateModalProcCheckboxes();
             modal.classList.remove('hidden');
         }
@@ -5158,19 +5229,208 @@ function switchTmView(view) {
             if (modal) modal.classList.add('hidden');
         }
 
+        // 새 통합 그룹 추가
+        function addNewProcGroup() {
+            if (!Array.isArray(window.matrixMergeGroups)) window.matrixMergeGroups = [];
+            const stdOrder = ['절단', '홀가공', '제관', '용접', '사상', '교정', '수정', '도장', '검사', '포장', '출장'];
+            const allKnown = window._matrixAllKnownProcs || stdOrder;
+
+            // 이미 사용 중인 head 피하기
+            const usedHeads = new Set(window.matrixMergeGroups.map(g => g.head));
+            let pickHead = allKnown.find(p => !usedHeads.has(p)) || '기타';
+
+            const newGrp = {
+                id: 'grp_' + Date.now(),
+                head: pickHead,
+                children: [],
+                enabled: true
+            };
+            window.matrixMergeGroups.push(newGrp);
+            saveMatrixMergeGroups();
+            renderProcGroupsEditor();
+            populateModalProcCheckboxes();
+            refreshMatrixViews();
+        }
+
+        // 특정 그룹 삭제
+        function deleteProcGroup(groupId) {
+            window.matrixMergeGroups = (window.matrixMergeGroups || []).filter(g => g.id !== groupId);
+            saveMatrixMergeGroups();
+            renderProcGroupsEditor();
+            populateModalProcCheckboxes();
+            refreshMatrixViews();
+        }
+
+        // 특정 그룹의 대표(머리) 공정 변경
+        function updateGroupHead(groupId, newHead) {
+            const grp = (window.matrixMergeGroups || []).find(g => g.id === groupId);
+            if (!grp) return;
+            grp.head = (newHead || '').trim();
+            // 머리로 지정된 공정은 자신의 하위 목록에서 자동 제외
+            grp.children = (grp.children || []).filter(c => c !== grp.head);
+            saveMatrixMergeGroups();
+            renderProcGroupsEditor();
+            populateModalProcCheckboxes();
+            refreshMatrixViews();
+        }
+
+        // 특정 그룹의 하위 공정 토글 (체크 / 해제)
+        function toggleGroupChild(groupId, childProc) {
+            const grp = (window.matrixMergeGroups || []).find(g => g.id === groupId);
+            if (!grp) return;
+            if (!Array.isArray(grp.children)) grp.children = [];
+            const idx = grp.children.indexOf(childProc);
+            if (idx >= 0) {
+                grp.children.splice(idx, 1);
+            } else {
+                grp.children.push(childProc);
+            }
+            saveMatrixMergeGroups();
+            renderProcGroupsEditor();
+            populateModalProcCheckboxes();
+            refreshMatrixViews();
+        }
+
+        // 특정 그룹 활성화/비활성화 토글
+        function toggleGroupEnabled(groupId, isEnabled) {
+            const grp = (window.matrixMergeGroups || []).find(g => g.id === groupId);
+            if (!grp) return;
+            grp.enabled = Boolean(isEnabled);
+            saveMatrixMergeGroups();
+            renderProcGroupsEditor();
+            populateModalProcCheckboxes();
+            refreshMatrixViews();
+        }
+
+        // 기본 제관 통합 그룹으로 복원
+        function resetProcGroupsToDefault() {
+            window.matrixMergeGroups = JSON.parse(JSON.stringify(DEFAULT_MATRIX_MERGE_GROUPS));
+            saveMatrixMergeGroups();
+            renderProcGroupsEditor();
+            populateModalProcCheckboxes();
+            refreshMatrixViews();
+        }
+
+        // 통합 그룹 편집기 카드 렌더링
+        function renderProcGroupsEditor() {
+            const container = document.getElementById('modalProcGroupsContainer');
+            if (!container) return;
+
+            const stdOrder = ['절단', '홀가공', '제관', '용접', '사상', '교정', '수정', '도장', '검사', '포장', '출장'];
+            const allKnown = window._matrixAllKnownProcs || stdOrder;
+            const groups = window.matrixMergeGroups || [];
+
+            if (groups.length === 0) {
+                container.innerHTML = `
+                    <div class="p-6 text-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 space-y-2">
+                        <span class="text-2xl">📁</span>
+                        <p class="text-xs font-bold text-slate-500">설정된 공정 통합 그룹이 없습니다.</p>
+                        <button type="button" onclick="addNewProcGroup()" class="px-3 py-1.5 text-xs font-black bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs transition-colors">
+                            + 첫 번째 통합 그룹 만들기
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            groups.forEach((g, gIdx) => {
+                const isEnabled = Boolean(g.enabled);
+                const childrenSet = new Set(g.children || []);
+
+                // 머리 공정 선택 드롭다운 옵션
+                const headOptions = allKnown.map(p => {
+                    return `<option value="${p}" ${g.head === p ? 'selected' : ''}>${p}</option>`;
+                }).join('');
+
+                // 하위 공정 선택 체크박스 알약 목록 (자신의 머리 공정 제외)
+                const availableChildren = allKnown.filter(p => p !== g.head);
+                const childPills = availableChildren.map(p => {
+                    const isChecked = childrenSet.has(p);
+                    return `
+                        <label class="px-2.5 py-1 rounded-lg border text-xs font-bold transition-all cursor-pointer select-none inline-flex items-center gap-1.5 ${isChecked ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs scale-[1.02]' : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50'}">
+                            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleGroupChild('${g.id}', '${p}')" class="sr-only">
+                            <span class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[10px] font-black ${isChecked ? 'bg-white text-indigo-700' : 'border border-slate-300 bg-slate-50 text-transparent'}">✓</span>
+                            <span>${p}</span>
+                        </label>
+                    `;
+                }).join('');
+
+                html += `
+                    <div class="p-3.5 rounded-2xl border-2 transition-all shadow-2xs space-y-3 ${isEnabled ? 'bg-white border-indigo-300/90 ring-2 ring-indigo-400/20' : 'bg-slate-50/80 border-slate-200 opacity-60'}">
+                        <!-- Header: Head select + Toggle + Delete -->
+                        <div class="flex items-center justify-between gap-2 flex-wrap pb-2 border-b border-slate-100">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-900 font-mono font-black text-[11px]">그룹 #${gIdx + 1}</span>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-xs font-black text-slate-800 flex items-center gap-1">
+                                        <span>👑</span> <span>대표(머리) 공정:</span>
+                                    </span>
+                                    <select onchange="updateGroupHead('${g.id}', this.value)" class="h-8 px-2.5 bg-indigo-50 border-2 border-indigo-400 rounded-xl text-xs font-black text-indigo-950 outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs cursor-pointer">
+                                        ${headOptions}
+                                    </select>
+                                    <span class="text-[11px] font-black text-indigo-700">컬럼에 통합</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2.5">
+                                <label class="relative inline-flex items-center cursor-pointer select-none" title="이 그룹 사용 여부">
+                                    <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="toggleGroupEnabled('${g.id}', this.checked)" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                                    <span class="ml-1.5 text-xs font-black ${isEnabled ? 'text-indigo-700' : 'text-slate-400'}">${isEnabled ? '사용 중' : '꺼짐'}</span>
+                                </label>
+                                <button type="button" onclick="deleteProcGroup('${g.id}')" title="이 그룹 삭제" class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Sub processes selection pills -->
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[11px] font-bold text-slate-600">
+                                    🔽 <b class="text-indigo-900">${g.head}</b> 공정으로 합칠 하위 공정 선택:
+                                </span>
+                                <span class="text-[11px] font-mono font-black ${childrenSet.size > 0 ? 'text-indigo-700 bg-indigo-50 px-1.5 py-0.2 rounded border border-indigo-200' : 'text-slate-400'}">
+                                    ${childrenSet.size}개 공정 선택됨
+                                </span>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5 p-2 bg-slate-50/90 rounded-xl border border-slate-200">
+                                ${childPills}
+                            </div>
+                            <p class="text-[10px] text-slate-400 font-bold">
+                                💡 체크된 하위 공정들의 공수는 매트릭스 표에서 <b>${g.head}</b> 컬럼에 자동 합산되고, 개별 하위 컬럼은 숨겨집니다.
+                            </p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Tab 2: 개별 공정 컬럼 표시/숨김 체크박스 목록 렌더링
         function populateModalProcCheckboxes() {
             const grid = document.getElementById('modalProcCheckboxGrid');
             if (!grid) return;
 
             const stdOrder = ['절단', '홀가공', '제관', '용접', '사상', '교정', '수정', '도장', '검사', '포장', '출장'];
             const allKnown = window._matrixAllKnownProcs || stdOrder;
-            const isMergeActive = Boolean(window.matrixProcMergeEnabled);
-            const mergedSources = new Set(DEFAULT_PROC_MERGED_SOURCES);
+
+            // 현재 활성화된 통합 그룹의 하위 공정 파악
+            const activeMergedChildrenMap = {};
+            (window.matrixMergeGroups || []).forEach(g => {
+                if (g.enabled && g.head && Array.isArray(g.children)) {
+                    g.children.forEach(c => {
+                        if (c && c !== g.head) activeMergedChildrenMap[c] = g.head;
+                    });
+                }
+            });
 
             let html = '';
             allKnown.forEach(p => {
                 const isHidden = window.matrixHiddenProcs && window.matrixHiddenProcs.has(p);
-                const isMergedChild = isMergeActive && mergedSources.has(p);
+                const parentHead = activeMergedChildrenMap[p];
+                const isMergedChild = Boolean(parentHead);
 
                 html += `
                     <label class="flex items-center gap-2 p-2 rounded-xl border transition-all ${isMergedChild ? 'bg-slate-100/70 border-slate-200 opacity-60' : (isHidden ? 'bg-slate-50 border-slate-200 text-slate-400' : 'bg-white border-slate-300 text-slate-800 hover:border-indigo-300 shadow-2xs')} cursor-pointer select-none">
@@ -5181,9 +5441,9 @@ function switchTmView(view) {
                             class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 border-slate-300">
                         <div class="flex flex-col min-w-0">
                             <span class="font-black text-xs truncate ${isHidden ? 'line-through' : ''}">
-                                ${p} ${isMergeActive && p === '제관' ? '<span class="text-[10px] text-indigo-600 font-bold">(통합)</span>' : ''}
+                                ${p}
                             </span>
-                            ${isMergedChild ? '<span class="text-[9px] text-indigo-600 font-bold">제관에 통합됨</span>' : (isHidden ? '<span class="text-[9px] text-amber-600 font-bold">숨김</span>' : '')}
+                            ${isMergedChild ? `<span class="text-[9px] text-indigo-600 font-bold">[${parentHead}]에 통합됨</span>` : (isHidden ? '<span class="text-[9px] text-amber-600 font-bold">숨김</span>' : '')}
                         </div>
                     </label>
                 `;
@@ -5201,15 +5461,6 @@ function switchTmView(view) {
                     countBadge.className = 'text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200';
                 }
             }
-        }
-
-        function onModalProcMergeToggle(checked) {
-            window.matrixProcMergeEnabled = Boolean(checked);
-            try {
-                localStorage.setItem('pwaa_matrix_proc_merge', String(window.matrixProcMergeEnabled));
-            } catch(e) {}
-            populateModalProcCheckboxes();
-            refreshMatrixViews();
         }
 
         function onModalProcVisibilityChange(procName, isVisible) {
@@ -5238,16 +5489,12 @@ function switchTmView(view) {
             refreshMatrixViews();
         }
 
-        function resetProcsSettings() {
-            window.matrixProcMergeEnabled = true;
+        function resetProcsVisibilitySettings() {
             if (window.matrixHiddenProcs) window.matrixHiddenProcs.clear();
             else window.matrixHiddenProcs = new Set();
             try {
-                localStorage.setItem('pwaa_matrix_proc_merge', 'true');
                 localStorage.setItem('pwaa_matrix_hidden_procs', '[]');
             } catch(e) {}
-            const mergeChk = document.getElementById('modalProcMergeCheckbox');
-            if (mergeChk) mergeChk.checked = true;
             populateModalProcCheckboxes();
             refreshMatrixViews();
         }
@@ -5260,6 +5507,8 @@ function switchTmView(view) {
                 renderTmProjectChips(window._tmCurrentProjectPairs, null, window._tmLastPFiltered);
             }
         }
+        window.toggleMatrixProcMerge = toggleAllMatrixProcGroups;
+
 
         function handleProjectChipClickByIndex(idx) {
             if (idx === -1) {
@@ -6604,6 +6853,19 @@ function switchTmView(view) {
 
             const currentComp = document.getElementById('tmSelCompany')?.value || '';
 
+            // 활성화된 통합 그룹 상태 파악
+            const activeGroups = (window.matrixMergeGroups || []).filter(g => g.enabled && g.children && g.children.length > 0);
+            let mergeBtnText = '공정 통합 OFF';
+            let mergeBtnTitle = '공정 통합 그룹 켜기';
+            if (activeGroups.length === 1) {
+                mergeBtnText = `🔗 ${activeGroups[0].head} 통합 ON (${activeGroups[0].children.length}개)`;
+                mergeBtnTitle = `${activeGroups[0].head} 공정으로 [${activeGroups[0].children.join(', ')}] 합산 중 (클릭 시 전체 해제)`;
+            } else if (activeGroups.length > 1) {
+                mergeBtnText = `🔗 공정 통합 ON (${activeGroups.length}개 그룹)`;
+                mergeBtnTitle = `${activeGroups.length}개 통합 그룹 적용 중 (클릭 시 전체 해제)`;
+            }
+            const isAnyGroupActive = activeGroups.length > 0;
+
             let html = `
                 <div class="p-3 bg-white rounded-2xl border-2 border-amber-300/80 shadow-sm space-y-2.5">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-2 border-b border-slate-100">
@@ -6622,16 +6884,16 @@ function switchTmView(view) {
                         </div>
                         <div class="flex items-center gap-1.5 flex-wrap self-end md:self-auto">
                             <!-- 🔗 공정 통합 토글 버튼 -->
-                            <button type="button" onclick="toggleMatrixProcMerge()"
-                                title="${window.matrixProcMergeEnabled ? '제관 공정 통합 해제 (개별 공정으로 분리)' : '제관 공정 통합 (홀가공·사상·교정·수정을 제관으로 합치기)'}"
-                                class="px-2.5 py-1 rounded-lg text-xs font-black border transition-all flex items-center gap-1 ${window.matrixProcMergeEnabled ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs hover:bg-indigo-700' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'}">
-                                <span>🔗</span> <span>${window.matrixProcMergeEnabled ? '제관 통합 ON (홀·사·교·수)' : '제관 통합 OFF'}</span>
+                            <button type="button" onclick="toggleAllMatrixProcGroups()"
+                                title="${mergeBtnTitle}"
+                                class="px-2.5 py-1 rounded-lg text-xs font-black border transition-all flex items-center gap-1 ${isAnyGroupActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs hover:bg-indigo-700' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'}">
+                                <span>${mergeBtnText}</span>
                             </button>
                             <!-- ⚙️ 공정 표기/숨김 설정 모달 버튼 -->
-                            <button type="button" onclick="openMatrixProcSettingsModal()"
-                                title="공정 컬럼 개별 숨기기 / 표시 설정"
+                            <button type="button" onclick="openMatrixProcSettingsModal('groups')"
+                                title="대표(머리) 공정 및 하위 공정 그룹 편집"
                                 class="px-2.5 py-1 rounded-lg text-xs font-black border transition-all flex items-center gap-1 ${window.matrixHiddenProcs && window.matrixHiddenProcs.size > 0 ? 'bg-amber-100 text-amber-900 border-amber-300 shadow-2xs' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'}">
-                                <span>⚙️</span> <span>공정 표기 설정${window.matrixHiddenProcs && window.matrixHiddenProcs.size > 0 ? ` (${window.matrixHiddenProcs.size}개 숨김)` : ''}</span>
+                                <span>⚙️</span> <span>공정 그룹/표기 설정${window.matrixHiddenProcs && window.matrixHiddenProcs.size > 0 ? ` (${window.matrixHiddenProcs.size}개 숨김)` : ''}</span>
                             </button>
                             <button type="button" onclick="toggleTmMatrixUnselectedOnly()"
                                 class="px-2.5 py-1 rounded-lg text-xs font-black border transition-all ${window.tmMatrixOnlyUnselected ? 'bg-amber-600 text-white border-amber-600 shadow-2xs' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'}">
@@ -6660,9 +6922,10 @@ function switchTmView(view) {
                                         </div>
                                     </th>
                                     ${metrics.activeProcs.map(p => {
-                                        const isMergedHeader = (window.matrixProcMergeEnabled && p === '제관');
+                                        const headGrp = activeGroups.find(g => g.head === p);
+                                        const isMergedHeader = Boolean(headGrp);
                                         const headerTitle = isMergedHeader 
-                                            ? '[통합 공정] 제관 + 홀가공 + 사상 + 교정 + 수정 합산' 
+                                            ? `[통합 공정] ${p} (합산 하위 공정: ${headGrp.children.join(', ')})` 
                                             : p;
                                         return `
                                             <th class="p-2 text-center min-w-[65px] font-bold border-r border-slate-200/60 ${isMergedHeader ? 'bg-indigo-50 text-indigo-900 font-black' : 'text-slate-600'}"
@@ -6740,7 +7003,7 @@ function switchTmView(view) {
                                     cellTitle = `[${p} 통합 상세]\n${bdParts.join('\n')}\n(합계: ${val.toFixed(1)}h)`;
                                 }
                             }
-                            const isMergedCell = (window.matrixProcMergeEnabled && p === '제관');
+                            const isMergedCell = activeGroups.some(g => g.head === p);
                             return `
                                 <td class="p-2 text-center border-r border-slate-200/60 font-mono text-[11px] ${val > 0 ? (isMergedCell ? 'text-indigo-950 font-black bg-indigo-50/40' : 'text-slate-800 font-bold') : 'text-slate-300'}"
                                     title="${cellTitle}">
@@ -6788,7 +7051,7 @@ function switchTmView(view) {
                                     </td>
                                     ${metrics.activeProcs.map(p => {
                                         const sumP = displayList.reduce((acc, c) => acc + (c.procMap[p] || 0), 0);
-                                        const isMergedCell = (window.matrixProcMergeEnabled && p === '제관');
+                                        const isMergedCell = activeGroups.some(g => g.head === p);
                                         return `
                                             <td class="p-2 text-center border-r border-slate-200/60 font-mono ${isMergedCell ? 'bg-indigo-50/70 text-indigo-950 font-black' : (sumP > 0 ? 'text-slate-800' : 'text-slate-300')}">
                                                 ${sumP > 0 ? sumP.toFixed(1) : '-'}

@@ -1861,54 +1861,54 @@
                 </div>
             </div>
 
-            <!-- 2. 🌟 메인 화면 표준 계층형 6대 스마트 필터 바 (연도, 월, 업체, 프로젝트, 공정, 작업자) -->
-            <div id="pcFilterPanel" class="bg-slate-50 border-b border-slate-200 px-3 sm:px-6 py-2.5 flex flex-col gap-1.5 shadow-xs select-none z-20 text-xs flex-shrink-0 transition-all duration-200 overflow-hidden">
+            <!-- 2. 🌟 메인 화면 표준 계층형 6대 스마트 필터 바 (전방위 연계 & 줄바꿈 지원) -->
+            <div id="pcFilterPanel" class="bg-slate-50 border-b border-slate-200 px-3 sm:px-6 py-2 flex flex-col gap-1.5 shadow-xs select-none z-20 text-xs flex-shrink-0 transition-all duration-200 overflow-hidden">
                 <!-- 1) 연도 체크 -->
-                <div class="flex items-center gap-2">
-                    <span class="text-[11px] font-black text-slate-500 min-w-[70px] flex items-center gap-1 flex-shrink-0">
+                <div class="flex items-start gap-2">
+                    <span class="text-[11px] font-black text-slate-500 min-w-[72px] pt-1 flex items-center gap-1 flex-shrink-0">
                         <span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>연도 체크</span>
                     </span>
-                    <div id="pcFilterRowYear" class="flex items-center gap-1.5 flex-nowrap overflow-x-auto custom-scroll py-0.5 flex-1"></div>
+                    <div id="pcFilterRowYear" class="flex items-center gap-1 flex-wrap max-h-[64px] overflow-y-auto custom-scroll py-0.5 flex-1"></div>
                 </div>
 
                 <!-- 2) 월 체크 -->
-                <div class="flex items-center gap-2">
-                    <span class="text-[11px] font-black text-slate-500 min-w-[70px] flex items-center gap-1 flex-shrink-0">
+                <div class="flex items-start gap-2">
+                    <span class="text-[11px] font-black text-slate-500 min-w-[72px] pt-1 flex items-center gap-1 flex-shrink-0">
                         <span class="w-2 h-2 rounded-full bg-indigo-500"></span><span>월 체크</span>
                     </span>
-                    <div id="pcFilterRowMonth" class="flex items-center gap-1.5 flex-nowrap overflow-x-auto custom-scroll py-0.5 flex-1"></div>
+                    <div id="pcFilterRowMonth" class="flex items-center gap-1 flex-wrap max-h-[64px] overflow-y-auto custom-scroll py-0.5 flex-1"></div>
                 </div>
 
                 <!-- 3) 업체 체크 -->
-                <div class="flex items-center gap-2">
-                    <span class="text-[11px] font-black text-slate-500 min-w-[70px] flex items-center gap-1 flex-shrink-0">
+                <div class="flex items-start gap-2">
+                    <span class="text-[11px] font-black text-slate-500 min-w-[72px] pt-1 flex items-center gap-1 flex-shrink-0">
                         <span class="w-2 h-2 rounded-full bg-purple-500"></span><span>업체 체크</span>
                     </span>
-                    <div id="pcFilterRowCompany" class="flex items-center gap-1.5 flex-nowrap overflow-x-auto custom-scroll py-0.5 flex-1"></div>
+                    <div id="pcFilterRowCompany" class="flex items-center gap-1 flex-wrap max-h-[75px] overflow-y-auto custom-scroll py-0.5 flex-1"></div>
                 </div>
 
-                <!-- 4) 프로젝트 체크 -->
-                <div class="flex items-center gap-2">
-                    <span class="text-[11px] font-black text-slate-500 min-w-[70px] flex items-center gap-1 flex-shrink-0">
-                        <span class="w-2 h-2 rounded-full bg-blue-500"></span><span>프로젝트 체크</span>
+                <!-- 4) 프로젝트 체크 (줄바꿈 지원으로 가로 잘림 완전 해결) -->
+                <div class="flex items-start gap-2">
+                    <span class="text-[11px] font-black text-slate-500 min-w-[72px] pt-1 flex items-center gap-1 flex-shrink-0">
+                        <span class="w-2 h-2 rounded-full bg-blue-500"></span><span>프로젝트</span>
                     </span>
-                    <div id="pcFilterRowProject" class="flex items-center gap-1.5 flex-nowrap overflow-x-auto custom-scroll py-0.5 flex-1"></div>
+                    <div id="pcFilterRowProject" class="flex items-center gap-1 flex-wrap max-h-[85px] overflow-y-auto custom-scroll py-0.5 flex-1"></div>
                 </div>
 
                 <!-- 5) 공정 체크 -->
-                <div class="flex items-center gap-2">
-                    <span class="text-[11px] font-black text-slate-500 min-w-[70px] flex items-center gap-1 flex-shrink-0">
+                <div class="flex items-start gap-2">
+                    <span class="text-[11px] font-black text-slate-500 min-w-[72px] pt-1 flex items-center gap-1 flex-shrink-0">
                         <span class="w-2 h-2 rounded-full bg-amber-500"></span><span>공정 체크</span>
                     </span>
-                    <div id="pcFilterRowProcess" class="flex items-center gap-1.5 flex-nowrap overflow-x-auto custom-scroll py-0.5 flex-1"></div>
+                    <div id="pcFilterRowProcess" class="flex items-center gap-1 flex-wrap max-h-[64px] overflow-y-auto custom-scroll py-0.5 flex-1"></div>
                 </div>
 
                 <!-- 6) 작업자 체크 -->
-                <div class="flex items-center gap-2">
-                    <span class="text-[11px] font-black text-slate-500 min-w-[70px] flex items-center gap-1 flex-shrink-0">
+                <div class="flex items-start gap-2">
+                    <span class="text-[11px] font-black text-slate-500 min-w-[72px] pt-1 flex items-center gap-1 flex-shrink-0">
                         <span class="w-2 h-2 rounded-full bg-teal-500"></span><span>작업자 체크</span>
                     </span>
-                    <div id="pcFilterRowWorker" class="flex items-center gap-1.5 flex-nowrap overflow-x-auto custom-scroll py-0.5 flex-1"></div>
+                    <div id="pcFilterRowWorker" class="flex items-center gap-1 flex-wrap max-h-[75px] overflow-y-auto custom-scroll py-0.5 flex-1"></div>
                 </div>
             </div>
 
@@ -11153,7 +11153,7 @@ function onProjectSearchInput() {
         }
 
         // =========================================================================
-        // 🗓️ 6대 스마트 필터 일원화 & 심플 달력 엔진 V10.0
+        // 🗓️ 6대 스마트 필터 상호 연계 & 다중 월 연속 달력 엔진 V11.0
         // =========================================================================
         window.pcState = null;
 
@@ -11247,7 +11247,7 @@ function onProjectSearchInput() {
             const state = window.pcState;
             const { filters, allYears } = state;
 
-            // 1. 6대 필터에 따른 데이터 필터링
+            // 1. 현재 6대 필터 조건을 모두 만족하는 최종 교집합 데이터 (달력 본문용)
             const filteredData = rawData.filter(d => {
                 if (!d.date) return false;
                 const dYear = d.date.substring(0, 4);
@@ -11263,20 +11263,66 @@ function onProjectSearchInput() {
             });
             state.currentScopeData = filteredData;
 
-            // 2. 가용 선택지 목록 자동 도출 (상위 연도/월/조건에 따른 유효 목록)
-            const baseScope = rawData.filter(d => {
+            // =================================================================
+            // 2. 🌟 메인 화면과 100% 동일한 전방위 상호 연계 필터 (Cascading) 도출
+            // =================================================================
+            // (1) 가용 업체: (연도, 월, 프로젝트, 공정, 작업자) 조건 만족 데이터에서 추출
+            const scopeForComp = rawData.filter(d => {
                 if (!d.date) return false;
                 const dYear = d.date.substring(0, 4);
                 const dMonth = d.date.substring(5, 7);
                 if (filters.years.size > 0 && !filters.years.has(dYear)) return false;
                 if (filters.months.size > 0 && !filters.months.has(dMonth)) return false;
+                if (filters.projects.size > 0 && !filters.projects.has(d.project)) return false;
+                if (filters.processes.size > 0 && !filters.processes.has(d.type)) return false;
+                if (filters.workers.size > 0 && !filters.workers.has((d.worker || '').trim())) return false;
                 return true;
             });
+            const availCompanies = [...new Set(scopeForComp.map(d => (d.client || '').trim()))].filter(Boolean).sort();
 
-            const availCompanies = [...new Set(baseScope.map(d => (d.client || '').trim()))].filter(Boolean).sort();
-            const availProjects = [...new Set(baseScope.map(d => (d.project || '').trim()))].filter(Boolean).sort();
-            const availProcesses = [...new Set(baseScope.map(d => (d.type || '').trim()))].filter(Boolean).sort();
-            const availWorkers = [...new Set(baseScope.map(d => (d.worker || '').trim()))].filter(Boolean).sort();
+            // (2) 가용 프로젝트: (연도, 월, 업체, 공정, 작업자) 조건 만족 데이터에서 추출
+            //     => 작업자를 누르면 작업자가 참여한 프로젝트만 즉각 좁혀져서 뱃지로 노출!
+            const scopeForProj = rawData.filter(d => {
+                if (!d.date) return false;
+                const dYear = d.date.substring(0, 4);
+                const dMonth = d.date.substring(5, 7);
+                if (filters.years.size > 0 && !filters.years.has(dYear)) return false;
+                if (filters.months.size > 0 && !filters.months.has(dMonth)) return false;
+                if (filters.companies.size > 0 && !filters.companies.has(d.client)) return false;
+                if (filters.processes.size > 0 && !filters.processes.has(d.type)) return false;
+                if (filters.workers.size > 0 && !filters.workers.has((d.worker || '').trim())) return false;
+                return true;
+            });
+            const availProjects = [...new Set(scopeForProj.map(d => (d.project || '').trim()))].filter(Boolean).sort();
+
+            // (3) 가용 공정: (연도, 월, 업체, 프로젝트, 작업자) 조건 만족 데이터에서 추출
+            const scopeForProc = rawData.filter(d => {
+                if (!d.date) return false;
+                const dYear = d.date.substring(0, 4);
+                const dMonth = d.date.substring(5, 7);
+                if (filters.years.size > 0 && !filters.years.has(dYear)) return false;
+                if (filters.months.size > 0 && !filters.months.has(dMonth)) return false;
+                if (filters.companies.size > 0 && !filters.companies.has(d.client)) return false;
+                if (filters.projects.size > 0 && !filters.projects.has(d.project)) return false;
+                if (filters.workers.size > 0 && !filters.workers.has((d.worker || '').trim())) return false;
+                return true;
+            });
+            const availProcesses = [...new Set(scopeForProc.map(d => (d.type || '').trim()))].filter(Boolean).sort();
+
+            // (4) 가용 작업자: (연도, 월, 업체, 프로젝트, 공정) 조건 만족 데이터에서 추출
+            //     => 프로젝트를 누르면 그 프로젝트에 일한 작업자만 즉각 좁혀져서 뱃지로 노출!
+            const scopeForWorker = rawData.filter(d => {
+                if (!d.date) return false;
+                const dYear = d.date.substring(0, 4);
+                const dMonth = d.date.substring(5, 7);
+                if (filters.years.size > 0 && !filters.years.has(dYear)) return false;
+                if (filters.months.size > 0 && !filters.months.has(dMonth)) return false;
+                if (filters.companies.size > 0 && !filters.companies.has(d.client)) return false;
+                if (filters.projects.size > 0 && !filters.projects.has(d.project)) return false;
+                if (filters.processes.size > 0 && !filters.processes.has(d.type)) return false;
+                return true;
+            });
+            const availWorkers = [...new Set(scopeForWorker.map(d => (d.worker || '').trim()))].filter(Boolean).sort();
 
             // 3. 상단 헤더 요약 뱃지 갱신
             let totalH = 0; let totalC = 0;
@@ -11297,33 +11343,40 @@ function onProjectSearchInput() {
                 `;
             }
 
-            // 4. 🌟 6대 계층형 스마트 필터 바 렌더링
+            // 4. 6대 계층형 스마트 필터 바 렌더링
             renderCalendarFilterRows(allYears, availCompanies, availProjects, availProcesses, availWorkers);
 
-            // 5. 달력 그리드 HTML 생성 (필터링된 연월 조합 순차 렌더링)
+            // =================================================================
+            // 5. 🌟 [핵심] 다중 월 연속 캘린더 생성 (선택된 모든 월이 빠짐없이 늘어남)
+            // =================================================================
             const wrapper = document.getElementById('pcCalendarZoomWrapper');
             if (wrapper) {
-                // 필터링된 데이터에서 실제 등장하는 연월 추출 (없으면 선택된 연월 기준)
-                const ymSet = new Set();
-                filteredData.forEach(d => {
-                    if (d.date && d.date.length >= 7) ymSet.add(d.date.substring(0, 7));
-                });
+                const targetYears = (filters.years.size > 0) ? Array.from(filters.years).sort() : [allYears[allYears.length - 1] || '2026'];
+                let targetMonths = (filters.months.size > 0) 
+                    ? Array.from(filters.months).sort() 
+                    : [];
 
-                if (ymSet.size === 0) {
-                    // 데이터가 없는 경우 선택된 연도+월 조합 표시
-                    filters.years.forEach(y => {
-                        if (filters.months.size === 0) {
-                            ymSet.add(`${y}-10`);
-                        } else {
-                            filters.months.forEach(m => ymSet.add(`${y}-${m}`));
-                        }
+                // 월이 전체 선택(비어있음)인 경우: 실제 데이터가 존재하는 월들만 순차 생성
+                if (targetMonths.length === 0) {
+                    const ymSet = new Set();
+                    filteredData.forEach(d => {
+                        if (d.date && d.date.length >= 7) ymSet.add(d.date.substring(5, 7));
                     });
+                    targetMonths = Array.from(ymSet).sort();
+                    if (targetMonths.length === 0) targetMonths = ['10'];
                 }
-                if (ymSet.size === 0) ymSet.add('2026-10');
 
-                const sortedYMs = Array.from(ymSet).sort();
+                // 선택된 연도와 월 조합 전체 생성 (8월, 9월, 10월 등 선택한 월이 모두 차례대로 아래로 늘어남)
+                let targetYMs = [];
+                targetYears.forEach(y => {
+                    targetMonths.forEach(m => {
+                        targetYMs.push(`${y}-${m}`);
+                    });
+                });
+                targetYMs.sort();
+
                 let html = '';
-                sortedYMs.forEach(ym => {
+                targetYMs.forEach(ym => {
                     const [y, m] = ym.split('-').map(Number);
                     const ymData = filteredData.filter(d => (d.date || '').startsWith(ym));
                     html += generateProjectMonthCalendarHTML(y, m - 1, ymData);
@@ -11343,14 +11396,14 @@ function onProjectSearchInput() {
                 const isAllY = (filters.years.size === 0);
                 rowYear.innerHTML = `
                     <button type="button" onclick="selectAllCalendarFilter('years', true)"
-                            class="px-2.5 py-1 rounded-lg font-black transition-all flex-shrink-0 ${isAllY ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
+                            class="px-2.5 py-0.5 rounded-lg text-xs font-black transition-all flex-shrink-0 ${isAllY ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
                         전체 연도
                     </button>
                     ${allYears.map(y => {
                         const sel = filters.years.has(y);
                         return `
                             <button type="button" onclick="toggleCalendarFilter('years', '${y}')"
-                                    class="px-2.5 py-1 rounded-lg font-bold transition-all flex-shrink-0 ${sel ? 'bg-emerald-600 text-white font-black shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'}">
+                                    class="px-2 py-0.5 rounded-lg text-xs font-bold transition-all flex-shrink-0 ${sel ? 'bg-emerald-600 text-white font-black shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'}">
                                 ${sel ? '☑️' : '⬜'} ${y}년
                             </button>
                         `;
@@ -11364,15 +11417,15 @@ function onProjectSearchInput() {
                 const isAllM = (filters.months.size === 0);
                 rowMonth.innerHTML = `
                     <button type="button" onclick="selectAllCalendarFilter('months', true)"
-                            class="px-2.5 py-1 rounded-lg font-black transition-all flex-shrink-0 ${isAllM ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
+                            class="px-2.5 py-0.5 rounded-lg text-xs font-black transition-all flex-shrink-0 ${isAllM ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
                         전체 월
                     </button>
                     <button type="button" onclick="selectCalendarHalfYear('first')"
-                            class="px-2 py-1 rounded-lg font-bold bg-slate-100 hover:bg-indigo-100 text-indigo-700 border border-slate-200 transition-all flex-shrink-0">
+                            class="px-2 py-0.5 rounded-lg text-xs font-bold bg-white hover:bg-indigo-50 text-indigo-700 border border-slate-200 transition-all flex-shrink-0">
                         🌱 상반기 (1~6월)
                     </button>
                     <button type="button" onclick="selectCalendarHalfYear('second')"
-                            class="px-2 py-1 rounded-lg font-bold bg-slate-100 hover:bg-indigo-100 text-indigo-700 border border-slate-200 transition-all flex-shrink-0">
+                            class="px-2 py-0.5 rounded-lg text-xs font-bold bg-white hover:bg-indigo-50 text-indigo-700 border border-slate-200 transition-all flex-shrink-0">
                         🍁 하반기 (7~12월)
                     </button>
                     ${Array.from({ length: 12 }, (_, i) => {
@@ -11380,7 +11433,7 @@ function onProjectSearchInput() {
                         const sel = filters.months.has(mStr);
                         return `
                             <button type="button" onclick="toggleCalendarFilter('months', '${mStr}')"
-                                    class="px-2.5 py-1 rounded-lg font-bold transition-all flex-shrink-0 ${sel ? 'bg-indigo-600 text-white font-black shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'}">
+                                    class="px-2 py-0.5 rounded-lg text-xs font-bold transition-all flex-shrink-0 ${sel ? 'bg-indigo-600 text-white font-black shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'}">
                                 ${sel ? '☑️' : '⬜'} ${i + 1}월
                             </button>
                         `;
@@ -11388,13 +11441,13 @@ function onProjectSearchInput() {
                 `;
             }
 
-            // 3) 업체 체크 렌더링
+            // 3) 업체 체크 렌더링 (선택된 조건의 가용 업체만 선별)
             const rowCompany = document.getElementById('pcFilterRowCompany');
             if (rowCompany) {
                 const isAllC = (filters.companies.size === 0);
                 rowCompany.innerHTML = `
                     <button type="button" onclick="selectAllCalendarFilter('companies', true)"
-                            class="px-2.5 py-1 rounded-lg font-black transition-all flex-shrink-0 ${isAllC ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
+                            class="px-2.5 py-0.5 rounded-lg text-xs font-black transition-all flex-shrink-0 ${isAllC ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
                         전체 업체 (${availCompanies.length})
                     </button>
                     ${availCompanies.map(c => {
@@ -11402,7 +11455,7 @@ function onProjectSearchInput() {
                         const jsC = c.replace(/'/g, "\\'");
                         return `
                             <button type="button" onclick="toggleCalendarFilter('companies', '${jsC}')"
-                                    class="px-2.5 py-1 rounded-lg font-bold transition-all flex-shrink-0 ${sel ? 'bg-purple-600 text-white font-black shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'}">
+                                    class="px-2 py-0.5 rounded-lg text-xs font-bold transition-all flex-shrink-0 ${sel ? 'bg-purple-600 text-white font-black shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'}">
                                 ${sel ? '☑️' : '⬜'} ${c}
                             </button>
                         `;
@@ -11410,13 +11463,13 @@ function onProjectSearchInput() {
                 `;
             }
 
-            // 4) 프로젝트 체크 렌더링
+            // 4) 프로젝트 체크 렌더링 (작업자/업체 연계 압축 & 줄바꿈으로 가로 잘림 완전 해결)
             const rowProject = document.getElementById('pcFilterRowProject');
             if (rowProject) {
                 const isAllP = (filters.projects.size === 0);
                 rowProject.innerHTML = `
                     <button type="button" onclick="selectAllCalendarFilter('projects', true)"
-                            class="px-2.5 py-1 rounded-lg font-black transition-all flex-shrink-0 ${isAllP ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
+                            class="px-2.5 py-0.5 rounded-lg text-xs font-black transition-all flex-shrink-0 ${isAllP ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
                         전체 프로젝트 (${availProjects.length})
                     </button>
                     ${availProjects.map(p => {
@@ -11428,7 +11481,7 @@ function onProjectSearchInput() {
                                     data-cal-proj="${safeP}"
                                     onmouseenter="onHoverCalProject('${jsP}')"
                                     onmouseleave="onLeaveCalHover()"
-                                    class="px-2.5 py-1 rounded-lg font-bold transition-all flex-shrink-0 max-w-[280px] truncate ${sel ? 'bg-blue-600 text-white font-black shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'}"
+                                    class="px-2 py-0.5 rounded-lg text-xs font-bold transition-all max-w-[280px] truncate ${sel ? 'bg-blue-600 text-white font-black shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'}"
                                     title="${safeP}">
                                 ${sel ? '☑️' : '⬜'} ${p}
                             </button>
@@ -11437,13 +11490,13 @@ function onProjectSearchInput() {
                 `;
             }
 
-            // 5) 공정 체크 렌더링
+            // 5) 공정 체크 렌더링 (선택된 조건의 가용 공정만 선별)
             const rowProcess = document.getElementById('pcFilterRowProcess');
             if (rowProcess) {
                 const isAllProc = (filters.processes.size === 0);
                 rowProcess.innerHTML = `
                     <button type="button" onclick="selectAllCalendarFilter('processes', true)"
-                            class="px-2.5 py-1 rounded-lg font-black transition-all flex-shrink-0 ${isAllProc ? 'bg-amber-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
+                            class="px-2.5 py-0.5 rounded-lg text-xs font-black transition-all flex-shrink-0 ${isAllProc ? 'bg-amber-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
                         전체 공정 (${availProcesses.length})
                     </button>
                     ${availProcesses.map(proc => {
@@ -11451,7 +11504,7 @@ function onProjectSearchInput() {
                         const jsProc = proc.replace(/'/g, "\\'");
                         return `
                             <button type="button" onclick="toggleCalendarFilter('processes', '${jsProc}')"
-                                    class="px-2.5 py-1 rounded-lg font-bold transition-all flex-shrink-0 ${sel ? 'bg-amber-600 text-white font-black shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'}">
+                                    class="px-2 py-0.5 rounded-lg text-xs font-bold transition-all flex-shrink-0 ${sel ? 'bg-amber-600 text-white font-black shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'}">
                                 ${sel ? '☑️' : '⬜'} ${proc}
                             </button>
                         `;
@@ -11459,13 +11512,13 @@ function onProjectSearchInput() {
                 `;
             }
 
-            // 6) 작업자 체크 렌더링
+            // 6) 작업자 체크 렌더링 (선택된 프로젝트의 가용 작업자만 선별)
             const rowWorker = document.getElementById('pcFilterRowWorker');
             if (rowWorker) {
                 const isAllW = (filters.workers.size === 0);
                 rowWorker.innerHTML = `
                     <button type="button" onclick="selectAllCalendarFilter('workers', true)"
-                            class="px-2.5 py-1 rounded-lg font-black transition-all flex-shrink-0 ${isAllW ? 'bg-teal-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
+                            class="px-2.5 py-0.5 rounded-lg text-xs font-black transition-all flex-shrink-0 ${isAllW ? 'bg-teal-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
                         전체 작업자 (${availWorkers.length})
                     </button>
                     ${availWorkers.map(w => {
@@ -11477,7 +11530,7 @@ function onProjectSearchInput() {
                                     data-cal-worker="${safeW}"
                                     onmouseenter="onHoverCalWorker('${jsW}')"
                                     onmouseleave="onLeaveCalHover()"
-                                    class="px-2.5 py-1 rounded-lg font-bold transition-all flex-shrink-0 ${sel ? 'bg-teal-600 text-white font-black shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'}">
+                                    class="px-2 py-0.5 rounded-lg text-xs font-bold transition-all flex-shrink-0 ${sel ? 'bg-teal-600 text-white font-black shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'}">
                                 ${sel ? '☑️' : '⬜'} ${w}
                             </button>
                         `;
@@ -11523,7 +11576,7 @@ function onProjectSearchInput() {
         }
 
         // =========================================================================
-        // 📅 심플 & 미니멀 모던 달력 그리드 생성 함수 V10.0 (시각적 피로도 원천 차단)
+        // 📅 심플 & 미니멀 모던 달력 그리드 생성 함수 V11.0
         // =========================================================================
         function generateProjectMonthCalendarHTML(year, month, monthData) {
             const firstDay = new Date(year, month, 1);
@@ -11533,7 +11586,6 @@ function onProjectSearchInput() {
 
             const targetMonthStr = `${year}-${(month + 1).toString().padStart(2, '0')}`;
 
-            // 공정별 악센트 바 컬러 맵
             const processColorMap = {
                 '용접': '#ea580c', // orange-600
                 '사상': '#7c3aed', // purple-600
@@ -11559,7 +11611,7 @@ function onProjectSearchInput() {
             if (monthData.length === 0) {
                 calHTML += `
                     <div class="p-4 bg-slate-50 text-center text-xs font-bold text-slate-400 border-b border-slate-200">
-                        선택된 조건에 해당하는 투입 내역이 없습니다. (상단 필터에서 다른 조건이나 '전체'를 선택해보세요)
+                        ${year}년 ${month + 1}월에는 선택된 조건에 해당하는 투입 내역이 없습니다.
                     </div>
                 `;
             }

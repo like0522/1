@@ -1808,113 +1808,109 @@
         </div>
     </div>
 
-    <!-- 프로젝트 상세 멀티-월력 모달 -->
+    <!-- 프로젝트 & 공정 상세 달력 모달 (6대 계층형 스마트 필터 탑재 V9.0) -->
     <div id="projectCalendarModal"
         class="hidden fixed inset-0 bg-slate-900/60 z-[120] flex items-center justify-center backdrop-blur-md p-0 sm:p-2.5">
         <div id="projectCalendarModalBox"
             class="bg-white rounded-none sm:rounded-3xl shadow-2xl w-full h-full sm:w-[98vw] sm:max-w-[1880px] sm:h-[96vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-white/20 transition-all">
-            <div class="bg-gradient-to-r from-purple-900 to-indigo-900 p-3.5 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-purple-800 gap-3">
-                <div class="w-full sm:w-auto">
-                    <h3 id="pcModalTitle" class="text-base sm:text-2xl font-black text-white italic tracking-tighter truncate max-w-full">프로젝트 상세 달력</h3>
-                    <p id="pcModalSubtitle" class="text-purple-300 text-[11px] sm:text-[13px] font-black uppercase mt-0.5 tracking-wider flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <span>Loading...</span>
-                    </p>
-                    <div id="pcModalMonthLegend" class="hidden flex flex-wrap items-center gap-1.5 mt-2 pt-1.5 border-t border-purple-800/60"></div>
-                    <div id="pcModalLegend" class="hidden flex flex-wrap items-center gap-1.5 mt-1.5 pt-1.5 border-t border-purple-500/30"></div>
-                    <div id="pcModalWorkerLegend" class="hidden flex flex-wrap items-center gap-1.5 mt-1.5 pt-1.5 border-t border-amber-500/30"></div>
+            
+            <!-- 1. 컴팩트 상단 헤더 바 -->
+            <div class="bg-gradient-to-r from-slate-900 via-purple-950 to-indigo-950 px-4 py-3 sm:px-6 sm:py-3.5 flex flex-wrap justify-between items-center border-b border-purple-800/60 gap-2 flex-shrink-0">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <h3 class="text-base sm:text-xl font-black text-white italic tracking-tight flex items-center gap-2">
+                        <span>📅</span><span>상세 공정 달력</span>
+                    </h3>
+                    <div id="pcHeaderSummaryBadges" class="flex items-center gap-2 text-xs font-bold text-purple-200 flex-wrap">
+                        <!-- 동적 통계 요약 칩 -->
+                    </div>
                 </div>
-                <!-- 확대/축소 및 모바일 맞춤 툴바 -->
-                <div class="flex items-center gap-2 self-end sm:self-auto">
-                    <div class="flex items-center gap-1 bg-purple-950/70 p-1 rounded-xl border border-purple-700/60 shadow-inner">
+
+                <!-- 우측 컨트롤 툴바 -->
+                <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="toggleCalendarFilterPanel()" id="pcFilterToggleBtn" title="6대 필터 패널 접기/펼치기"
+                        class="px-2.5 py-1.5 flex items-center gap-1 bg-purple-900/80 hover:bg-white hover:text-purple-950 text-purple-200 rounded-xl text-xs font-black transition-all shadow-sm border border-purple-700/60">
+                        <span id="pcFilterToggleIcon">🔼</span><span>필터패널</span>
+                    </button>
+                    <div class="flex items-center gap-1 bg-purple-950/80 p-0.5 rounded-xl border border-purple-700/60 shadow-inner">
                         <button type="button" onclick="changeCalendarZoom(-0.15)" title="달력 축소"
-                            class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800/80 hover:bg-purple-700 text-white rounded-lg text-sm font-black transition-all active:scale-95 shadow-sm">－</button>
-                        <span id="calendarZoomIndicator" class="text-[11px] sm:text-xs font-black text-purple-200 px-1.5 sm:px-2 min-w-[42px] sm:min-w-[48px] text-center cursor-pointer hover:text-white transition-colors"
+                            class="w-7 h-7 flex items-center justify-center bg-purple-800 hover:bg-purple-700 text-white rounded-lg text-xs font-black transition-all">－</button>
+                        <span id="calendarZoomIndicator" class="text-xs font-black text-purple-200 px-2 min-w-[44px] text-center cursor-pointer hover:text-white"
                             onclick="resetCalendarZoom()" title="100% 기본 크기">100%</span>
                         <button type="button" onclick="changeCalendarZoom(0.15)" title="달력 확대"
-                            class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800/80 hover:bg-purple-700 text-white rounded-lg text-sm font-black transition-all active:scale-95 shadow-sm">＋</button>
-                        <button type="button" onclick="fitCalendarToMobile()" title="모바일/화면 폭 맞춤 축소"
-                            class="px-2 sm:px-2.5 h-7 sm:h-8 flex items-center gap-1 bg-purple-800/80 hover:bg-white hover:text-purple-900 text-purple-200 rounded-lg text-[11px] sm:text-xs font-bold transition-all ml-0.5 shadow-sm">
-                            <span>📱</span><span class="hidden sm:inline">화면맞춤</span>
+                            class="w-7 h-7 flex items-center justify-center bg-purple-800 hover:bg-purple-700 text-white rounded-lg text-xs font-black transition-all">＋</button>
+                        <button type="button" onclick="fitCalendarToMobile()" title="화면 폭 맞춤"
+                            class="px-2 h-7 flex items-center gap-1 bg-purple-800 hover:bg-white hover:text-purple-900 text-purple-200 rounded-lg text-xs font-bold transition-all ml-0.5">
+                            <span>📱</span><span class="hidden sm:inline">맞춤</span>
                         </button>
-                        <button type="button" onclick="toggleCalendarFullscreen()" id="pcFullscreenBtn" title="모니터 100% 꽉 채우기 (전체화면 / 창 모드 전환)"
-                            class="px-2 sm:px-2.5 h-7 sm:h-8 flex items-center gap-1 bg-purple-800/80 hover:bg-amber-400 hover:text-slate-950 text-purple-200 rounded-lg text-[11px] sm:text-xs font-black transition-all ml-0.5 shadow-sm">
+                        <button type="button" onclick="toggleCalendarFullscreen()" id="pcFullscreenBtn" title="전체화면 최대화"
+                            class="px-2 h-7 flex items-center gap-1 bg-purple-800 hover:bg-amber-400 hover:text-slate-950 text-purple-200 rounded-lg text-xs font-black transition-all ml-0.5">
                             <span id="pcFullscreenIcon">⛶</span><span class="hidden sm:inline" id="pcFullscreenLabel">최대화</span>
                         </button>
                     </div>
-                    <button onclick="closeProjectCalendarModal()"
-                        class="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-purple-800/50 text-purple-200 hover:bg-white hover:text-purple-900 rounded-full transition-all hover:rotate-90 shadow-lg ml-1">
-                        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button onclick="closeProjectCalendarModal()" title="닫기 (ESC)"
+                        class="w-8 h-8 flex items-center justify-center bg-purple-800/50 text-purple-200 hover:bg-white hover:text-purple-950 rounded-full transition-all hover:rotate-90 shadow-md ml-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
                 </div>
             </div>
 
-            <!-- 휠 네비게이션 서브 툴바 (월 이동 & 작업자 선택) -->
-            <div id="pcControlToolbar" class="bg-slate-900 text-white px-3 sm:px-6 py-2.5 border-b border-purple-900/60 flex flex-wrap items-center justify-between gap-3 shadow-md select-none z-20">
-                <!-- 좌측: 월 이동 컨트롤러 (마우스 휠 지원) -->
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-xs sm:text-sm font-black text-purple-300 flex items-center gap-1">
-                        <span>📅</span><span>월 이동:</span>
+            <!-- 2. 🌟 메인 화면 표준 계층형 6대 스마트 필터 바 (연도, 월, 업체, 프로젝트, 공정, 작업자) -->
+            <div id="pcFilterPanel" class="bg-slate-50 border-b border-slate-200 px-3 sm:px-6 py-2.5 flex flex-col gap-1.5 shadow-xs select-none z-20 text-xs flex-shrink-0 transition-all duration-200 overflow-hidden">
+                <!-- 1) 연도 체크 -->
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-black text-slate-500 min-w-[70px] flex items-center gap-1 flex-shrink-0">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>연도 체크</span>
                     </span>
-                    <div id="pcMonthControlBox" onwheel="handlePcMonthWheel(event)"
-                         class="inline-flex items-center gap-1 bg-purple-950/80 p-1 rounded-xl border border-purple-700/60 shadow-inner hover:border-purple-400 transition-colors cursor-ns-resize"
-                         title="마우스 휠을 굴려 이전/다음 달로 이동할 수 있습니다. (휠 위: 이전달 / 휠 아래: 다음달)">
-                        <button type="button" onclick="navigateCalendarMonth(-1)" title="이전 달 (또는 휠 위로)"
-                            class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800 hover:bg-purple-700 active:scale-95 text-white rounded-lg text-xs font-black transition-all">◀</button>
-                        
-                        <div class="px-2.5 sm:px-3 py-1 bg-white text-purple-950 font-black rounded-lg shadow-sm text-xs sm:text-sm flex items-center gap-1.5 min-w-[110px] sm:min-w-[130px] justify-center">
-                            <span id="pcCurrentMonthBadge">2026년 10월</span>
-                            <span class="text-[9px] font-bold bg-purple-100 text-purple-700 px-1 py-0.2 rounded hidden sm:inline">휠 🔄</span>
-                        </div>
-                        
-                        <button type="button" onclick="navigateCalendarMonth(1)" title="다음 달 (또는 휠 아래로)"
-                            class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800 hover:bg-purple-700 active:scale-95 text-white rounded-lg text-xs font-black transition-all">▶</button>
-                    </div>
-
-                    <!-- 빠른 월 선택 드롭다운 -->
-                    <select id="pcMonthSelect" onchange="selectCalendarMonth(this.value)"
-                            class="bg-purple-950/90 text-purple-200 border border-purple-700/60 rounded-xl px-2 py-1.5 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-purple-400 cursor-pointer">
-                    </select>
-
-                    <button type="button" id="pcViewModeBtn" onclick="toggleCalendarViewMode()"
-                            class="hidden sm:inline-flex items-center px-2.5 py-1.5 rounded-xl text-xs font-bold bg-purple-900/60 text-purple-200 hover:bg-purple-800 border border-purple-700/50 transition-colors">
-                        <span>전체 월 보기</span>
-                    </button>
+                    <div id="pcFilterRowYear" class="flex items-center gap-1.5 flex-nowrap overflow-x-auto custom-scroll py-0.5 flex-1"></div>
                 </div>
 
-                <!-- 우측: 작업자 별도 표기 및 마우스 휠 전환 바 -->
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-xs sm:text-sm font-black text-amber-300 flex items-center gap-1">
-                        <span>👷</span><span>작업자 전환:</span>
+                <!-- 2) 월 체크 -->
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-black text-slate-500 min-w-[70px] flex items-center gap-1 flex-shrink-0">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500"></span><span>월 체크</span>
                     </span>
-                    <div id="pcWorkerControlBox" onwheel="handlePcWorkerWheel(event)"
-                         class="inline-flex items-center gap-1 bg-amber-950/80 p-1 rounded-xl border border-amber-600/70 shadow-inner hover:border-amber-400 transition-colors cursor-ns-resize"
-                         title="마우스 휠을 굴려 작업자를 바꿀 수 있습니다. (휠 위: 이전 작업자 / 휠 아래: 다음 작업자)">
-                        <button type="button" onclick="navigateCalendarWorker(-1)" title="이전 작업자 (또는 휠 위로)"
-                            class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-amber-600 hover:bg-amber-500 active:scale-95 text-slate-900 rounded-lg text-xs font-black transition-all">◀</button>
-                        
-                        <div class="px-2.5 sm:px-3 py-1 bg-amber-400 text-slate-950 font-black rounded-lg shadow-sm text-xs sm:text-sm flex items-center gap-1.5 min-w-[120px] sm:min-w-[150px] justify-center border border-amber-300">
-                            <span id="pcWorkerNameText">강동균</span>
-                            <span id="pcWorkerCountText" class="text-[10px] font-bold bg-black/15 text-slate-900 px-1.5 py-0.2 rounded">(1/8명)</span>
-                            <span class="text-[9px] font-bold bg-white/70 text-amber-950 px-1 py-0.2 rounded hidden sm:inline">휠 🔄</span>
-                        </div>
-                        
-                        <button type="button" onclick="navigateCalendarWorker(1)" title="다음 작업자 (또는 휠 아래로)"
-                            class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-amber-600 hover:bg-amber-500 active:scale-95 text-slate-900 rounded-lg text-xs font-black transition-all">▶</button>
-                    </div>
+                    <div id="pcFilterRowMonth" class="flex items-center gap-1.5 flex-nowrap overflow-x-auto custom-scroll py-0.5 flex-1"></div>
+                </div>
 
-                    <!-- 빠른 작업자 선택 드롭다운 -->
-                    <select id="pcWorkerSelect" onchange="selectCalendarWorker(this.value)"
-                            class="bg-slate-950/90 text-amber-200 border border-amber-700/60 rounded-xl px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-400 cursor-pointer">
-                    </select>
+                <!-- 3) 업체 체크 -->
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-black text-slate-500 min-w-[70px] flex items-center gap-1 flex-shrink-0">
+                        <span class="w-2 h-2 rounded-full bg-purple-500"></span><span>업체 체크</span>
+                    </span>
+                    <div id="pcFilterRowCompany" class="flex items-center gap-1.5 flex-nowrap overflow-x-auto custom-scroll py-0.5 flex-1"></div>
+                </div>
+
+                <!-- 4) 프로젝트 체크 -->
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-black text-slate-500 min-w-[70px] flex items-center gap-1 flex-shrink-0">
+                        <span class="w-2 h-2 rounded-full bg-blue-500"></span><span>프로젝트 체크</span>
+                    </span>
+                    <div id="pcFilterRowProject" class="flex items-center gap-1.5 flex-nowrap overflow-x-auto custom-scroll py-0.5 flex-1"></div>
+                </div>
+
+                <!-- 5) 공정 체크 -->
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-black text-slate-500 min-w-[70px] flex items-center gap-1 flex-shrink-0">
+                        <span class="w-2 h-2 rounded-full bg-amber-500"></span><span>공정 체크</span>
+                    </span>
+                    <div id="pcFilterRowProcess" class="flex items-center gap-1.5 flex-nowrap overflow-x-auto custom-scroll py-0.5 flex-1"></div>
+                </div>
+
+                <!-- 6) 작업자 체크 -->
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-black text-slate-500 min-w-[70px] flex items-center gap-1 flex-shrink-0">
+                        <span class="w-2 h-2 rounded-full bg-teal-500"></span><span>작업자 체크</span>
+                    </span>
+                    <div id="pcFilterRowWorker" class="flex items-center gap-1.5 flex-nowrap overflow-x-auto custom-scroll py-0.5 flex-1"></div>
                 </div>
             </div>
 
-            <!-- 스크롤 영역 (본문 - 줌 래퍼 탑재) -->
-            <div id="pcModalContent" class="flex-1 overflow-auto custom-scroll bg-slate-100 p-2 sm:p-6 relative">
+            <!-- 3. 스크롤 영역 (달력 본문 - 심플 & 미니멀 모던 그리드) -->
+            <div id="pcModalContent" class="flex-1 overflow-auto custom-scroll bg-slate-100 p-2 sm:p-5 relative">
                 <div id="pcCalendarZoomWrapper" class="transition-transform duration-150 origin-top-left">
-                    <!-- 동적으로 일체형 요일+날짜 월별 캘린더 생성 -->
+                    <!-- 동적으로 심플하고 정갈한 월별 달력 생성 -->
                 </div>
             </div>
         </div>
@@ -11072,6 +11068,19 @@ function onProjectSearchInput() {
             }
         }
 
+        function toggleCalendarFilterPanel() {
+            const panel = document.getElementById('pcFilterPanel');
+            const icon = document.getElementById('pcFilterToggleIcon');
+            if (!panel) return;
+            if (panel.classList.contains('hidden')) {
+                panel.classList.remove('hidden');
+                if (icon) icon.textContent = '🔼';
+            } else {
+                panel.classList.add('hidden');
+                if (icon) icon.textContent = '🔽';
+            }
+        }
+
         // =========================================================================
         // 🎪 프로젝트 ↔ 작업자 양방향 '꿈틀 & 확대(Wiggle & Bounce)' 호버 인터랙션
         // =========================================================================
@@ -11139,62 +11148,83 @@ function onProjectSearchInput() {
         }
 
         // =========================================================================
-        // 🗓️ 프로젝트 상세 달력 모달 (1줄 고밀도 스마트 월 컨트롤 바 V8.0)
+        // 🗓️ 6대 스마트 필터 일원화 & 심플 달력 엔진 V10.0
         // =========================================================================
         window.pcState = null;
-        window._lastPcWheelTime = 0;
 
         function openProjectCalendarModal() {
             if (!currentProjectData || currentProjectData.length === 0) return;
 
             const modal = document.getElementById('projectCalendarModal');
 
-            // 1. 전체 rawData에서 가용 연월 목록 및 연도 목록 추출
-            const ymSet = new Set();
+            // 1. 전체 가용 연도 및 연월 목록 추출
+            const yearSet = new Set();
             rawData.forEach(d => {
-                if (d.date && d.date.length >= 7) ymSet.add(d.date.substring(0, 7));
+                if (d.date && d.date.length >= 4) yearSet.add(d.date.substring(0, 4));
             });
-            let allMonths = Array.from(ymSet).sort();
-            if (allMonths.length === 0) allMonths = ['2026-10'];
+            const allYears = Array.from(yearSet).sort();
 
-            const allYears = [...new Set(allMonths.map(ym => ym.substring(0, 4)))].sort();
-
-            // 2. 초기 선택 연월 결정 (현재 클릭한 행의 월 또는 최신 1개 월)
-            let initYM = (currentProjectData[0]?.date || '').substring(0, 7);
-            if (!allMonths.includes(initYM)) {
-                initYM = allMonths[allMonths.length - 1];
+            // 2. 🌟 메인 화면 필터 기준 100% 자동 계승
+            let initYears = new Set();
+            if (typeof selectedFilterYears !== 'undefined' && !selectedFilterYears.has('ALL') && selectedFilterYears.size > 0) {
+                selectedFilterYears.forEach(y => initYears.add(String(y)));
+            } else {
+                const curY = (currentProjectData[0]?.date || '').substring(0, 4);
+                initYears.add(curY || allYears[allYears.length - 1] || '2026');
             }
-            let initMonths = new Set([initYM]);
-            let browseYear = initYM.substring(0, 4);
 
-            // 3. 선택된 월 범위의 데이터에서만 연관 업체, 프로젝트, 작업자 추출
-            const monthRows = rawData.filter(d => d.date && initMonths.has(d.date.substring(0, 7)));
-            const availableClients = [...new Set(monthRows.map(d => (d.client || '').trim()))].filter(Boolean).sort();
-            const availableProjects = [...new Set(monthRows.map(d => (d.project || '').trim()))].filter(Boolean).sort();
-            let availableWorkers = [...new Set(monthRows.map(d => (d.worker || '').trim()))].filter(Boolean).sort();
-            if (availableWorkers.length === 0) availableWorkers = ['강동균'];
+            let initMonths = new Set();
+            if (typeof selectedFilterMonths !== 'undefined' && !selectedFilterMonths.has('ALL') && selectedFilterMonths.size > 0) {
+                selectedFilterMonths.forEach(m => initMonths.add(String(m).padStart(2, '0')));
+            } else {
+                const curM = (currentProjectData[0]?.date || '').substring(5, 7);
+                if (curM) initMonths.add(curM);
+            }
 
-            // 4. 초기 선택 집합 결정 (해당 월의 가용 프로젝트/업체 기본 전체 선택)
-            let initClients = new Set(availableClients);
-            let initProjects = new Set(availableProjects);
-            let initWorkers = new Set([availableWorkers[0]]);
+            let initCompanies = new Set();
+            if (typeof selectedFilterCompanies !== 'undefined' && selectedFilterCompanies.size > 0) {
+                selectedFilterCompanies.forEach(c => initCompanies.add(c));
+            } else {
+                const curC = currentProjectData[0]?.client;
+                if (curC) initCompanies.add(curC);
+            }
 
-            // 5. 모달 전역 상태 객체 초기화
+            let initProjects = new Set();
+            if (typeof selectedFilterProjects !== 'undefined' && selectedFilterProjects.size > 0) {
+                selectedFilterProjects.forEach(p => initProjects.add(p));
+            } else {
+                const curP = currentProjectData[0]?.project;
+                if (curP) initProjects.add(curP);
+            }
+
+            let initProcesses = new Set();
+            if (typeof selectedFilterProcesses !== 'undefined' && !selectedFilterProcesses.has('ALL') && selectedFilterProcesses.size > 0) {
+                selectedFilterProcesses.forEach(proc => initProcesses.add(proc));
+            }
+
+            let initWorkers = new Set();
+            if (typeof selectedFilterWorkers !== 'undefined' && !selectedFilterWorkers.has('ALL') && selectedFilterWorkers.size > 0) {
+                selectedFilterWorkers.forEach(w => initWorkers.add(w));
+            } else {
+                const curW = currentProjectData[0]?.worker;
+                if (curW) initWorkers.add(curW);
+            }
+
+            // 3. 모달 전역 상태 객체 초기화
             window.pcState = {
-                allMonths: allMonths,
                 allYears: allYears,
-                browseYear: browseYear,
-                selectedMonths: initMonths,
-                availableClients: availableClients,
-                selectedClients: initClients,
-                availableProjects: availableProjects,
-                selectedProjects: initProjects,
-                availableWorkers: availableWorkers,
-                selectedWorkers: initWorkers,
+                filters: {
+                    years: initYears,         // Set
+                    months: initMonths,       // Set ('01'~'12')
+                    companies: initCompanies, // Set
+                    projects: initProjects,   // Set
+                    processes: initProcesses, // Set
+                    workers: initWorkers      // Set
+                },
                 currentScopeData: []
             };
 
-            // 6. 창 크기 모드 동기화 및 렌더링
+            // 4. 모달 열기 및 렌더링
             applyCalendarSizeMode();
             renderProjectCalendarContent();
             modal.classList.remove('hidden');
@@ -11210,845 +11240,336 @@ function onProjectSearchInput() {
         function renderProjectCalendarContent() {
             if (!window.pcState) return;
             const state = window.pcState;
-            const { allMonths, allYears, browseYear, selectedMonths } = state;
+            const { filters, allYears } = state;
 
-            const title = document.getElementById('pcModalTitle');
-            const subTitle = document.getElementById('pcModalSubtitle');
-            const monthLegendEl = document.getElementById('pcModalMonthLegend');
-            const legendEl = document.getElementById('pcModalLegend');
-            const workerLegendEl = document.getElementById('pcModalWorkerLegend');
-            const wrapper = document.getElementById('pcCalendarZoomWrapper');
+            // 1. 6대 필터에 따른 데이터 필터링
+            const filteredData = rawData.filter(d => {
+                if (!d.date) return false;
+                const dYear = d.date.substring(0, 4);
+                const dMonth = d.date.substring(5, 7);
 
-            // 1. [핵심] 선택된 연월(들)에 실제 데이터가 존재하는 행만 추출
-            const monthScopedRows = rawData.filter(d => d.date && selectedMonths.has(d.date.substring(0, 7)));
-
-            // 2. [핵심] 선택된 연월(들)에 실제로 존재하는 연관 업체, 프로젝트, 작업자만 동적 재추출 (잉여 100% 제거)
-            state.availableClients = [...new Set(monthScopedRows.map(d => (d.client || '').trim()))].filter(Boolean).sort();
-            state.availableProjects = [...new Set(monthScopedRows.map(d => (d.project || '').trim()))].filter(Boolean).sort();
-            state.availableWorkers = [...new Set(monthScopedRows.map(d => (d.worker || '').trim()))].filter(Boolean).sort();
-            if (state.availableWorkers.length === 0) state.availableWorkers = ['강동균'];
-
-            // 3. 기존 선택 집합 중 가용한 항목만 보존 (없으면 기본값 자동 복구)
-            const validClients = new Set();
-            state.selectedClients.forEach(c => { if (state.availableClients.includes(c)) validClients.add(c); });
-            if (validClients.size === 0 && state.availableClients.length > 0) {
-                state.availableClients.forEach(c => validClients.add(c));
-            }
-            state.selectedClients = validClients;
-
-            const validProjects = new Set();
-            state.selectedProjects.forEach(p => { if (state.availableProjects.includes(p)) validProjects.add(p); });
-            if (validProjects.size === 0 && state.availableProjects.length > 0) {
-                state.availableProjects.forEach(p => validProjects.add(p));
-            }
-            state.selectedProjects = validProjects;
-
-            const validWorkers = new Set();
-            state.selectedWorkers.forEach(w => { if (state.availableWorkers.includes(w)) validWorkers.add(w); });
-            if (validWorkers.size === 0 && state.availableWorkers.length > 0) {
-                validWorkers.add(state.availableWorkers[0]);
-            }
-            state.selectedWorkers = validWorkers;
-
-            // 4. 업체 및 프로젝트 다중 필터링
-            let scopeData = monthScopedRows.filter(d => {
-                if (state.selectedClients.size > 0 && !state.selectedClients.has(d.client)) return false;
-                if (state.selectedProjects.size > 0 && !state.selectedProjects.has(d.project)) return false;
+                if (filters.years.size > 0 && !filters.years.has(dYear)) return false;
+                if (filters.months.size > 0 && !filters.months.has(dMonth)) return false;
+                if (filters.companies.size > 0 && !filters.companies.has(d.client)) return false;
+                if (filters.projects.size > 0 && !filters.projects.has(d.project)) return false;
+                if (filters.processes.size > 0 && !filters.processes.has(d.type)) return false;
+                if (filters.workers.size > 0 && !filters.workers.has((d.worker || '').trim())) return false;
                 return true;
             });
-            state.currentScopeData = scopeData;
+            state.currentScopeData = filteredData;
 
-            // 5. 작업자 다중 필터링
-            let displayData = scopeData;
-            if (state.selectedWorkers.size > 0 && state.selectedWorkers.size < state.availableWorkers.length) {
-                displayData = scopeData.filter(d => state.selectedWorkers.has((d.worker || '').trim()));
-            }
-
-            // 통계 집계
-            let grandH = 0; let grandC = 0;
-            displayData.forEach(d => {
-                grandH += ((Number(d.h_reg) || 0) + (Number(d.h_over) || 0));
-                grandC += (Number(d.cost) || 0);
+            // 2. 가용 선택지 목록 자동 도출 (상위 연도/월/조건에 따른 유효 목록)
+            const baseScope = rawData.filter(d => {
+                if (!d.date) return false;
+                const dYear = d.date.substring(0, 4);
+                const dMonth = d.date.substring(5, 7);
+                if (filters.years.size > 0 && !filters.years.has(dYear)) return false;
+                if (filters.months.size > 0 && !filters.months.has(dMonth)) return false;
+                return true;
             });
 
-            const clientList = Array.from(state.selectedClients);
-            const projList = Array.from(state.selectedProjects);
-            const workerList = Array.from(state.selectedWorkers);
-            const monthList = Array.from(selectedMonths).sort();
+            const availCompanies = [...new Set(baseScope.map(d => (d.client || '').trim()))].filter(Boolean).sort();
+            const availProjects = [...new Set(baseScope.map(d => (d.project || '').trim()))].filter(Boolean).sort();
+            const availProcesses = [...new Set(baseScope.map(d => (d.type || '').trim()))].filter(Boolean).sort();
+            const availWorkers = [...new Set(baseScope.map(d => (d.worker || '').trim()))].filter(Boolean).sort();
 
-            // =================================================================
-            // 6. 상단 헤더 타이틀 렌더링 (업체 휠 컨트롤러 & 프로젝트 휠 컨트롤러)
-            // =================================================================
-            if (title) {
-                let clientBadgeLabel = '';
-                if (clientList.length === state.availableClients.length) {
-                    clientBadgeLabel = `🏢 해당월 전체 업체 (${clientList.length}개사)`;
-                } else if (clientList.length === 1) {
-                    clientBadgeLabel = `🏢 ${clientList[0]}`;
-                } else {
-                    clientBadgeLabel = `🏢 [다중] ${clientList[0]} 외 ${clientList.length - 1}개사`;
-                }
+            // 3. 상단 헤더 요약 뱃지 갱신
+            let totalH = 0; let totalC = 0;
+            filteredData.forEach(d => {
+                totalH += ((Number(d.h_reg) || 0) + (Number(d.h_over) || 0));
+                totalC += (Number(d.cost) || 0);
+            });
 
-                let projBadgeLabel = '';
-                if (projList.length === state.availableProjects.length) {
-                    projBadgeLabel = `📦 해당월 전체 (${projList.length}개) 프로젝트`;
-                } else if (projList.length === 1) {
-                    projBadgeLabel = `📦 ${projList[0]}`;
-                } else {
-                    projBadgeLabel = `📦 [다중] ${projList[0]} 외 ${projList.length - 1}개`;
-                }
-
-                title.innerHTML = `
-                    <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
-                        <!-- 🏢 업체 컨트롤러 (마우스 휠 & ◀/▶ & 드롭다운) -->
-                        <div class="inline-flex items-center gap-1 bg-purple-950/90 p-1 rounded-xl border border-purple-500/60 shadow-inner">
-                            <button type="button" onclick="navigateCalendarClient(-1)" title="이전 업체 (마우스 휠 위)"
-                                    class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800 hover:bg-purple-700 active:scale-95 text-white rounded-lg text-xs font-black transition-all">◀</button>
-                            
-                            <div id="pcClientControlBadge" onwheel="handlePcClientWheel(event)"
-                                 class="px-2.5 sm:px-3 py-1 bg-white text-purple-950 font-black rounded-lg shadow-sm text-xs sm:text-sm flex items-center gap-1.5 cursor-ns-resize hover:bg-purple-50 transition-colors"
-                                 title="마우스 휠을 굴려 업체를 변경할 수 있습니다 (휠 위: 이전업체 / 휠 아래: 다음업체)">
-                                <span>${clientBadgeLabel}</span>
-                                <span class="text-[9px] font-bold bg-purple-100 text-purple-700 px-1 py-0.2 rounded hidden sm:inline">휠 🔄</span>
-                            </div>
-                            
-                            <button type="button" onclick="navigateCalendarClient(1)" title="다음 업체 (마우스 휠 아래)"
-                                    class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800 hover:bg-purple-700 active:scale-95 text-white rounded-lg text-xs font-black transition-all">▶</button>
-                        </div>
-
-                        <!-- 빠른 업체 선택 드롭다운 (해당 월에 존재하는 업체만 표시) -->
-                        <select id="pcClientSelect" onchange="selectCalendarClient(this.value)"
-                                class="bg-purple-950/90 text-purple-200 border border-purple-700/60 rounded-xl px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-purple-400 cursor-pointer">
-                            <option value="__ALL__" ${clientList.length === state.availableClients.length ? 'selected' : ''}>🌐 전체 업체 (${state.availableClients.length}개사)</option>
-                            ${state.availableClients.map(c => `<option value="${c}" ${(clientList.length === 1 && clientList[0] === c) ? 'selected' : ''}>🏢 ${c}</option>`).join('')}
-                        </select>
-
-                        <!-- 📦 프로젝트 휠 컨트롤러 (해당 월에 존재하는 프로젝트만 표시) -->
-                        <div class="inline-flex items-center gap-1 bg-purple-950/90 p-1 rounded-xl border border-purple-500/60 shadow-inner">
-                            <button type="button" onclick="navigateCalendarProject(-1)" title="이전 프로젝트 (마우스 휠 위)"
-                                    class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800 hover:bg-purple-700 active:scale-95 text-white rounded-lg text-xs font-black transition-all">◀</button>
-                            
-                            <div id="pcProjectControlBadge" onwheel="handlePcProjectWheel(event)"
-                                 class="px-2.5 sm:px-3 py-1 bg-amber-400 text-slate-950 font-black rounded-lg shadow-sm text-xs sm:text-sm flex items-center gap-1.5 cursor-ns-resize hover:bg-amber-300 transition-colors"
-                                 title="마우스 휠을 굴려 프로젝트를 순환 변경하거나 통합할 수 있습니다. (휠 위: 이전 / 휠 아래: 다음)">
-                                <span>${projBadgeLabel}</span>
-                                <span class="text-[9px] font-bold bg-white/70 text-amber-950 px-1 py-0.2 rounded hidden sm:inline">휠 🔄</span>
-                            </div>
-                            
-                            <button type="button" onclick="navigateCalendarProject(1)" title="다음 프로젝트 (마우스 휠 아래)"
-                                    class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800 hover:bg-purple-700 active:scale-95 text-white rounded-lg text-xs font-black transition-all">▶</button>
-                        </div>
-
-                        <span class="text-sm sm:text-lg font-black text-white italic tracking-tighter">상세 달력</span>
-                    </div>
+            const summaryBadges = document.getElementById('pcHeaderSummaryBadges');
+            if (summaryBadges) {
+                const yearText = filters.years.size === 0 ? '전체연도' : `${Array.from(filters.years).join(',')}년`;
+                const monthText = filters.months.size === 0 ? '전체월' : `${Array.from(filters.months).map(m => parseInt(m) + '월').join(',')}`;
+                summaryBadges.innerHTML = `
+                    <span class="bg-purple-900/90 text-purple-200 px-2.5 py-0.5 rounded-lg border border-purple-700/50">📅 ${yearText} ${monthText}</span>
+                    <span class="bg-amber-400 text-slate-950 px-2 py-0.5 rounded-lg font-black">⏱️ ${totalH.toLocaleString()}h (${(totalH / 8).toFixed(1)}MD)</span>
+                    <span class="bg-purple-950/80 px-2 py-0.5 rounded-lg border border-purple-500/40 text-amber-200">💰 ₩${totalC.toLocaleString()}</span>
+                    <span class="bg-white/10 px-2 py-0.5 rounded-lg text-slate-300">📊 ${filteredData.length}건</span>
                 `;
             }
 
-            // 7. 상단 서브타이틀 렌더링
-            let workerLabel = '';
-            if (workerList.length === state.availableWorkers.length) {
-                workerLabel = `👥 전체 작업자 (${state.availableWorkers.length}명)`;
-            } else if (workerList.length === 1) {
-                workerLabel = `👷 ${workerList[0]}`;
-            } else {
-                workerLabel = `👷 [다중] ${workerList[0]} 외 ${workerList.length - 1}명 (총 ${workerList.length}명)`;
+            // 4. 🌟 6대 계층형 스마트 필터 바 렌더링
+            renderCalendarFilterRows(allYears, availCompanies, availProjects, availProcesses, availWorkers);
+
+            // 5. 달력 그리드 HTML 생성 (필터링된 연월 조합 순차 렌더링)
+            const wrapper = document.getElementById('pcCalendarZoomWrapper');
+            if (wrapper) {
+                // 필터링된 데이터에서 실제 등장하는 연월 추출 (없으면 선택된 연월 기준)
+                const ymSet = new Set();
+                filteredData.forEach(d => {
+                    if (d.date && d.date.length >= 7) ymSet.add(d.date.substring(0, 7));
+                });
+
+                if (ymSet.size === 0) {
+                    // 데이터가 없는 경우 선택된 연도+월 조합 표시
+                    filters.years.forEach(y => {
+                        if (filters.months.size === 0) {
+                            ymSet.add(`${y}-10`);
+                        } else {
+                            filters.months.forEach(m => ymSet.add(`${y}-${m}`));
+                        }
+                    });
+                }
+                if (ymSet.size === 0) ymSet.add('2026-10');
+
+                const sortedYMs = Array.from(ymSet).sort();
+                let html = '';
+                sortedYMs.forEach(ym => {
+                    const [y, m] = ym.split('-').map(Number);
+                    const ymData = filteredData.filter(d => (d.date || '').startsWith(ym));
+                    html += generateProjectMonthCalendarHTML(y, m - 1, ymData);
+                });
+
+                wrapper.innerHTML = html;
             }
+        }
 
-            let monthSummaryLabel = '';
-            if (monthList.length === allMonths.length) {
-                monthSummaryLabel = `전체 (${allMonths.length}개월)`;
-            } else if (monthList.length === 1) {
-                const [y, m] = monthList[0].split('-');
-                monthSummaryLabel = `${y}년 ${parseInt(m)}월`;
-            } else {
-                monthSummaryLabel = `[다중] ${monthList.map(ym => parseInt(ym.split('-')[1]) + '월').join(', ')} (${monthList.length}개월)`;
-            }
+        // 6대 계층형 필터 칩 렌더링 함수
+        function renderCalendarFilterRows(allYears, availCompanies, availProjects, availProcesses, availWorkers) {
+            const { filters } = window.pcState;
 
-            if (subTitle) {
-                subTitle.innerHTML = `
-                    <span class="bg-amber-400 text-slate-950 px-2 py-0.5 rounded-lg font-black shadow-2xs">${workerLabel}</span>
-                    <span>📅 대상 월: <b>${monthSummaryLabel}</b> (${displayData.length}건)</span>
-                    <span>⏱️ 투입: <b>${grandH.toLocaleString()}h</b> (${(grandH / 8).toFixed(1)}MD)</span>
-                    <span>💰 투입비용: <b>₩${grandC.toLocaleString()}</b></span>
-                    <span class="bg-purple-950/60 px-2 py-0.5 rounded border border-purple-400/40 text-amber-200 font-bold">📦 관련 프로젝트: ${projList.length} / ${state.availableProjects.length}개</span>
-                `;
-            }
-
-            // =================================================================
-            // 8-1. 🚀 [혁신] 1줄 고밀도 스마트 월 컨트롤 바 (연도 휠 + 1~12월 1줄 토글)
-            // =================================================================
-            if (monthLegendEl) {
-                const curY = state.browseYear || '2026';
-                
-                // 1~12월 콤팩트 버튼 생성
-                const monthsInYearHTML = Array.from({ length: 12 }, (_, i) => {
-                    const mNum = i + 1;
-                    const ym = `${curY}-${String(mNum).padStart(2, '0')}`;
-                    const hasData = allMonths.includes(ym);
-                    const isSelected = selectedMonths.has(ym);
-                    const count = hasData ? rawData.filter(d => (d.date || '').startsWith(ym)).length : 0;
-
-                    if (!hasData) {
+            // 1) 연도 체크 렌더링
+            const rowYear = document.getElementById('pcFilterRowYear');
+            if (rowYear) {
+                const isAllY = (filters.years.size === 0);
+                rowYear.innerHTML = `
+                    <button type="button" onclick="selectAllCalendarFilter('years', true)"
+                            class="px-2.5 py-1 rounded-lg font-black transition-all flex-shrink-0 ${isAllY ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
+                        전체 연도
+                    </button>
+                    ${allYears.map(y => {
+                        const sel = filters.years.has(y);
                         return `
-                            <button type="button" disabled
-                                    class="px-2 py-1 rounded-lg text-[10px] font-bold text-slate-500 bg-white/5 border border-white/5 opacity-40 cursor-not-allowed">
-                                ${mNum}월
+                            <button type="button" onclick="toggleCalendarFilter('years', '${y}')"
+                                    class="px-2.5 py-1 rounded-lg font-bold transition-all flex-shrink-0 ${sel ? 'bg-emerald-600 text-white font-black shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'}">
+                                ${sel ? '☑️' : '⬜'} ${y}년
                             </button>
                         `;
-                    }
-
-                    const checkIcon = isSelected ? '☑️' : '⬜';
-                    const bgClass = isSelected
-                        ? 'bg-purple-600 text-white border-purple-300 shadow-md font-black scale-105 ring-2 ring-purple-300'
-                        : 'bg-purple-950/70 text-purple-200 border-purple-700/60 hover:bg-purple-800 hover:text-white font-bold';
-
-                    return `
-                        <button type="button" onclick="toggleCalendarMonth('${ym}')"
-                                onwheel="handlePcMonthBarWheel(event)"
-                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] border transition-all active:scale-95 cursor-pointer select-none ${bgClass}"
-                                title="클릭: [${curY}년 ${mNum}월] 선택/해제 토글&#10;마우스 휠: 연도 전환&#10;투입 건수: ${count}건">
-                            <span>${checkIcon}</span>
-                            <span>${mNum}월</span>
-                            <span class="text-[9px] opacity-80">(${count})</span>
-                        </button>
-                    `;
-                }).join('');
-
-                monthLegendEl.innerHTML = `
-                    <div class="flex items-center justify-between gap-2 flex-wrap w-full py-1 text-xs">
-                        <!-- 좌측: 연도 휠 컨트롤러 & 드롭다운 -->
-                        <div class="flex items-center gap-1.5 flex-shrink-0">
-                            <span class="text-purple-300 font-black text-[11px] flex items-center gap-1">
-                                <span>📅 연도:</span>
-                            </span>
-                            <div onwheel="handlePcYearWheel(event)"
-                                 class="inline-flex items-center gap-1 bg-purple-950/90 p-0.5 rounded-xl border border-purple-500/60 shadow-inner cursor-ns-resize hover:border-purple-300 transition-colors"
-                                 title="마우스 휠을 굴려 연도를 변경할 수 있습니다 (휠 위: 이전해 / 휠 아래: 다음해)">
-                                <button type="button" onclick="navigateCalendarBrowseYear(-1)" title="이전 연도"
-                                        class="w-6 h-6 flex items-center justify-center bg-purple-800 hover:bg-purple-700 text-white rounded-lg text-[10px] font-black transition-all">◀</button>
-                                
-                                <span class="px-2 py-0.5 bg-white text-purple-950 font-black rounded-md shadow-2xs text-xs flex items-center gap-1">
-                                    <span>${curY}년</span>
-                                    <span class="text-[8px] font-bold bg-purple-100 text-purple-700 px-1 py-0.1 rounded hidden sm:inline">휠 🔄</span>
-                                </span>
-
-                                <button type="button" onclick="navigateCalendarBrowseYear(1)" title="다음 연도"
-                                        class="w-6 h-6 flex items-center justify-center bg-purple-800 hover:bg-purple-700 text-white rounded-lg text-[10px] font-black transition-all">▶</button>
-                            </div>
-
-                            <select onchange="selectCalendarBrowseYear(this.value)"
-                                    class="bg-purple-950 text-purple-200 border border-purple-700/60 rounded-lg px-2 py-1 text-[11px] font-bold focus:outline-none cursor-pointer">
-                                ${allYears.map(y => `<option value="${y}" ${y === curY ? 'selected' : ''}>${y}년</option>`).join('')}
-                            </select>
-                        </div>
-
-                        <!-- 중앙: 해당 연도 1~12월 1줄 콤팩트 토글바 -->
-                        <div class="flex items-center gap-1 flex-wrap overflow-x-auto custom-scroll py-0.5">
-                            ${monthsInYearHTML}
-                        </div>
-
-                        <!-- 우측: 스마트 원클릭 퀵 프리셋 -->
-                        <div class="flex items-center gap-1 flex-shrink-0">
-                            <button type="button" onclick="selectRecentMonths(1)" title="가장 최근 1개월만 선택"
-                                    class="px-2 py-1 bg-purple-800 hover:bg-white hover:text-purple-950 text-purple-200 rounded-lg text-[10px] font-black transition-all shadow-xs">최근 1개월</button>
-                            <button type="button" onclick="selectRecentMonths(3)" title="최근 3개월 연속 선택"
-                                    class="px-2 py-1 bg-purple-800 hover:bg-white hover:text-purple-950 text-purple-200 rounded-lg text-[10px] font-black transition-all shadow-xs">최근 3개월</button>
-                            <button type="button" onclick="selectCurrentYearAllMonths()" title="선택된 연도의 전체 월 선택"
-                                    class="px-2 py-1 bg-purple-800 hover:bg-amber-400 hover:text-slate-950 text-purple-200 rounded-lg text-[10px] font-black transition-all shadow-xs">${curY}년 전체</button>
-                            <button type="button" onclick="selectAllCalendarMonths(true)" title="전 기간 전체 월 통합"
-                                    class="px-2 py-1 bg-purple-900/90 hover:bg-purple-700 text-purple-300 rounded-lg text-[10px] font-bold transition-all border border-purple-700/50">전체</button>
-                        </div>
-                    </div>
+                    }).join('')}
                 `;
-                monthLegendEl.classList.remove('hidden');
             }
 
-            // =================================================================
-            // 8-2. 🎨 프로젝트 뱃지 범례 (선택된 월들에 존재하는 프로젝트만 선별 노출)
-            // =================================================================
-            if (legendEl) {
-                if (state.availableProjects.length > 0) {
-                    legendEl.innerHTML = `
-                        <div class="flex items-center gap-1.5 flex-wrap w-full py-1 max-h-[95px] overflow-y-auto custom-scroll pr-1">
-                            <span class="text-purple-300 font-bold text-[11px] flex items-center gap-1 flex-shrink-0">
-                                <span>🎨 관련 프로젝트 (${state.availableProjects.length}개):</span>
-                                <button type="button" onclick="selectAllCalendarProjects(true)" class="px-2 py-0.5 bg-purple-800 hover:bg-purple-700 text-purple-200 hover:text-white rounded text-[10px] font-bold ml-1 transition-colors">전체선택</button>
-                                <button type="button" onclick="selectAllCalendarProjects(false)" class="px-2 py-0.5 bg-purple-800 hover:bg-purple-700 text-purple-200 hover:text-white rounded text-[10px] font-bold transition-colors">1개만 선택</button>
-                            </span>
-                            ${state.availableProjects.map(p => {
-                                const isSelected = state.selectedProjects.has(p);
-                                const color = getCalProjectColor(p, state.availableProjects);
-                                const count = monthScopedRows.filter(d => (d.project || '').trim() === p).length;
-                                const borderStyle = isSelected ? `border-color: ${color.border};` : 'border-color: rgba(255,255,255,0.25); opacity: 0.45; filter: grayscale(70%);';
-                                const bgStyle = isSelected ? `background-color: ${color.bg};` : 'background-color: rgba(0,0,0,0.35);';
-                                const textStyle = isSelected ? `color: ${color.text};` : 'color: #94a3b8;';
-                                const checkIcon = isSelected ? '☑️' : '⬜';
-                                const safeP = p.replace(/"/g, '&quot;');
-                                const jsSafeP = p.replace(/'/g, "\\'");
-
-                                return `
-                                    <button type="button" onclick="toggleCalendarProject('${jsSafeP}')"
-                                            onwheel="handlePcProjectWheel(event)"
-                                            data-cal-proj="${safeP}"
-                                            onmouseenter="onHoverCalProject('${jsSafeP}')"
-                                            onmouseleave="onLeaveCalHover()"
-                                            class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xl text-[11px] font-black shadow-2xs border transition-all hover:scale-105 active:scale-95 cursor-pointer select-none"
-                                            style="${bgStyle} ${borderStyle} ${textStyle}"
-                                            title="클릭: [${p}] 프로젝트 선택/해제 토글&#10;마우스 휠: 순환 이동&#10;호버: 투입 작업자 동시 확대 & 꿈틀">
-                                        <span class="text-[10px]">${checkIcon}</span>
-                                        <span class="w-2 h-2 rounded-full flex-shrink-0 shadow-2xs" style="background-color: ${color.bar};"></span>
-                                        <span class="truncate max-w-[130px] sm:max-w-[200px]">${p}</span>
-                                        <span class="text-[10px] font-bold opacity-80">(${count}건)</span>
-                                    </button>
-                                `;
-                            }).join('')}
-                        </div>
-                    `;
-                    legendEl.classList.remove('hidden');
-                } else {
-                    legendEl.innerHTML = '';
-                    legendEl.classList.add('hidden');
-                }
+            // 2) 월 체크 렌더링
+            const rowMonth = document.getElementById('pcFilterRowMonth');
+            if (rowMonth) {
+                const isAllM = (filters.months.size === 0);
+                rowMonth.innerHTML = `
+                    <button type="button" onclick="selectAllCalendarFilter('months', true)"
+                            class="px-2.5 py-1 rounded-lg font-black transition-all flex-shrink-0 ${isAllM ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
+                        전체 월
+                    </button>
+                    <button type="button" onclick="selectCalendarHalfYear('first')"
+                            class="px-2 py-1 rounded-lg font-bold bg-slate-100 hover:bg-indigo-100 text-indigo-700 border border-slate-200 transition-all flex-shrink-0">
+                        🌱 상반기 (1~6월)
+                    </button>
+                    <button type="button" onclick="selectCalendarHalfYear('second')"
+                            class="px-2 py-1 rounded-lg font-bold bg-slate-100 hover:bg-indigo-100 text-indigo-700 border border-slate-200 transition-all flex-shrink-0">
+                        🍁 하반기 (7~12월)
+                    </button>
+                    ${Array.from({ length: 12 }, (_, i) => {
+                        const mStr = String(i + 1).padStart(2, '0');
+                        const sel = filters.months.has(mStr);
+                        return `
+                            <button type="button" onclick="toggleCalendarFilter('months', '${mStr}')"
+                                    class="px-2.5 py-1 rounded-lg font-bold transition-all flex-shrink-0 ${sel ? 'bg-indigo-600 text-white font-black shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'}">
+                                ${sel ? '☑️' : '⬜'} ${i + 1}월
+                            </button>
+                        `;
+                    }).join('')}
+                `;
             }
 
-            // =================================================================
-            // 8-3. 👷 작업자 다중 선택 바 (선택된 월들에 존재하는 작업자만 선별 노출)
-            // =================================================================
-            if (workerLegendEl) {
-                if (state.availableWorkers.length > 0) {
-                    workerLegendEl.innerHTML = `
-                        <div class="flex items-center gap-1.5 flex-wrap w-full py-1 max-h-[80px] overflow-y-auto custom-scroll pr-1">
-                            <span class="text-amber-300 font-bold text-[11px] flex items-center gap-1 flex-shrink-0">
-                                <span>👷 관련 작업자 (${state.availableWorkers.length}명):</span>
-                                <button type="button" onclick="selectAllCalendarWorkers(true)" class="px-2 py-0.5 bg-amber-600 hover:bg-amber-500 text-slate-950 rounded text-[10px] font-black ml-1 transition-colors">전체선택</button>
-                                <button type="button" onclick="selectAllCalendarWorkers(false)" class="px-2 py-0.5 bg-amber-600 hover:bg-amber-500 text-slate-950 rounded text-[10px] font-black transition-colors">1명만 선택</button>
-                            </span>
-                            ${state.availableWorkers.map(w => {
-                                const isSelected = state.selectedWorkers.has(w);
-                                const count = monthScopedRows.filter(d => (d.worker || '').trim() === w).length;
-                                const borderStyle = isSelected ? 'border-color: #f59e0b; box-shadow: 0 0 0 1px #f59e0b;' : 'border-color: rgba(255,255,255,0.2); opacity: 0.45; filter: grayscale(70%);';
-                                const bgStyle = isSelected ? 'background-color: rgba(245, 158, 11, 0.25);' : 'background-color: rgba(0,0,0,0.35);';
-                                const textStyle = isSelected ? 'color: #fef08a;' : 'color: #94a3b8;';
-                                const checkIcon = isSelected ? '☑️' : '⬜';
-                                const safeW = w.replace(/"/g, '&quot;');
-                                const jsSafeW = w.replace(/'/g, "\\'");
-
-                                return `
-                                    <button type="button" onclick="toggleCalendarWorker('${jsSafeW}')"
-                                            onwheel="handlePcWorkerWheel(event)"
-                                            data-cal-worker="${safeW}"
-                                            onmouseenter="onHoverCalWorker('${jsSafeW}')"
-                                            onmouseleave="onLeaveCalHover()"
-                                            class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xl text-[11px] font-black shadow-2xs border transition-all hover:scale-105 active:scale-95 cursor-pointer select-none"
-                                            style="${bgStyle} ${borderStyle} ${textStyle}"
-                                            title="클릭: [${w}] 작업자 선택/해제 토글&#10;마우스 휠: 순환 이동&#10;호버: 참여 프로젝트 동시 확대 & 꿈틀">
-                                        <span class="text-[10px]">${checkIcon}</span>
-                                        <span>👷 ${w}</span>
-                                        <span class="text-[10px] font-bold opacity-80">(${count}건)</span>
-                                    </button>
-                                `;
-                            }).join('')}
-                        </div>
-                    `;
-                    workerLegendEl.classList.remove('hidden');
-                } else {
-                    workerLegendEl.innerHTML = '';
-                    workerLegendEl.classList.add('hidden');
-                }
+            // 3) 업체 체크 렌더링
+            const rowCompany = document.getElementById('pcFilterRowCompany');
+            if (rowCompany) {
+                const isAllC = (filters.companies.size === 0);
+                rowCompany.innerHTML = `
+                    <button type="button" onclick="selectAllCalendarFilter('companies', true)"
+                            class="px-2.5 py-1 rounded-lg font-black transition-all flex-shrink-0 ${isAllC ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
+                        전체 업체 (${availCompanies.length})
+                    </button>
+                    ${availCompanies.map(c => {
+                        const sel = filters.companies.has(c);
+                        const jsC = c.replace(/'/g, "\\'");
+                        return `
+                            <button type="button" onclick="toggleCalendarFilter('companies', '${jsC}')"
+                                    class="px-2.5 py-1 rounded-lg font-bold transition-all flex-shrink-0 ${sel ? 'bg-purple-600 text-white font-black shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'}">
+                                ${sel ? '☑️' : '⬜'} ${c}
+                            </button>
+                        `;
+                    }).join('')}
+                `;
             }
 
-            // 9. 서브 툴바 위젯 상태 동기화 (월 & 작업자)
-            const monthBadge = document.getElementById('pcCurrentMonthBadge');
-            if (monthBadge) {
-                if (monthList.length === allMonths.length) {
-                    monthBadge.textContent = '전체 월 (통합)';
-                } else if (monthList.length === 1) {
-                    const [y, m] = monthList[0].split('-');
-                    monthBadge.textContent = `${y}년 ${parseInt(m)}월`;
-                } else {
-                    monthBadge.textContent = `[다중] ${monthList.length}개 월 선택`;
-                }
+            // 4) 프로젝트 체크 렌더링
+            const rowProject = document.getElementById('pcFilterRowProject');
+            if (rowProject) {
+                const isAllP = (filters.projects.size === 0);
+                rowProject.innerHTML = `
+                    <button type="button" onclick="selectAllCalendarFilter('projects', true)"
+                            class="px-2.5 py-1 rounded-lg font-black transition-all flex-shrink-0 ${isAllP ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
+                        전체 프로젝트 (${availProjects.length})
+                    </button>
+                    ${availProjects.map(p => {
+                        const sel = filters.projects.has(p);
+                        const jsP = p.replace(/'/g, "\\'");
+                        const safeP = p.replace(/"/g, '&quot;');
+                        return `
+                            <button type="button" onclick="toggleCalendarFilter('projects', '${jsP}')"
+                                    data-cal-proj="${safeP}"
+                                    onmouseenter="onHoverCalProject('${jsP}')"
+                                    onmouseleave="onLeaveCalHover()"
+                                    class="px-2.5 py-1 rounded-lg font-bold transition-all flex-shrink-0 max-w-[280px] truncate ${sel ? 'bg-blue-600 text-white font-black shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'}"
+                                    title="${safeP}">
+                                ${sel ? '☑️' : '⬜'} ${p}
+                            </button>
+                        `;
+                    }).join('')}
+                `;
             }
 
-            const monthSelect = document.getElementById('pcMonthSelect');
-            if (monthSelect) {
-                const isAllMonth = (monthList.length === allMonths.length);
-                monthSelect.innerHTML = `<option value="__ALL__" ${isAllMonth ? 'selected' : ''}>🌐 전체 월 통합 (${allMonths.length}개월)</option>` +
-                    allMonths.map(ym => {
-                        const [y, m] = ym.split('-');
-                        const isCurSingle = (monthList.length === 1 && monthList[0] === ym);
-                        return `<option value="${ym}" ${isCurSingle ? 'selected' : ''}>📅 ${y}년 ${parseInt(m)}월</option>`;
-                    }).join('');
+            // 5) 공정 체크 렌더링
+            const rowProcess = document.getElementById('pcFilterRowProcess');
+            if (rowProcess) {
+                const isAllProc = (filters.processes.size === 0);
+                rowProcess.innerHTML = `
+                    <button type="button" onclick="selectAllCalendarFilter('processes', true)"
+                            class="px-2.5 py-1 rounded-lg font-black transition-all flex-shrink-0 ${isAllProc ? 'bg-amber-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
+                        전체 공정 (${availProcesses.length})
+                    </button>
+                    ${availProcesses.map(proc => {
+                        const sel = filters.processes.has(proc);
+                        const jsProc = proc.replace(/'/g, "\\'");
+                        return `
+                            <button type="button" onclick="toggleCalendarFilter('processes', '${jsProc}')"
+                                    class="px-2.5 py-1 rounded-lg font-bold transition-all flex-shrink-0 ${sel ? 'bg-amber-600 text-white font-black shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'}">
+                                ${sel ? '☑️' : '⬜'} ${proc}
+                            </button>
+                        `;
+                    }).join('')}
+                `;
             }
 
-            const viewModeBtn = document.getElementById('pcViewModeBtn');
-            if (viewModeBtn) {
-                const isAll = (selectedMonths.size === allMonths.length);
-                viewModeBtn.innerHTML = isAll ? '<span>최근 월만 보기</span>' : '<span>전체 월 보기</span>';
-                viewModeBtn.className = isAll
-                    ? 'hidden sm:inline-flex items-center px-2.5 py-1.5 rounded-xl text-xs font-black bg-purple-700 text-white border border-purple-400 shadow-sm'
-                    : 'hidden sm:inline-flex items-center px-2.5 py-1.5 rounded-xl text-xs font-bold bg-purple-900/60 text-purple-200 hover:bg-purple-800 border border-purple-700/50 transition-colors';
+            // 6) 작업자 체크 렌더링
+            const rowWorker = document.getElementById('pcFilterRowWorker');
+            if (rowWorker) {
+                const isAllW = (filters.workers.size === 0);
+                rowWorker.innerHTML = `
+                    <button type="button" onclick="selectAllCalendarFilter('workers', true)"
+                            class="px-2.5 py-1 rounded-lg font-black transition-all flex-shrink-0 ${isAllW ? 'bg-teal-600 text-white shadow-xs' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
+                        전체 작업자 (${availWorkers.length})
+                    </button>
+                    ${availWorkers.map(w => {
+                        const sel = filters.workers.has(w);
+                        const jsW = w.replace(/'/g, "\\'");
+                        const safeW = w.replace(/"/g, '&quot;');
+                        return `
+                            <button type="button" onclick="toggleCalendarFilter('workers', '${jsW}')"
+                                    data-cal-worker="${safeW}"
+                                    onmouseenter="onHoverCalWorker('${jsW}')"
+                                    onmouseleave="onLeaveCalHover()"
+                                    class="px-2.5 py-1 rounded-lg font-bold transition-all flex-shrink-0 ${sel ? 'bg-teal-600 text-white font-black shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'}">
+                                ${sel ? '☑️' : '⬜'} ${w}
+                            </button>
+                        `;
+                    }).join('')}
+                `;
             }
-
-            const workerNameEl = document.getElementById('pcWorkerNameText');
-            const workerCountEl = document.getElementById('pcWorkerCountText');
-            if (workerNameEl) {
-                if (workerList.length === state.availableWorkers.length) {
-                    workerNameEl.textContent = '전체 작업자';
-                } else if (workerList.length === 1) {
-                    workerNameEl.textContent = workerList[0];
-                } else {
-                    workerNameEl.textContent = `[다중] ${workerList[0]} 외 ${workerList.length - 1}명`;
-                }
-            }
-            if (workerCountEl) {
-                workerCountEl.textContent = `(${workerList.length}/${state.availableWorkers.length}명)`;
-            }
-
-            const workerSelect = document.getElementById('pcWorkerSelect');
-            if (workerSelect) {
-                const isAllSelected = (workerList.length === state.availableWorkers.length);
-                workerSelect.innerHTML = `<option value="__ALL__" ${isAllSelected ? 'selected' : ''}>👥 전체 작업자 (${state.availableWorkers.length}명)</option>` +
-                    state.availableWorkers.map((w, idx) => `<option value="${w}" ${(workerList.length === 1 && workerList[0] === w) ? 'selected' : ''}>👷 ${w} (${idx + 1}/${state.availableWorkers.length})</option>`).join('');
-            }
-
-            // 10. 달력 그리드 HTML 생성 (선택된 월들만 순서대로 렌더링)
-            let html = '';
-            monthList.forEach(ym => {
-                const [y, m] = ym.split('-').map(Number);
-                const ymDisplayData = displayData.filter(d => (d.date || '').startsWith(ym));
-                html += generateProjectMonthCalendarHTML(y, m - 1, ymDisplayData);
-            });
-
-            if (wrapper) wrapper.innerHTML = html;
         }
 
         // =========================================================================
-        // 🔄 연도 탐색 & 1줄 콤팩트 월 바 헬퍼 및 휠 이벤트 리스너
+        // 🔄 6대 스마트 필터 인터랙션 핸들러
         // =========================================================================
-        function navigateCalendarBrowseYear(delta) {
-            if (!window.pcState) return;
-            const state = window.pcState;
-            const { allYears } = state;
-            if (!allYears || allYears.length === 0) return;
+        function toggleCalendarFilter(category, value) {
+            if (!window.pcState || !category || !value) return;
+            const filterSet = window.pcState.filters[category];
+            if (!filterSet) return;
 
-            let idx = allYears.indexOf(state.browseYear);
-            if (idx === -1) idx = allYears.length - 1;
-
-            let newIdx = idx + delta;
-            if (newIdx < 0) newIdx = allYears.length - 1;
-            if (newIdx >= allYears.length) newIdx = 0;
-
-            state.browseYear = allYears[newIdx];
-            renderProjectCalendarContent();
-        }
-
-        function selectCalendarBrowseYear(yearVal) {
-            if (!window.pcState || !yearVal) return;
-            window.pcState.browseYear = yearVal;
-            renderProjectCalendarContent();
-        }
-
-        function handlePcYearWheel(e) {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            const now = Date.now();
-            if (now - window._lastPcWheelTime < 140) return;
-            window._lastPcWheelTime = now;
-
-            if (e.deltaY < 0) {
-                navigateCalendarBrowseYear(-1);
-            } else if (e.deltaY > 0) {
-                navigateCalendarBrowseYear(1);
-            }
-        }
-
-        function handlePcMonthBarWheel(e) {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            handlePcYearWheel(e);
-        }
-
-        function selectRecentMonths(count) {
-            if (!window.pcState) return;
-            const state = window.pcState;
-            const { allMonths } = state;
-            if (!allMonths || allMonths.length === 0) return;
-
-            const targetMonths = allMonths.slice(-count);
-            state.selectedMonths = new Set(targetMonths);
-            if (targetMonths.length > 0) {
-                state.browseYear = targetMonths[targetMonths.length - 1].substring(0, 4);
-            }
-            renderProjectCalendarContent();
-        }
-
-        function selectCurrentYearAllMonths() {
-            if (!window.pcState) return;
-            const state = window.pcState;
-            const { allMonths, browseYear } = state;
-            const monthsInCurYear = allMonths.filter(ym => ym.startsWith(browseYear));
-            if (monthsInCurYear.length > 0) {
-                state.selectedMonths = new Set(monthsInCurYear);
-            }
-            renderProjectCalendarContent();
-        }
-
-        // =========================================================================
-        // 🔄 연월(Month) 다중 선택 토글, 네비게이션 및 휠 이벤트 리스너 핸들러
-        // =========================================================================
-        function toggleCalendarMonth(ymStr) {
-            if (!window.pcState || !ymStr) return;
-            const state = window.pcState;
-            if (state.selectedMonths.has(ymStr)) {
-                state.selectedMonths.delete(ymStr);
-                if (state.selectedMonths.size === 0) {
-                    state.selectedMonths.add(ymStr);
-                }
+            if (filterSet.has(value)) {
+                filterSet.delete(value);
             } else {
-                state.selectedMonths.add(ymStr);
+                filterSet.add(value);
             }
-            state.browseYear = ymStr.substring(0, 4);
             renderProjectCalendarContent();
         }
 
-        function selectAllCalendarMonths(selectAll) {
-            if (!window.pcState) return;
-            const state = window.pcState;
+        function selectAllCalendarFilter(category, selectAll) {
+            if (!window.pcState || !category) return;
             if (selectAll) {
-                state.selectedMonths = new Set(state.allMonths);
-            } else {
-                const latestYM = state.allMonths[state.allMonths.length - 1] || '2026-10';
-                state.selectedMonths = new Set([latestYM]);
-                state.browseYear = latestYM.substring(0, 4);
+                window.pcState.filters[category].clear(); // 빈 Set = 전체 선택 의미
             }
             renderProjectCalendarContent();
         }
 
-        function toggleCalendarViewMode() {
+        function selectCalendarHalfYear(half) {
             if (!window.pcState) return;
-            const state = window.pcState;
-            if (state.selectedMonths.size === state.allMonths.length) {
-                const latestYM = state.allMonths[state.allMonths.length - 1] || '2026-10';
-                state.selectedMonths = new Set([latestYM]);
-                state.browseYear = latestYM.substring(0, 4);
+            const mSet = new Set();
+            if (half === 'first') {
+                ['01', '02', '03', '04', '05', '06'].forEach(m => mSet.add(m));
             } else {
-                state.selectedMonths = new Set(state.allMonths);
+                ['07', '08', '09', '10', '11', '12'].forEach(m => mSet.add(m));
             }
+            window.pcState.filters.months = mSet;
             renderProjectCalendarContent();
-        }
-
-        function navigateCalendarMonth(delta) {
-            if (!window.pcState) return;
-            const { allMonths, selectedMonths } = window.pcState;
-            if (!allMonths || allMonths.length === 0) return;
-
-            const cycle = ['__ALL__', ...allMonths];
-            const curVal = (selectedMonths.size === allMonths.length) ? '__ALL__' : Array.from(selectedMonths)[0];
-            let idx = cycle.indexOf(curVal);
-            if (idx === -1) idx = 1;
-
-            let newIdx = idx + delta;
-            if (newIdx < 0) newIdx = cycle.length - 1;
-            if (newIdx >= cycle.length) newIdx = 0;
-
-            selectCalendarMonth(cycle[newIdx]);
-        }
-
-        function selectCalendarMonth(ymVal) {
-            if (!window.pcState || !ymVal) return;
-            const state = window.pcState;
-            if (ymVal === '__ALL__') {
-                state.selectedMonths = new Set(state.allMonths);
-            } else {
-                state.selectedMonths = new Set([ymVal]);
-                state.browseYear = ymVal.substring(0, 4);
-            }
-            renderProjectCalendarContent();
-        }
-
-        function handlePcMonthWheel(e) {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            const now = Date.now();
-            if (now - window._lastPcWheelTime < 140) return;
-            window._lastPcWheelTime = now;
-
-            if (e.deltaY < 0) {
-                navigateCalendarMonth(-1);
-            } else if (e.deltaY > 0) {
-                navigateCalendarMonth(1);
-            }
         }
 
         // =========================================================================
-        // 🔄 업체(Client) & 프로젝트(Project) 네비게이션 및 마우스 휠 이벤트 핸들러
+        // 📅 심플 & 미니멀 모던 달력 그리드 생성 함수 V10.0 (시각적 피로도 원천 차단)
         // =========================================================================
-        function navigateCalendarClient(delta) {
-            if (!window.pcState) return;
-            const { availableClients, selectedClients } = window.pcState;
-            if (!availableClients || availableClients.length === 0) return;
-
-            const cycle = ['__ALL__', ...availableClients];
-            const curClient = (selectedClients.size === availableClients.length) ? '__ALL__' : Array.from(selectedClients)[0];
-            let idx = cycle.indexOf(curClient);
-            if (idx === -1) idx = 1;
-
-            let newIdx = idx + delta;
-            if (newIdx < 0) newIdx = cycle.length - 1;
-            if (newIdx >= cycle.length) newIdx = 0;
-
-            selectCalendarClient(cycle[newIdx]);
-        }
-
-        function selectCalendarClient(clientVal) {
-            if (!window.pcState) return;
-            const state = window.pcState;
-            const { availableClients } = state;
-
-            if (clientVal === '__ALL__') {
-                state.selectedClients = new Set(availableClients);
-            } else {
-                state.selectedClients = new Set([clientVal]);
-            }
-
-            renderProjectCalendarContent();
-        }
-
-        function handlePcClientWheel(e) {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            const now = Date.now();
-            if (now - window._lastPcWheelTime < 150) return;
-            window._lastPcWheelTime = now;
-
-            if (e.deltaY < 0) {
-                navigateCalendarClient(-1);
-            } else if (e.deltaY > 0) {
-                navigateCalendarClient(1);
-            }
-        }
-
-        function navigateCalendarProject(delta) {
-            if (!window.pcState) return;
-            const state = window.pcState;
-            const { availableProjects, selectedProjects } = state;
-            if (!availableProjects || availableProjects.length === 0) return;
-
-            const cycle = ['__ALL__', ...availableProjects];
-            const curProj = (selectedProjects.size === availableProjects.length) ? '__ALL__' : Array.from(selectedProjects)[0];
-            let idx = cycle.indexOf(curProj);
-            if (idx === -1) idx = 0;
-
-            let newIdx = idx + delta;
-            if (newIdx < 0) newIdx = cycle.length - 1;
-            if (newIdx >= cycle.length) newIdx = 0;
-
-            const targetProj = cycle[newIdx];
-            if (targetProj === '__ALL__') {
-                state.selectedProjects = new Set(availableProjects);
-            } else {
-                state.selectedProjects = new Set([targetProj]);
-            }
-
-            renderProjectCalendarContent();
-        }
-
-        function toggleCalendarProject(pName) {
-            if (!window.pcState || !pName) return;
-            const state = window.pcState;
-            if (state.selectedProjects.has(pName)) {
-                state.selectedProjects.delete(pName);
-                if (state.selectedProjects.size === 0) {
-                    state.selectedProjects.add(pName);
-                }
-            } else {
-                state.selectedProjects.add(pName);
-            }
-            renderProjectCalendarContent();
-        }
-
-        function selectAllCalendarProjects(selectAll) {
-            if (!window.pcState) return;
-            const state = window.pcState;
-            if (selectAll) {
-                state.selectedProjects = new Set(state.availableProjects);
-            } else {
-                state.selectedProjects = new Set([state.availableProjects[0] || '']);
-            }
-            renderProjectCalendarContent();
-        }
-
-        function handlePcProjectWheel(e) {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            const now = Date.now();
-            if (now - window._lastPcWheelTime < 150) return;
-            window._lastPcWheelTime = now;
-
-            if (e.deltaY < 0) {
-                navigateCalendarProject(-1);
-            } else if (e.deltaY > 0) {
-                navigateCalendarProject(1);
-            }
-        }
-
-        // =========================================================================
-        // 👷 작업자(Worker) 다중 선택 토글, 네비게이션 및 휠 이벤트 리스너 핸들러
-        // =========================================================================
-        function toggleCalendarWorker(wName) {
-            if (!window.pcState || !wName) return;
-            const state = window.pcState;
-            if (state.selectedWorkers.has(wName)) {
-                state.selectedWorkers.delete(wName);
-                if (state.selectedWorkers.size === 0) {
-                    state.selectedWorkers.add(wName);
-                }
-            } else {
-                state.selectedWorkers.add(wName);
-            }
-            renderProjectCalendarContent();
-        }
-
-        function selectAllCalendarWorkers(selectAll) {
-            if (!window.pcState) return;
-            const state = window.pcState;
-            if (selectAll) {
-                state.selectedWorkers = new Set(state.availableWorkers);
-            } else {
-                state.selectedWorkers = new Set([state.availableWorkers[0] || '강동균']);
-            }
-            renderProjectCalendarContent();
-        }
-
-        function navigateCalendarWorker(delta) {
-            if (!window.pcState) return;
-            const { availableWorkers, selectedWorkers } = window.pcState;
-            if (!availableWorkers || availableWorkers.length === 0) return;
-
-            const cycle = ['__ALL__', ...availableWorkers];
-            const curWorker = (selectedWorkers.size === availableWorkers.length) ? '__ALL__' : Array.from(selectedWorkers)[0];
-            let idx = cycle.indexOf(curWorker);
-            if (idx === -1) idx = 1;
-
-            let newIdx = idx + delta;
-            if (newIdx < 0) newIdx = cycle.length - 1;
-            if (newIdx >= cycle.length) newIdx = 0;
-
-            selectCalendarWorker(cycle[newIdx]);
-        }
-
-        function selectCalendarWorker(wVal) {
-            if (!window.pcState || !wVal) return;
-            const state = window.pcState;
-            if (wVal === '__ALL__') {
-                state.selectedWorkers = new Set(state.availableWorkers);
-            } else {
-                state.selectedWorkers = new Set([wVal]);
-            }
-            renderProjectCalendarContent();
-        }
-
-        function handlePcWorkerWheel(e) {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            const now = Date.now();
-            if (now - window._lastPcWheelTime < 140) return;
-            window._lastPcWheelTime = now;
-
-            if (e.deltaY < 0) {
-                navigateCalendarWorker(-1);
-            } else if (e.deltaY > 0) {
-                navigateCalendarWorker(1);
-            }
-        }
-
-        // 1개 월 단위 캘린더 생성 함수 (양방향 꿈틀 호버 태그 포함)
-        function generateProjectMonthCalendarHTML(year, month, customMonthData) {
+        function generateProjectMonthCalendarHTML(year, month, monthData) {
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const daysInMonth = lastDay.getDate();
             const startDayOfWeek = firstDay.getDay();
 
             const targetMonthStr = `${year}-${(month + 1).toString().padStart(2, '0')}`;
-            const monthData = customMonthData || (currentProjectData || []).filter(d => (d.date || '').startsWith(targetMonthStr));
-            const uProjs = (window.pcState?.availableProjects && window.pcState.availableProjects.length > 0)
-                ? window.pcState.availableProjects
-                : [...new Set(monthData.map(d => d.project))].filter(Boolean);
-            const uClients = (window.pcState?.availableClients && window.pcState.availableClients.length > 0)
-                ? window.pcState.availableClients
-                : [...new Set(monthData.map(d => d.client))].filter(Boolean);
 
-            const selectedWorkers = window.pcState?.selectedWorkers || new Set();
-            const availableWorkers = window.pcState?.availableWorkers || [];
-            let workerBadgeStr = '';
-            if (selectedWorkers.size === availableWorkers.length) {
-                workerBadgeStr = '👥 전체 작업자';
-            } else if (selectedWorkers.size === 1) {
-                workerBadgeStr = `👷 ${Array.from(selectedWorkers)[0]}`;
-            } else {
-                workerBadgeStr = `👷 [다중] ${Array.from(selectedWorkers)[0]} 외 ${selectedWorkers.size - 1}명`;
-            }
+            // 공정별 악센트 바 컬러 맵
+            const processColorMap = {
+                '용접': '#ea580c', // orange-600
+                '사상': '#7c3aed', // purple-600
+                '제관': '#2563eb', // blue-600
+                '절단': '#dc2626', // red-600
+                '조립': '#059669', // emerald-600
+                '가공': '#0891b2', // cyan-600
+                '도장': '#d97706', // amber-600
+                '검사': '#4f46e5'  // indigo-600
+            };
 
             let calHTML = `
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-x-auto custom-scroll mb-8">
-                    <!-- 월 카드 헤더 (마우스 휠 월 이동 지원) -->
-                    <div onwheel="handlePcMonthWheel(event)"
-                         class="bg-slate-50 p-3 sm:p-4 border-b border-slate-200 flex items-center justify-between sticky left-0 cursor-ns-resize hover:bg-slate-100 transition-colors"
-                         title="이 영역에서 마우스 휠을 굴려 이전/다음 달로 이동할 수 있습니다. (휠 위: 이전달 / 휠 아래: 다음달)">
-                        <div class="flex items-center gap-2 sm:gap-3">
-                            <button type="button" onclick="navigateCalendarMonth(-1)" title="이전 달 (또는 마우스 휠 위로)"
-                                    class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-slate-300 hover:bg-purple-50 hover:text-purple-700 text-slate-700 rounded-lg text-xs font-black shadow-xs transition-colors">◀</button>
-                            <h4 class="text-base sm:text-xl font-black text-slate-800 tracking-tight flex items-center gap-1.5 sm:gap-2">
-                                <span class="text-purple-600 text-2xl sm:text-3xl font-black">${month + 1}</span>월 
-                                <span class="text-slate-400 text-xs sm:text-sm font-bold ml-0.5">${year}년</span>
-                                <span class="text-[10px] sm:text-[11px] font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md hidden sm:inline-flex items-center gap-1">
-                                    <span>마우스 휠로 월 이동</span><span>🔄</span>
-                                </span>
-                            </h4>
-                            <button type="button" onclick="navigateCalendarMonth(1)" title="다음 달 (또는 마우스 휠 아래로)"
-                                    class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-slate-300 hover:bg-purple-50 hover:text-purple-700 text-slate-700 rounded-lg text-xs font-black shadow-xs transition-colors">▶</button>
-                        </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-x-auto custom-scroll mb-6">
+                    <!-- 월 카드 헤더 -->
+                    <div class="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center justify-between sticky left-0">
                         <div class="flex items-center gap-2">
-                            <span class="text-xs sm:text-sm font-black text-amber-950 bg-amber-300 border border-amber-400 px-2.5 py-0.5 rounded-full shadow-2xs">${workerBadgeStr}</span>
-                            <span class="text-xs sm:text-sm font-black text-slate-600 bg-white border border-slate-200 px-3 py-0.5 rounded-full shadow-xs">${monthData.length}건</span>
+                            <span class="text-xl sm:text-2xl font-black text-purple-700">${year}년 ${month + 1}월</span>
+                            <span class="text-xs font-black text-slate-500 bg-white border border-slate-200 px-2.5 py-0.5 rounded-full shadow-2xs">${monthData.length}건 투입</span>
                         </div>
                     </div>
             `;
 
             if (monthData.length === 0) {
                 calHTML += `
-                    <div class="p-3.5 bg-amber-50/80 border-b border-amber-200/70 text-center flex items-center justify-center gap-2">
-                        <span class="text-xs font-bold text-amber-900">
-                            💡 <b>${year}년 ${month + 1}월</b>에는 선택 조건에 해당하는 투입 내역이 없습니다. (상단에서 <b>대상 월/업체/프로젝트/작업자 마우스 휠</b>을 굴려 확인해보세요)
-                        </span>
+                    <div class="p-4 bg-slate-50 text-center text-xs font-bold text-slate-400 border-b border-slate-200">
+                        선택된 조건에 해당하는 투입 내역이 없습니다. (상단 필터에서 다른 조건이나 '전체'를 선택해보세요)
                     </div>
                 `;
             }
 
             calHTML += `
-                    <div class="grid grid-cols-8 gap-px bg-slate-200 min-w-[1100px] sm:min-w-[1400px]">
-                        <!-- 일체형 요일 헤더 -->
-                        <div class="bg-slate-100 p-2 sm:p-2.5 text-center text-xs font-black text-rose-500 uppercase tracking-wider sticky top-0 z-10 border-b border-slate-300">SUN (일)</div>
-                        <div class="bg-slate-100 p-2 sm:p-2.5 text-center text-xs font-black text-slate-600 uppercase tracking-wider sticky top-0 z-10 border-b border-slate-300">MON (월)</div>
-                        <div class="bg-slate-100 p-2 sm:p-2.5 text-center text-xs font-black text-slate-600 uppercase tracking-wider sticky top-0 z-10 border-b border-slate-300">TUE (화)</div>
-                        <div class="bg-slate-100 p-2 sm:p-2.5 text-center text-xs font-black text-slate-600 uppercase tracking-wider sticky top-0 z-10 border-b border-slate-300">WED (수)</div>
-                        <div class="bg-slate-100 p-2 sm:p-2.5 text-center text-xs font-black text-slate-600 uppercase tracking-wider sticky top-0 z-10 border-b border-slate-300">THU (목)</div>
-                        <div class="bg-slate-100 p-2 sm:p-2.5 text-center text-xs font-black text-slate-600 uppercase tracking-wider sticky top-0 z-10 border-b border-slate-300">FRI (금)</div>
-                        <div class="bg-slate-100 p-2 sm:p-2.5 text-center text-xs font-black text-blue-500 uppercase tracking-wider sticky top-0 z-10 border-b border-slate-300">SAT (토)</div>
-                        <div class="bg-purple-100 p-2 sm:p-2.5 text-center text-xs font-black text-purple-800 uppercase tracking-wider sticky top-0 z-10 border-b border-purple-300 border-l-2 border-purple-300 flex items-center justify-center gap-1">주간 요약</div>
+                    <div class="grid grid-cols-8 gap-px bg-slate-200 min-w-[1050px]">
+                        <!-- 요일 헤더 -->
+                        <div class="bg-slate-100 p-2 text-center text-xs font-black text-rose-500 sticky top-0 z-10 border-b border-slate-300">SUN (일)</div>
+                        <div class="bg-slate-100 p-2 text-center text-xs font-black text-slate-600 sticky top-0 z-10 border-b border-slate-300">MON (월)</div>
+                        <div class="bg-slate-100 p-2 text-center text-xs font-black text-slate-600 sticky top-0 z-10 border-b border-slate-300">TUE (화)</div>
+                        <div class="bg-slate-100 p-2 text-center text-xs font-black text-slate-600 sticky top-0 z-10 border-b border-slate-300">WED (수)</div>
+                        <div class="bg-slate-100 p-2 text-center text-xs font-black text-slate-600 sticky top-0 z-10 border-b border-slate-300">THU (목)</div>
+                        <div class="bg-slate-100 p-2 text-center text-xs font-black text-slate-600 sticky top-0 z-10 border-b border-slate-300">FRI (금)</div>
+                        <div class="bg-slate-100 p-2 text-center text-xs font-black text-blue-500 sticky top-0 z-10 border-b border-slate-300">SAT (토)</div>
+                        <div class="bg-purple-100/70 p-2 text-center text-xs font-black text-purple-900 sticky top-0 z-10 border-b border-purple-300 border-l-2 border-purple-200">주간 합계</div>
             `;
 
             let currentDay = 1;
@@ -12059,81 +11580,54 @@ function onProjectSearchInput() {
 
                 for (let d = 0; d < 7; d++) {
                     if (w === 0 && d < startDayOfWeek) {
-                        calHTML += `<div class="bg-slate-50/50 p-2 min-h-[140px]"></div>`;
+                        calHTML += `<div class="bg-slate-50/60 p-2 min-h-[120px]"></div>`;
                     } else if (currentDay > daysInMonth) {
-                        calHTML += `<div class="bg-slate-50/50 p-2 min-h-[140px]"></div>`;
+                        calHTML += `<div class="bg-slate-50/60 p-2 min-h-[120px]"></div>`;
                     } else {
                         const dateStr = `${targetMonthStr}-${currentDay.toString().padStart(2, '0')}`;
                         const dayTasks = monthData.filter(t => t.date === dateStr);
-                        const dayProjs = [...new Set(dayTasks.map(t => t.project))].filter(Boolean);
                         weekDaysData.push(...dayTasks);
 
-                        let dayColorClass = d === 0 ? "text-rose-500" : (d === 6 ? "text-blue-500" : "text-slate-500");
+                        let dayColorClass = d === 0 ? "text-rose-500" : (d === 6 ? "text-blue-500" : "text-slate-700");
 
                         calHTML += `
-                            <div class="bg-white p-3 min-h-[160px] flex flex-col border-r border-b border-slate-100 group hover:bg-slate-50 transition-colors">
-                                <div class="flex justify-between items-start mb-2">
-                                    <span class="text-[18px] font-black ${dayColorClass} w-8 h-8 flex items-center justify-center rounded-full group-hover:bg-slate-200 transition-colors">${currentDay}</span>
-                                    ${dayTasks.length > 0 ? `<span class="text-[11px] font-black bg-slate-100 text-slate-500 px-2 py-1 rounded-lg shadow-sm border border-slate-200 cursor-help" title="해당 일자 프로젝트: ${dayProjs.join(', ')}">${dayTasks.length}건</span>` : ''}
+                            <div class="bg-white p-2 sm:p-2.5 min-h-[130px] flex flex-col border-r border-b border-slate-100 hover:bg-slate-50/80 transition-colors">
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <span class="text-[15px] font-black ${dayColorClass}">${currentDay}</span>
+                                    ${dayTasks.length > 0 ? `<span class="text-[10px] font-black text-slate-400 bg-slate-100 px-1.5 py-0.2 rounded-md">${dayTasks.length}건</span>` : ''}
                                 </div>
-                                <div class="flex flex-col gap-1.5 flex-1 mt-1">
+                                <div class="flex flex-col gap-1 flex-1">
                                     ${dayTasks.map(t => {
-                            const hue = [...t.type].reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360;
-                            const totalH = ((Number(t.h_reg) || 0) + (Number(t.h_over) || 0));
-                            const safeP = (t.project || '').replace(/"/g, '&quot;');
-                            const jsSafeP = (t.project || '').replace(/'/g, "\\'");
-                            const safeC = (t.client || '').replace(/"/g, '&quot;');
-                            const safeW = (t.worker || '').replace(/"/g, '&quot;');
-                            const jsSafeW = (t.worker || '').replace(/'/g, "\\'");
-                            const safeT = (t.type || '').replace(/"/g, '&quot;');
+                                        const totalH = ((Number(t.h_reg) || 0) + (Number(t.h_over) || 0));
+                                        const safeP = (t.project || '').replace(/"/g, '&quot;');
+                                        const jsSafeP = (t.project || '').replace(/'/g, "\\'");
+                                        const safeW = (t.worker || '').replace(/"/g, '&quot;');
+                                        const jsSafeW = (t.worker || '').replace(/'/g, "\\'");
+                                        const safeT = (t.type || '작업').replace(/"/g, '&quot;');
+                                        const barColor = processColorMap[t.type] || '#8b5cf6';
 
-                            const pColor = getCalProjectColor(t.project, uProjs);
-                            const cardBg = pColor ? pColor.bg : `hsla(${hue}, 80%, 97%, 1)`;
-                            const cardBorder = pColor ? pColor.border : `hsla(${hue}, 70%, 90%, 1)`;
-                            const cardAccentBar = pColor ? `border-left: 4.5px solid ${pColor.bar};` : '';
-                            const workerColor = pColor ? pColor.text : `hsla(${hue}, 85%, 35%, 1)`;
-                            const hoursBadgeStyle = pColor ? `background-color: ${pColor.badgeBg}; color: ${pColor.badgeText};` : `color: hsla(${hue}, 85%, 35%, 1)`;
-                            const subtextColor = pColor ? pColor.text : `hsla(${hue}, 85%, 25%, 1)`;
-
-                            return `
-                                            <div class="cal-task-card px-3.5 py-3 rounded-2xl text-left border shadow-xs flex flex-col hover:scale-[1.02] hover:shadow-md transition-all cursor-pointer mb-1.5 relative" 
-                                                 title="[프로젝트] ${safeP}&#10;[업체] ${safeC}&#10;[작업자] ${safeW}&#10;[공정] ${safeT} (${totalH}h)&#10;[투입비용] ₩${(Number(t.cost) || 0).toLocaleString()}"
-                                                 style="background-color: ${cardBg}; border-color: ${cardBorder}; ${cardAccentBar}">
-                                                <div class="flex justify-between items-center w-full mb-1.5">
-                                                    <span class="text-[14px] font-black truncate max-w-[65%] inline-block transition-transform cursor-pointer"
+                                        return `
+                                            <div class="cal-task-card px-2 py-1.5 rounded-lg border border-slate-200/80 bg-white hover:border-purple-400 hover:shadow-xs transition-all cursor-pointer border-l-[3.5px]"
+                                                 style="border-left-color: ${barColor};"
+                                                 title="[작업자] ${safeW}&#10;[공정] ${safeT} (${totalH}h)&#10;[프로젝트] ${safeP}&#10;[업체] ${t.client || ''}&#10;[비용] ₩${(Number(t.cost) || 0).toLocaleString()}">
+                                                <div class="flex justify-between items-center mb-0.5">
+                                                    <span class="text-[12px] font-black text-slate-800 truncate inline-block transition-transform"
                                                           data-cal-worker="${safeW}"
                                                           onmouseenter="onHoverCalWorker('${jsSafeW}')"
-                                                          onmouseleave="onLeaveCalHover()"
-                                                          style="color: ${workerColor}"
-                                                          title="작업자: ${safeW} (마우스 오버 시 관련 프로젝트 동시 확대 & 꿈틀)">${safeW}</span>
-                                                    <span class="text-[12px] font-black px-2 py-0.5 rounded-xl bg-white shadow-sm" style="${hoursBadgeStyle}">${totalH}h</span>
+                                                          onmouseleave="onLeaveCalHover()">${safeW}</span>
+                                                    <span class="text-[11px] font-black text-purple-700 bg-purple-50 px-1.5 py-0.2 rounded">${totalH}h</span>
                                                 </div>
-                                                <div class="text-[12px] font-bold opacity-90 flex justify-between items-center" style="color: ${subtextColor}">
-                                                    <span>${safeT}</span>
-                                                    ${uProjs.length > 1 && pColor ? `
-                                                    <span class="cal-task-hint text-[10px] font-black px-1.5 py-0.2 rounded shadow-2xs truncate max-w-[55%] inline-block transition-transform cursor-pointer"
+                                                <div class="flex items-center justify-between text-[11px] text-slate-500 gap-1">
+                                                    <span class="font-bold text-slate-700 truncate">${safeT}</span>
+                                                    <span class="text-[10px] text-slate-400 truncate max-w-[55%] inline-block transition-transform"
                                                           data-cal-proj="${safeP}"
                                                           onmouseenter="onHoverCalProject('${jsSafeP}')"
                                                           onmouseleave="onLeaveCalHover()"
-                                                          style="background-color: ${pColor.badgeBg}; color: ${pColor.badgeText};"
-                                                          title="${safeP} (마우스 오버 시 투입 작업자 동시 확대 & 꿈틀)">
-                                                        ● ${safeP}
-                                                    </span>` : ''}
+                                                          title="${safeP}">● ${safeP}</span>
                                                 </div>
-                                                ${uProjs.length > 1 && pColor ? `
-                                                <div class="cal-task-proj items-center gap-1.5 mt-2 pt-1.5 border-t text-[11px] font-black bg-white/95 px-2.5 py-1 rounded-xl shadow-xs animate-in fade-in duration-150 cursor-pointer"
-                                                     data-cal-proj="${safeP}"
-                                                     onmouseenter="onHoverCalProject('${jsSafeP}')"
-                                                     onmouseleave="onLeaveCalHover()"
-                                                     style="border-color: ${pColor.border}; color: ${pColor.text};"
-                                                     title="${safeP} (마우스 오버 시 투입 작업자 동시 확대 & 꿈틀)">
-                                                    <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${pColor.bar};"></span>
-                                                    <span class="truncate font-black" title="${safeP}">${safeP}</span>
-                                                    ${uClients.length > 1 && safeC ? `<span class="text-[9px] font-bold px-1.5 py-0.2 rounded flex-shrink-0 ml-auto" style="background-color: ${pColor.badgeBg}; color: ${pColor.badgeText};">${safeC}</span>` : ''}
-                                                </div>` : ''}
                                             </div>
                                         `;
-                        }).join('')}
+                                    }).join('')}
                                 </div>
                             </div>
                         `;
@@ -12141,48 +11635,22 @@ function onProjectSearchInput() {
                     }
                 }
 
+                // 주간 요약 계산
                 let weekCostSum = 0;
-                let processCosts = {};
+                let weekHourSum = 0;
                 weekDaysData.forEach(t => {
-                    const c = (Number(t.cost) || 0);
-                    weekCostSum += c;
-                    if (!processCosts[t.type]) processCosts[t.type] = 0;
-                    processCosts[t.type] += c;
+                    weekCostSum += (Number(t.cost) || 0);
+                    weekHourSum += ((Number(t.h_reg) || 0) + (Number(t.h_over) || 0));
                 });
 
-                let summaryContent = '';
-                if (weekCostSum === 0) {
-                    summaryContent = `<div class="text-slate-300 font-bold text-xs italic text-center w-full mt-4 flex items-center justify-center h-full opacity-50">-</div>`;
-                } else {
-                    let sortedProcesses = Object.keys(processCosts).map(k => ({ type: k, cost: processCosts[k] })).sort((a, b) => b.cost - a.cost);
-
-                    summaryContent = `
-                        <div class="w-full h-full flex flex-col justify-center">
-                            <div class="text-[10px] font-black text-purple-500/70 mb-1.5 tracking-widest uppercase border-b border-purple-200/50 pb-1 w-full text-left">Weekly Cost</div>
-                            <div class="text-[16px] font-black text-purple-700 mb-2.5">₩${weekCostSum.toLocaleString()}</div>
-                            <div class="flex flex-col gap-1.5 w-full">
-                                ${sortedProcesses.map(p => {
-                        const percent = ((p.cost / weekCostSum) * 100).toFixed(0);
-                        return `
-                                        <div>
-                                            <div class="flex justify-between items-center text-[10px] mb-0.5">
-                                                <span class="font-bold text-slate-600 truncate max-w-[50%]">${p.type}</span>
-                                                <span class="font-black text-slate-800">₩${p.cost.toLocaleString()}</span>
-                                            </div>
-                                            <div class="w-full bg-slate-200/70 rounded-full h-1 overflow-hidden">
-                                                <div class="bg-purple-500 h-1 rounded-full transition-all duration-1000" style="width: ${percent}%"></div>
-                                            </div>
-                                        </div>
-                                    `;
-                    }).join('')}
-                            </div>
-                        </div>
-                    `;
-                }
-
                 calHTML += `
-                    <div class="bg-purple-50/50 p-4 min-h-[140px] flex flex-col items-start border-b border-purple-100 border-l border-l-purple-200">
-                        ${summaryContent}
+                    <div class="bg-purple-50/40 p-2.5 min-h-[120px] flex flex-col justify-center border-b border-purple-100 border-l border-l-purple-200 text-xs">
+                        ${weekDaysData.length === 0 ? `<div class="text-slate-300 text-center font-bold">-</div>` : `
+                            <div class="text-[10px] font-black text-purple-600/80 mb-0.5">WEEK TOTAL</div>
+                            <div class="text-[14px] font-black text-purple-900 mb-1">${weekHourSum.toLocaleString()}h</div>
+                            <div class="text-[11px] font-bold text-slate-600">₩${weekCostSum.toLocaleString()}</div>
+                            <div class="text-[10px] text-slate-400 mt-1">${weekDaysData.length}건</div>
+                        `}
                     </div>
                 `;
             }

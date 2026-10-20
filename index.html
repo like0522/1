@@ -11139,7 +11139,7 @@ function onProjectSearchInput() {
         }
 
         // =========================================================================
-        // 🗓️ 프로젝트 상세 달력 모달 (해당 월 다중선택 & 연관 프로젝트/업체 동적 압축 엔진 V7.0)
+        // 🗓️ 프로젝트 상세 달력 모달 (1줄 고밀도 스마트 월 컨트롤 바 V8.0)
         // =========================================================================
         window.pcState = null;
         window._lastPcWheelTime = 0;
@@ -11149,7 +11149,7 @@ function onProjectSearchInput() {
 
             const modal = document.getElementById('projectCalendarModal');
 
-            // 1. 전체 rawData에서 가용 연월 목록 추출
+            // 1. 전체 rawData에서 가용 연월 목록 및 연도 목록 추출
             const ymSet = new Set();
             rawData.forEach(d => {
                 if (d.date && d.date.length >= 7) ymSet.add(d.date.substring(0, 7));
@@ -11157,12 +11157,15 @@ function onProjectSearchInput() {
             let allMonths = Array.from(ymSet).sort();
             if (allMonths.length === 0) allMonths = ['2026-10'];
 
+            const allYears = [...new Set(allMonths.map(ym => ym.substring(0, 4)))].sort();
+
             // 2. 초기 선택 연월 결정 (현재 클릭한 행의 월 또는 최신 1개 월)
             let initYM = (currentProjectData[0]?.date || '').substring(0, 7);
             if (!allMonths.includes(initYM)) {
                 initYM = allMonths[allMonths.length - 1];
             }
             let initMonths = new Set([initYM]);
+            let browseYear = initYM.substring(0, 4);
 
             // 3. 선택된 월 범위의 데이터에서만 연관 업체, 프로젝트, 작업자 추출
             const monthRows = rawData.filter(d => d.date && initMonths.has(d.date.substring(0, 7)));
@@ -11179,6 +11182,8 @@ function onProjectSearchInput() {
             // 5. 모달 전역 상태 객체 초기화
             window.pcState = {
                 allMonths: allMonths,
+                allYears: allYears,
+                browseYear: browseYear,
                 selectedMonths: initMonths,
                 availableClients: availableClients,
                 selectedClients: initClients,
@@ -11205,7 +11210,7 @@ function onProjectSearchInput() {
         function renderProjectCalendarContent() {
             if (!window.pcState) return;
             const state = window.pcState;
-            const { allMonths, selectedMonths } = state;
+            const { allMonths, allYears, browseYear, selectedMonths } = state;
 
             const title = document.getElementById('pcModalTitle');
             const subTitle = document.getElementById('pcModalSubtitle');
@@ -11370,38 +11375,89 @@ function onProjectSearchInput() {
             }
 
             // =================================================================
-            // 8-1. 📅 [신설] 대상 월 선택 바 (원클릭 다중/중복선택 & 휠)
+            // 8-1. 🚀 [혁신] 1줄 고밀도 스마트 월 컨트롤 바 (연도 휠 + 1~12월 1줄 토글)
             // =================================================================
             if (monthLegendEl) {
-                monthLegendEl.innerHTML = `
-                    <div class="flex items-center gap-1.5 flex-wrap w-full py-1">
-                        <span class="text-purple-300 font-bold text-[11px] flex items-center gap-1 flex-shrink-0">
-                            <span>📅 대상 월 선택(중복선택/휠):</span>
-                            <button type="button" onclick="selectAllCalendarMonths(true)" class="px-2 py-0.5 bg-purple-800 hover:bg-purple-700 text-purple-200 hover:text-white rounded text-[10px] font-bold ml-1 transition-colors">전체 월</button>
-                            <button type="button" onclick="selectAllCalendarMonths(false)" class="px-2 py-0.5 bg-purple-800 hover:bg-purple-700 text-purple-200 hover:text-white rounded text-[10px] font-bold transition-colors">최근 1개월만</button>
-                        </span>
-                        ${allMonths.map(ym => {
-                            const isSelected = selectedMonths.has(ym);
-                            const [y, m] = ym.split('-');
-                            const label = `${y}년 ${parseInt(m)}월`;
-                            const count = rawData.filter(d => (d.date || '').startsWith(ym)).length;
-                            const checkIcon = isSelected ? '☑️' : '⬜';
-                            const borderStyle = isSelected ? 'border-color: #c084fc; box-shadow: 0 0 0 1px #c084fc;' : 'border-color: rgba(255,255,255,0.25); opacity: 0.45; filter: grayscale(70%);';
-                            const bgStyle = isSelected ? 'background-color: rgba(192, 132, 252, 0.25);' : 'background-color: rgba(0,0,0,0.35);';
-                            const textStyle = isSelected ? 'color: #f3e8ff;' : 'color: #94a3b8;';
+                const curY = state.browseYear || '2026';
+                
+                // 1~12월 콤팩트 버튼 생성
+                const monthsInYearHTML = Array.from({ length: 12 }, (_, i) => {
+                    const mNum = i + 1;
+                    const ym = `${curY}-${String(mNum).padStart(2, '0')}`;
+                    const hasData = allMonths.includes(ym);
+                    const isSelected = selectedMonths.has(ym);
+                    const count = hasData ? rawData.filter(d => (d.date || '').startsWith(ym)).length : 0;
 
-                            return `
-                                <button type="button" onclick="toggleCalendarMonth('${ym}')"
-                                        onwheel="handlePcMonthWheel(event)"
-                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-black shadow-2xs border transition-all hover:scale-105 active:scale-95 cursor-pointer select-none"
-                                        style="${bgStyle} ${borderStyle} ${textStyle}"
-                                        title="클릭: [${label}] 월 중복 선택/해제 토글&#10;마우스 휠: 월 순환 이동&#10;※ 선택 시 해당 월의 연관 프로젝트만 자동 정돈됩니다.">
-                                    <span>${checkIcon}</span>
-                                    <span>${label}</span>
-                                    <span class="text-[10px] font-bold opacity-80">(${count}건)</span>
-                                </button>
-                            `;
-                        }).join('')}
+                    if (!hasData) {
+                        return `
+                            <button type="button" disabled
+                                    class="px-2 py-1 rounded-lg text-[10px] font-bold text-slate-500 bg-white/5 border border-white/5 opacity-40 cursor-not-allowed">
+                                ${mNum}월
+                            </button>
+                        `;
+                    }
+
+                    const checkIcon = isSelected ? '☑️' : '⬜';
+                    const bgClass = isSelected
+                        ? 'bg-purple-600 text-white border-purple-300 shadow-md font-black scale-105 ring-2 ring-purple-300'
+                        : 'bg-purple-950/70 text-purple-200 border-purple-700/60 hover:bg-purple-800 hover:text-white font-bold';
+
+                    return `
+                        <button type="button" onclick="toggleCalendarMonth('${ym}')"
+                                onwheel="handlePcMonthBarWheel(event)"
+                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] border transition-all active:scale-95 cursor-pointer select-none ${bgClass}"
+                                title="클릭: [${curY}년 ${mNum}월] 선택/해제 토글&#10;마우스 휠: 연도 전환&#10;투입 건수: ${count}건">
+                            <span>${checkIcon}</span>
+                            <span>${mNum}월</span>
+                            <span class="text-[9px] opacity-80">(${count})</span>
+                        </button>
+                    `;
+                }).join('');
+
+                monthLegendEl.innerHTML = `
+                    <div class="flex items-center justify-between gap-2 flex-wrap w-full py-1 text-xs">
+                        <!-- 좌측: 연도 휠 컨트롤러 & 드롭다운 -->
+                        <div class="flex items-center gap-1.5 flex-shrink-0">
+                            <span class="text-purple-300 font-black text-[11px] flex items-center gap-1">
+                                <span>📅 연도:</span>
+                            </span>
+                            <div onwheel="handlePcYearWheel(event)"
+                                 class="inline-flex items-center gap-1 bg-purple-950/90 p-0.5 rounded-xl border border-purple-500/60 shadow-inner cursor-ns-resize hover:border-purple-300 transition-colors"
+                                 title="마우스 휠을 굴려 연도를 변경할 수 있습니다 (휠 위: 이전해 / 휠 아래: 다음해)">
+                                <button type="button" onclick="navigateCalendarBrowseYear(-1)" title="이전 연도"
+                                        class="w-6 h-6 flex items-center justify-center bg-purple-800 hover:bg-purple-700 text-white rounded-lg text-[10px] font-black transition-all">◀</button>
+                                
+                                <span class="px-2 py-0.5 bg-white text-purple-950 font-black rounded-md shadow-2xs text-xs flex items-center gap-1">
+                                    <span>${curY}년</span>
+                                    <span class="text-[8px] font-bold bg-purple-100 text-purple-700 px-1 py-0.1 rounded hidden sm:inline">휠 🔄</span>
+                                </span>
+
+                                <button type="button" onclick="navigateCalendarBrowseYear(1)" title="다음 연도"
+                                        class="w-6 h-6 flex items-center justify-center bg-purple-800 hover:bg-purple-700 text-white rounded-lg text-[10px] font-black transition-all">▶</button>
+                            </div>
+
+                            <select onchange="selectCalendarBrowseYear(this.value)"
+                                    class="bg-purple-950 text-purple-200 border border-purple-700/60 rounded-lg px-2 py-1 text-[11px] font-bold focus:outline-none cursor-pointer">
+                                ${allYears.map(y => `<option value="${y}" ${y === curY ? 'selected' : ''}>${y}년</option>`).join('')}
+                            </select>
+                        </div>
+
+                        <!-- 중앙: 해당 연도 1~12월 1줄 콤팩트 토글바 -->
+                        <div class="flex items-center gap-1 flex-wrap overflow-x-auto custom-scroll py-0.5">
+                            ${monthsInYearHTML}
+                        </div>
+
+                        <!-- 우측: 스마트 원클릭 퀵 프리셋 -->
+                        <div class="flex items-center gap-1 flex-shrink-0">
+                            <button type="button" onclick="selectRecentMonths(1)" title="가장 최근 1개월만 선택"
+                                    class="px-2 py-1 bg-purple-800 hover:bg-white hover:text-purple-950 text-purple-200 rounded-lg text-[10px] font-black transition-all shadow-xs">최근 1개월</button>
+                            <button type="button" onclick="selectRecentMonths(3)" title="최근 3개월 연속 선택"
+                                    class="px-2 py-1 bg-purple-800 hover:bg-white hover:text-purple-950 text-purple-200 rounded-lg text-[10px] font-black transition-all shadow-xs">최근 3개월</button>
+                            <button type="button" onclick="selectCurrentYearAllMonths()" title="선택된 연도의 전체 월 선택"
+                                    class="px-2 py-1 bg-purple-800 hover:bg-amber-400 hover:text-slate-950 text-purple-200 rounded-lg text-[10px] font-black transition-all shadow-xs">${curY}년 전체</button>
+                            <button type="button" onclick="selectAllCalendarMonths(true)" title="전 기간 전체 월 통합"
+                                    class="px-2 py-1 bg-purple-900/90 hover:bg-purple-700 text-purple-300 rounded-lg text-[10px] font-bold transition-all border border-purple-700/50">전체</button>
+                        </div>
                     </div>
                 `;
                 monthLegendEl.classList.remove('hidden');
@@ -11413,7 +11469,7 @@ function onProjectSearchInput() {
             if (legendEl) {
                 if (state.availableProjects.length > 0) {
                     legendEl.innerHTML = `
-                        <div class="flex items-center gap-1.5 flex-wrap w-full py-1">
+                        <div class="flex items-center gap-1.5 flex-wrap w-full py-1 max-h-[95px] overflow-y-auto custom-scroll pr-1">
                             <span class="text-purple-300 font-bold text-[11px] flex items-center gap-1 flex-shrink-0">
                                 <span>🎨 관련 프로젝트 (${state.availableProjects.length}개):</span>
                                 <button type="button" onclick="selectAllCalendarProjects(true)" class="px-2 py-0.5 bg-purple-800 hover:bg-purple-700 text-purple-200 hover:text-white rounded text-[10px] font-bold ml-1 transition-colors">전체선택</button>
@@ -11436,12 +11492,12 @@ function onProjectSearchInput() {
                                             data-cal-proj="${safeP}"
                                             onmouseenter="onHoverCalProject('${jsSafeP}')"
                                             onmouseleave="onLeaveCalHover()"
-                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-black shadow-2xs border transition-all hover:scale-105 active:scale-95 cursor-pointer select-none"
+                                            class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xl text-[11px] font-black shadow-2xs border transition-all hover:scale-105 active:scale-95 cursor-pointer select-none"
                                             style="${bgStyle} ${borderStyle} ${textStyle}"
                                             title="클릭: [${p}] 프로젝트 선택/해제 토글&#10;마우스 휠: 순환 이동&#10;호버: 투입 작업자 동시 확대 & 꿈틀">
-                                        <span class="text-[11px]">${checkIcon}</span>
-                                        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-2xs" style="background-color: ${color.bar};"></span>
-                                        <span class="truncate max-w-[130px] sm:max-w-[220px]">${p}</span>
+                                        <span class="text-[10px]">${checkIcon}</span>
+                                        <span class="w-2 h-2 rounded-full flex-shrink-0 shadow-2xs" style="background-color: ${color.bar};"></span>
+                                        <span class="truncate max-w-[130px] sm:max-w-[200px]">${p}</span>
                                         <span class="text-[10px] font-bold opacity-80">(${count}건)</span>
                                     </button>
                                 `;
@@ -11461,7 +11517,7 @@ function onProjectSearchInput() {
             if (workerLegendEl) {
                 if (state.availableWorkers.length > 0) {
                     workerLegendEl.innerHTML = `
-                        <div class="flex items-center gap-1.5 flex-wrap w-full py-1">
+                        <div class="flex items-center gap-1.5 flex-wrap w-full py-1 max-h-[80px] overflow-y-auto custom-scroll pr-1">
                             <span class="text-amber-300 font-bold text-[11px] flex items-center gap-1 flex-shrink-0">
                                 <span>👷 관련 작업자 (${state.availableWorkers.length}명):</span>
                                 <button type="button" onclick="selectAllCalendarWorkers(true)" class="px-2 py-0.5 bg-amber-600 hover:bg-amber-500 text-slate-950 rounded text-[10px] font-black ml-1 transition-colors">전체선택</button>
@@ -11483,10 +11539,10 @@ function onProjectSearchInput() {
                                             data-cal-worker="${safeW}"
                                             onmouseenter="onHoverCalWorker('${jsSafeW}')"
                                             onmouseleave="onLeaveCalHover()"
-                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-black shadow-2xs border transition-all hover:scale-105 active:scale-95 cursor-pointer select-none"
+                                            class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xl text-[11px] font-black shadow-2xs border transition-all hover:scale-105 active:scale-95 cursor-pointer select-none"
                                             style="${bgStyle} ${borderStyle} ${textStyle}"
                                             title="클릭: [${w}] 작업자 선택/해제 토글&#10;마우스 휠: 순환 이동&#10;호버: 참여 프로젝트 동시 확대 & 꿈틀">
-                                        <span class="text-[11px]">${checkIcon}</span>
+                                        <span class="text-[10px]">${checkIcon}</span>
                                         <span>👷 ${w}</span>
                                         <span class="text-[10px] font-bold opacity-80">(${count}건)</span>
                                     </button>
@@ -11568,6 +11624,81 @@ function onProjectSearchInput() {
         }
 
         // =========================================================================
+        // 🔄 연도 탐색 & 1줄 콤팩트 월 바 헬퍼 및 휠 이벤트 리스너
+        // =========================================================================
+        function navigateCalendarBrowseYear(delta) {
+            if (!window.pcState) return;
+            const state = window.pcState;
+            const { allYears } = state;
+            if (!allYears || allYears.length === 0) return;
+
+            let idx = allYears.indexOf(state.browseYear);
+            if (idx === -1) idx = allYears.length - 1;
+
+            let newIdx = idx + delta;
+            if (newIdx < 0) newIdx = allYears.length - 1;
+            if (newIdx >= allYears.length) newIdx = 0;
+
+            state.browseYear = allYears[newIdx];
+            renderProjectCalendarContent();
+        }
+
+        function selectCalendarBrowseYear(yearVal) {
+            if (!window.pcState || !yearVal) return;
+            window.pcState.browseYear = yearVal;
+            renderProjectCalendarContent();
+        }
+
+        function handlePcYearWheel(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const now = Date.now();
+            if (now - window._lastPcWheelTime < 140) return;
+            window._lastPcWheelTime = now;
+
+            if (e.deltaY < 0) {
+                navigateCalendarBrowseYear(-1);
+            } else if (e.deltaY > 0) {
+                navigateCalendarBrowseYear(1);
+            }
+        }
+
+        function handlePcMonthBarWheel(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            handlePcYearWheel(e);
+        }
+
+        function selectRecentMonths(count) {
+            if (!window.pcState) return;
+            const state = window.pcState;
+            const { allMonths } = state;
+            if (!allMonths || allMonths.length === 0) return;
+
+            const targetMonths = allMonths.slice(-count);
+            state.selectedMonths = new Set(targetMonths);
+            if (targetMonths.length > 0) {
+                state.browseYear = targetMonths[targetMonths.length - 1].substring(0, 4);
+            }
+            renderProjectCalendarContent();
+        }
+
+        function selectCurrentYearAllMonths() {
+            if (!window.pcState) return;
+            const state = window.pcState;
+            const { allMonths, browseYear } = state;
+            const monthsInCurYear = allMonths.filter(ym => ym.startsWith(browseYear));
+            if (monthsInCurYear.length > 0) {
+                state.selectedMonths = new Set(monthsInCurYear);
+            }
+            renderProjectCalendarContent();
+        }
+
+        // =========================================================================
         // 🔄 연월(Month) 다중 선택 토글, 네비게이션 및 휠 이벤트 리스너 핸들러
         // =========================================================================
         function toggleCalendarMonth(ymStr) {
@@ -11576,11 +11707,12 @@ function onProjectSearchInput() {
             if (state.selectedMonths.has(ymStr)) {
                 state.selectedMonths.delete(ymStr);
                 if (state.selectedMonths.size === 0) {
-                    state.selectedMonths.add(ymStr); // 최소 1개 유지
+                    state.selectedMonths.add(ymStr);
                 }
             } else {
                 state.selectedMonths.add(ymStr);
             }
+            state.browseYear = ymStr.substring(0, 4);
             renderProjectCalendarContent();
         }
 
@@ -11590,7 +11722,9 @@ function onProjectSearchInput() {
             if (selectAll) {
                 state.selectedMonths = new Set(state.allMonths);
             } else {
-                state.selectedMonths = new Set([state.allMonths[state.allMonths.length - 1] || '2026-10']);
+                const latestYM = state.allMonths[state.allMonths.length - 1] || '2026-10';
+                state.selectedMonths = new Set([latestYM]);
+                state.browseYear = latestYM.substring(0, 4);
             }
             renderProjectCalendarContent();
         }
@@ -11599,10 +11733,10 @@ function onProjectSearchInput() {
             if (!window.pcState) return;
             const state = window.pcState;
             if (state.selectedMonths.size === state.allMonths.length) {
-                // 전체 월인 경우 -> 최근 1개 월만 선택
-                state.selectedMonths = new Set([state.allMonths[state.allMonths.length - 1] || '2026-10']);
+                const latestYM = state.allMonths[state.allMonths.length - 1] || '2026-10';
+                state.selectedMonths = new Set([latestYM]);
+                state.browseYear = latestYM.substring(0, 4);
             } else {
-                // 전체 월 선택
                 state.selectedMonths = new Set(state.allMonths);
             }
             renderProjectCalendarContent();
@@ -11619,8 +11753,8 @@ function onProjectSearchInput() {
             if (idx === -1) idx = 1;
 
             let newIdx = idx + delta;
-            if (newIdx < 0) newIdx = cycle.length - 1; // 순환
-            if (newIdx >= cycle.length) newIdx = 0;      // 순환
+            if (newIdx < 0) newIdx = cycle.length - 1;
+            if (newIdx >= cycle.length) newIdx = 0;
 
             selectCalendarMonth(cycle[newIdx]);
         }
@@ -11632,6 +11766,7 @@ function onProjectSearchInput() {
                 state.selectedMonths = new Set(state.allMonths);
             } else {
                 state.selectedMonths = new Set([ymVal]);
+                state.browseYear = ymVal.substring(0, 4);
             }
             renderProjectCalendarContent();
         }

@@ -10999,7 +10999,7 @@ function onProjectSearchInput() {
         // (CAL_PROJECT_PALETTE and getCalProjectColor moved above renderWorkerCalendar for unified attendance and modal usage)
 
         // =========================================================================
-        // 🗓️ 프로젝트 상세 달력 모달 (마우스 휠 월 이동 & 작업자 순환 엔진 V4.0)
+        // 🗓️ 프로젝트 상세 달력 모달 (업체·프로젝트·월·작업자 전방위 휠 & 다중선택 엔진 V5.0)
         // =========================================================================
         window.pcState = null;
         window._lastPcWheelTime = 0;
@@ -11008,129 +11008,82 @@ function onProjectSearchInput() {
             if (!currentProjectData || currentProjectData.length === 0) return;
 
             const modal = document.getElementById('projectCalendarModal');
-            const title = document.getElementById('pcModalTitle');
 
-            // 1. 현재 분석 대상 프로젝트 및 업체 범위 파악
-            let uProjs = [...new Set(currentProjectData.map(d => d.project))].filter(Boolean);
-            if (typeof selectedFilterProjects !== 'undefined' && selectedFilterProjects.size > 0) {
-                uProjs = Array.from(selectedFilterProjects);
-            }
-            let uClients = [...new Set(currentProjectData.map(d => d.client))].filter(Boolean);
+            // 1. 전체 rawData에서 가용 업체 목록 추출
+            const allClients = [...new Set(rawData.map(d => (d.client || '').trim()))].filter(Boolean).sort();
+
+            // 2. 초기 선택 업체 집합 결정 (메인 화면 필터 우선 반영)
+            let initClients = new Set();
             if (typeof selectedFilterCompanies !== 'undefined' && selectedFilterCompanies.size > 0) {
-                uClients = Array.from(selectedFilterCompanies);
+                selectedFilterCompanies.forEach(c => initClients.add(c));
+            } else {
+                const curClients = [...new Set(currentProjectData.map(d => d.client))].filter(Boolean);
+                curClients.forEach(c => initClients.add(c));
+            }
+            if (initClients.size === 0 && allClients.length > 0) {
+                initClients.add(allClients[0]);
             }
 
-            // 2. rawData 풀에서 해당 프로젝트/업체의 전체 작업 이력 확보 (월/작업자 탐색 풀)
-            const projSet = new Set(uProjs);
-            const compSet = new Set(uClients);
-            let baseScopeData = (typeof rawData !== 'undefined' && Array.isArray(rawData))
-                ? rawData.filter(d => {
-                    if (projSet.size > 0 && !projSet.has(d.project)) return false;
-                    if (compSet.size > 0 && !compSet.has(d.client)) return false;
-                    return true;
-                })
-                : (currentProjectData || []);
+            // 3. 선택된 업체의 가용 프로젝트 목록 추출
+            const clientRows = rawData.filter(d => initClients.has(d.client));
+            const availableProjects = [...new Set(clientRows.map(d => (d.project || '').trim()))].filter(Boolean).sort();
 
-            if (baseScopeData.length === 0) baseScopeData = currentProjectData || [];
-
-            // 3. 가용 작업자 목록 추출 (가나다순)
-            const workerSet = new Set();
-            baseScopeData.forEach(d => {
-                const w = (d.worker || '').trim();
-                if (w) workerSet.add(w);
-            });
-            let availableWorkers = Array.from(workerSet).sort();
-            if (availableWorkers.length === 0) {
-                currentProjectData.forEach(d => {
-                    const w = (d.worker || '').trim();
-                    if (w) workerSet.add(w);
+            // 4. 초기 선택 프로젝트 집합 결정
+            let initProjects = new Set();
+            if (typeof selectedFilterProjects !== 'undefined' && selectedFilterProjects.size > 0) {
+                selectedFilterProjects.forEach(p => {
+                    if (availableProjects.includes(p)) initProjects.add(p);
                 });
-                availableWorkers = Array.from(workerSet).sort();
             }
+            if (initProjects.size === 0) {
+                availableProjects.forEach(p => initProjects.add(p));
+            }
+
+            // 5. 선택된 프로젝트 범위의 가용 작업자 추출
+            const projRows = clientRows.filter(d => initProjects.has(d.project));
+            let availableWorkers = [...new Set(projRows.map(d => (d.worker || '').trim()))].filter(Boolean).sort();
             if (availableWorkers.length === 0) availableWorkers = ['강동균'];
 
-            // 4. 초기 활성 작업자 결정 (필터 선택 작업자 우선 -> 없으면 첫 데이터 작업자)
-            let initialWorker = '';
+            // 6. 초기 활성 작업자 결정
+            let initWorker = '';
             if (typeof selectedFilterWorkers !== 'undefined' && !selectedFilterWorkers.has('ALL') && selectedFilterWorkers.size > 0) {
-                initialWorker = Array.from(selectedFilterWorkers)[0];
+                initWorker = Array.from(selectedFilterWorkers)[0];
             }
-            if (!initialWorker || !availableWorkers.includes(initialWorker)) {
-                const firstDataW = (currentProjectData[0]?.worker || '').trim();
-                initialWorker = availableWorkers.includes(firstDataW) ? firstDataW : availableWorkers[0];
+            if (!initWorker || !availableWorkers.includes(initWorker)) {
+                const firstW = (currentProjectData[0]?.worker || '').trim();
+                initWorker = availableWorkers.includes(firstW) ? firstW : availableWorkers[0];
             }
 
-            // 5. 가용 연월 목록 추출 (YYYY-MM 오름차순)
+            // 7. 가용 연월 목록 추출
             const ymSet = new Set();
-            baseScopeData.forEach(d => {
-                if (d.date && d.date.length >= 7) {
-                    ymSet.add(d.date.substring(0, 7));
-                }
+            projRows.forEach(d => {
+                if (d.date && d.date.length >= 7) ymSet.add(d.date.substring(0, 7));
             });
             let availableMonths = Array.from(ymSet).sort();
-            if (availableMonths.length === 0) {
-                currentProjectData.forEach(d => {
-                    if (d.date && d.date.length >= 7) ymSet.add(d.date.substring(0, 7));
-                });
-                availableMonths = Array.from(ymSet).sort();
-            }
             if (availableMonths.length === 0) availableMonths = ['2026-10'];
 
-            // 6. 초기 활성 연월 결정
+            // 8. 초기 활성 연월 결정
             let initYM = (currentProjectData[0]?.date || '').substring(0, 7);
             if (!availableMonths.includes(initYM)) {
                 initYM = availableMonths[availableMonths.length - 1];
             }
             const [initY, initM] = initYM.split('-').map(Number);
 
-            // 7. 모달 전역 상태 객체 초기화
+            // 9. 모달 전역 상태 객체 초기화
             window.pcState = {
+                allClients: allClients,
+                selectedClients: initClients,
+                availableProjects: availableProjects,
+                selectedProjects: initProjects,
+                availableWorkers: availableWorkers,
+                activeWorker: initWorker,
+                availableMonths: availableMonths,
                 activeYear: initY,
                 activeMonth: initM - 1, // 0-based
-                activeWorker: initialWorker,
-                viewMode: 'single', // 'single' (단일 월 휠 탐색) or 'all' (전체 월)
-                targetProjects: uProjs,
-                targetClients: uClients,
-                availableWorkers: availableWorkers,
-                availableMonths: availableMonths,
-                baseScopeData: baseScopeData
+                viewMode: 'single'
             };
 
-            // 8. 모달 헤더 타이틀 구성
-            const firstData = currentProjectData[0];
-            const projTooltipText = uProjs.map((p, idx) => `${idx + 1}. ${p}`).join('\n');
-
-            if (uProjs.length === 1) {
-                title.innerHTML = `🏢 ${firstData.client} - <span class="text-amber-300 font-black">${firstData.project}</span> 상세 달력`;
-                title.title = `프로젝트: ${firstData.project}`;
-            } else if (uClients.length === 1) {
-                title.innerHTML = `
-                    <span class="inline-flex items-center flex-wrap gap-1.5">
-                        <span>🏢 ${uClients[0]}</span>
-                        <span class="inline-flex items-center gap-1 bg-purple-800/80 hover:bg-purple-700 text-amber-300 px-2.5 py-0.5 rounded-xl border border-purple-400/40 cursor-help transition-all shadow-sm"
-                              title="통합된 프로젝트 목록 (${uProjs.length}개):\n${projTooltipText}">
-                            <span>📦 ${uProjs.length}개 프로젝트 통합</span>
-                            <span class="text-[10px] text-purple-200">▾</span>
-                        </span>
-                        <span>상세 달력</span>
-                    </span>
-                `;
-                title.title = `선택된 프로젝트 목록 (${uProjs.length}개):\n${projTooltipText}`;
-            } else {
-                title.innerHTML = `
-                    <span class="inline-flex items-center flex-wrap gap-1.5">
-                        <span>🌐 전사 통합 생산 일정</span>
-                        <span class="inline-flex items-center gap-1 bg-purple-800/80 hover:bg-purple-700 text-amber-300 px-2.5 py-0.5 rounded-xl border border-purple-400/40 cursor-help transition-all shadow-sm"
-                              title="통합된 프로젝트 목록 (${uProjs.length}개):\n${projTooltipText}">
-                            <span>📦 ${uProjs.length}개 프로젝트 통합 (${uClients.length}개사)</span>
-                            <span class="text-[10px] text-purple-200">▾</span>
-                        </span>
-                        <span>상세 달력</span>
-                    </span>
-                `;
-                title.title = `선택된 프로젝트 목록 (${uProjs.length}개):\n${projTooltipText}`;
-            }
-
-            // 9. 달력 및 서브툴바 렌더링
+            // 10. 모달 열기 및 실시간 렌더링
             renderProjectCalendarContent();
             modal.classList.remove('hidden');
 
@@ -11141,60 +11094,160 @@ function onProjectSearchInput() {
             }
         }
 
-        // 모달 본문 및 컨트롤러 실시간 렌더링 함수
+        // 모달 헤더 및 본문 동적 렌더링 핵심 엔진
         function renderProjectCalendarContent() {
             if (!window.pcState) return;
-            const { activeYear, activeMonth, activeWorker, viewMode, targetProjects, targetClients, availableWorkers, availableMonths, baseScopeData } = window.pcState;
-            const subTitle = document.getElementById('pcModalSubtitle');
-            const wrapper = document.getElementById('pcCalendarZoomWrapper');
-            const legendEl = document.getElementById('pcModalLegend');
+            const state = window.pcState;
+            const { allClients, selectedClients, availableProjects, selectedProjects, availableWorkers, activeWorker, availableMonths, activeYear, activeMonth, viewMode } = state;
 
-            // 1. 작업자 필터링
-            let workerFiltered = baseScopeData;
+            const title = document.getElementById('pcModalTitle');
+            const subTitle = document.getElementById('pcModalSubtitle');
+            const legendEl = document.getElementById('pcModalLegend');
+            const wrapper = document.getElementById('pcCalendarZoomWrapper');
+
+            // 1. 업체 및 프로젝트 다중 필터링
+            const clientList = Array.from(selectedClients);
+            const projList = Array.from(selectedProjects);
+
+            let scopeData = rawData.filter(d => {
+                if (selectedClients.size > 0 && !selectedClients.has(d.client)) return false;
+                if (selectedProjects.size > 0 && !selectedProjects.has(d.project)) return false;
+                return true;
+            });
+
+            // 2. 작업자 필터링
+            let workerFiltered = scopeData;
             if (activeWorker && activeWorker !== 'ALL') {
-                workerFiltered = baseScopeData.filter(d => (d.worker || '').trim() === activeWorker);
+                workerFiltered = scopeData.filter(d => (d.worker || '').trim() === activeWorker);
             }
 
-            // 2. 월 필터링
+            // 3. 월 필터링
             const targetMonthStr = `${activeYear}-${String(activeMonth + 1).padStart(2, '0')}`;
             const monthData = workerFiltered.filter(d => (d.date || '').startsWith(targetMonthStr));
 
-            // 통계 집계 (현재 뷰 기준)
+            // 통계 집계
             const displayData = (viewMode === 'all') ? workerFiltered : monthData;
             let grandH = 0; let grandC = 0;
-            displayData.forEach(d => { grandH += ((Number(d.h_reg) || 0) + (Number(d.h_over) || 0)); grandC += (Number(d.cost) || 0); });
+            displayData.forEach(d => {
+                grandH += ((Number(d.h_reg) || 0) + (Number(d.h_over) || 0));
+                grandC += (Number(d.cost) || 0);
+            });
 
+            // =================================================================
+            // 4. 상단 헤더 타이틀 렌더링 (업체 휠 컨트롤러 & 프로젝트 휠 컨트롤러 탑재)
+            // =================================================================
+            if (title) {
+                let clientBadgeLabel = '';
+                if (clientList.length === allClients.length) {
+                    clientBadgeLabel = '🌐 전사 (전체 업체)';
+                } else if (clientList.length === 1) {
+                    clientBadgeLabel = `🏢 ${clientList[0]}`;
+                } else {
+                    clientBadgeLabel = `🏢 [다중] ${clientList[0]} 외 ${clientList.length - 1}개사`;
+                }
+
+                let projBadgeLabel = '';
+                if (projList.length === availableProjects.length) {
+                    projBadgeLabel = `📦 전체 (${projList.length}개) 프로젝트 통합`;
+                } else if (projList.length === 1) {
+                    projBadgeLabel = `📦 ${projList[0]}`;
+                } else {
+                    projBadgeLabel = `📦 [다중] ${projList[0]} 외 ${projList.length - 1}개`;
+                }
+
+                title.innerHTML = `
+                    <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                        <!-- 🏢 업체 컨트롤러 (마우스 휠 & ◀/▶ & 드롭다운) -->
+                        <div class="inline-flex items-center gap-1 bg-purple-950/90 p-1 rounded-xl border border-purple-500/60 shadow-inner">
+                            <button type="button" onclick="navigateCalendarClient(-1)" title="이전 업체 (마우스 휠 위)"
+                                    class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800 hover:bg-purple-700 active:scale-95 text-white rounded-lg text-xs font-black transition-all">◀</button>
+                            
+                            <div id="pcClientControlBadge" onwheel="handlePcClientWheel(event)"
+                                 class="px-2.5 sm:px-3 py-1 bg-white text-purple-950 font-black rounded-lg shadow-sm text-xs sm:text-sm flex items-center gap-1.5 cursor-ns-resize hover:bg-purple-50 transition-colors"
+                                 title="마우스 휠을 굴려 업체를 변경할 수 있습니다 (휠 위: 이전업체 / 휠 아래: 다음업체)">
+                                <span>${clientBadgeLabel}</span>
+                                <span class="text-[9px] font-bold bg-purple-100 text-purple-700 px-1 py-0.2 rounded hidden sm:inline">휠 🔄</span>
+                            </div>
+                            
+                            <button type="button" onclick="navigateCalendarClient(1)" title="다음 업체 (마우스 휠 아래)"
+                                    class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800 hover:bg-purple-700 active:scale-95 text-white rounded-lg text-xs font-black transition-all">▶</button>
+                        </div>
+
+                        <!-- 빠른 업체 선택 드롭다운 -->
+                        <select id="pcClientSelect" onchange="selectCalendarClient(this.value)"
+                                class="bg-purple-950/90 text-purple-200 border border-purple-700/60 rounded-xl px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-purple-400 cursor-pointer">
+                            <option value="__ALL__" ${clientList.length === allClients.length ? 'selected' : ''}>🌐 전체 업체 (${allClients.length}개사)</option>
+                            ${allClients.map(c => `<option value="${c}" ${(clientList.length === 1 && clientList[0] === c) ? 'selected' : ''}>🏢 ${c}</option>`).join('')}
+                        </select>
+
+                        <!-- 📦 프로젝트 휠 컨트롤러 (마우스 휠 & ◀/▶) -->
+                        <div class="inline-flex items-center gap-1 bg-purple-950/90 p-1 rounded-xl border border-purple-500/60 shadow-inner">
+                            <button type="button" onclick="navigateCalendarProject(-1)" title="이전 프로젝트 (마우스 휠 위)"
+                                    class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800 hover:bg-purple-700 active:scale-95 text-white rounded-lg text-xs font-black transition-all">◀</button>
+                            
+                            <div id="pcProjectControlBadge" onwheel="handlePcProjectWheel(event)"
+                                 class="px-2.5 sm:px-3 py-1 bg-amber-400 text-slate-950 font-black rounded-lg shadow-sm text-xs sm:text-sm flex items-center gap-1.5 cursor-ns-resize hover:bg-amber-300 transition-colors"
+                                 title="마우스 휠을 굴려 프로젝트를 순환 변경하거나 통합할 수 있습니다. (휠 위: 이전 / 휠 아래: 다음)">
+                                <span>${projBadgeLabel}</span>
+                                <span class="text-[9px] font-bold bg-white/70 text-amber-950 px-1 py-0.2 rounded hidden sm:inline">휠 🔄</span>
+                            </div>
+                            
+                            <button type="button" onclick="navigateCalendarProject(1)" title="다음 프로젝트 (마우스 휠 아래)"
+                                    class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800 hover:bg-purple-700 active:scale-95 text-white rounded-lg text-xs font-black transition-all">▶</button>
+                        </div>
+
+                        <span class="text-sm sm:text-lg font-black text-white italic tracking-tighter">상세 달력</span>
+                    </div>
+                `;
+            }
+
+            // 5. 상단 서브타이틀 렌더링 (통계 및 작업자 배지)
             const workerLabel = (activeWorker === 'ALL') ? '전체 작업자' : activeWorker;
-            const projTooltipText = targetProjects.map((p, idx) => `${idx + 1}. ${p}`).join('\n');
-
             if (subTitle) {
                 subTitle.innerHTML = `
                     <span class="bg-amber-400 text-slate-950 px-2 py-0.5 rounded-lg font-black shadow-2xs">👷 작업자: ${workerLabel}</span>
                     <span>⏱️ 투입: <b>${grandH.toLocaleString()}h</b> (${(grandH / 8).toFixed(1)}MD)</span>
                     <span>💰 투입비용: <b>₩${grandC.toLocaleString()}</b></span>
                     <span>📅 대상: <b>${viewMode === 'all' ? '전체 월' : `${activeYear}년 ${activeMonth + 1}월`}</b> (${displayData.length}건)</span>
-                    ${targetProjects.length > 1 ? `<span class="cursor-help bg-purple-950/40 px-2 py-0.5 rounded border border-purple-400/30 text-amber-200 font-bold" title="통합된 프로젝트 목록 (${targetProjects.length}개):\n${projTooltipText}">📁 프로젝트 (${targetProjects.length}개)</span>` : ''}
+                    <span class="bg-purple-950/60 px-2 py-0.5 rounded border border-purple-400/40 text-amber-200 font-bold">📦 선택 프로젝트: ${projList.length} / ${availableProjects.length}개</span>
                 `;
             }
 
-            // 🎨 프로젝트 색상 범례 렌더링
+            // =================================================================
+            // 6. 🎨 프로젝트 뱃지 범례 & 클릭 다중 토글 바 렌더링
+            // =================================================================
             if (legendEl) {
-                if (targetProjects.length > 1) {
+                if (availableProjects.length > 0) {
                     legendEl.innerHTML = `
-                        <span class="text-purple-300 font-bold text-[11px] flex items-center gap-1 flex-shrink-0">🎨 프로젝트별 색상 구분:</span>
-                        ${targetProjects.map(p => {
-                            const color = getCalProjectColor(p, targetProjects);
-                            const count = displayData.filter(d => d.project === p).length;
-                            return `
-                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[11px] font-black shadow-2xs border transition-transform hover:scale-105 cursor-default"
-                                      style="background-color: ${color.bg}; border-color: ${color.border}; color: ${color.text};"
-                                      title="${p} (${count}건)">
-                                    <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-2xs" style="background-color: ${color.bar};"></span>
-                                    <span class="truncate max-w-[130px] sm:max-w-[200px]">${p}</span>
-                                    <span class="text-[10px] opacity-75">(${count}건)</span>
-                                </span>
-                            `;
-                        }).join('')}
+                        <div class="flex items-center gap-1.5 flex-wrap w-full py-1">
+                            <span class="text-purple-300 font-bold text-[11px] flex items-center gap-1 flex-shrink-0">
+                                <span>🎨 프로젝트 선택(클릭 토글/휠):</span>
+                                <button type="button" onclick="selectAllCalendarProjects(true)" class="px-2 py-0.5 bg-purple-800 hover:bg-purple-700 text-purple-200 hover:text-white rounded text-[10px] font-bold ml-1 transition-colors">전체선택</button>
+                                <button type="button" onclick="selectAllCalendarProjects(false)" class="px-2 py-0.5 bg-purple-800 hover:bg-purple-700 text-purple-200 hover:text-white rounded text-[10px] font-bold transition-colors">1개만 선택</button>
+                            </span>
+                            ${availableProjects.map(p => {
+                                const isSelected = selectedProjects.has(p);
+                                const color = getCalProjectColor(p, availableProjects);
+                                const count = workerFiltered.filter(d => d.project === p).length;
+                                const borderStyle = isSelected ? `border-color: ${color.border};` : 'border-color: rgba(255,255,255,0.25); opacity: 0.45; filter: grayscale(70%);';
+                                const bgStyle = isSelected ? `background-color: ${color.bg};` : 'background-color: rgba(0,0,0,0.35);';
+                                const textStyle = isSelected ? `color: ${color.text};` : 'color: #94a3b8;';
+                                const checkIcon = isSelected ? '☑️' : '⬜';
+
+                                return `
+                                    <button type="button" onclick="toggleCalendarProject('${p.replace(/'/g, "\\'")}')"
+                                            onwheel="handlePcProjectWheel(event)"
+                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-black shadow-2xs border transition-all hover:scale-105 active:scale-95 cursor-pointer select-none"
+                                            style="${bgStyle} ${borderStyle} ${textStyle}"
+                                            title="클릭: [${p}] 선택/해제 토글&#10;마우스 휠: 프로젝트 순환 이동">
+                                        <span class="text-[11px]">${checkIcon}</span>
+                                        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-2xs" style="background-color: ${color.bar};"></span>
+                                        <span class="truncate max-w-[130px] sm:max-w-[220px]">${p}</span>
+                                        <span class="text-[10px] font-bold opacity-80">(${count}건)</span>
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
                     `;
                     legendEl.classList.remove('hidden');
                 } else {
@@ -11203,7 +11256,7 @@ function onProjectSearchInput() {
                 }
             }
 
-            // 3. 서브 툴바 위젯 상태 동기화
+            // 7. 서브 툴바 위젯 상태 동기화 (월 & 작업자)
             const monthBadge = document.getElementById('pcCurrentMonthBadge');
             if (monthBadge) {
                 monthBadge.textContent = (viewMode === 'all') ? '전체 월 연속' : `${activeYear}년 ${activeMonth + 1}월`;
@@ -11241,7 +11294,7 @@ function onProjectSearchInput() {
                     availableWorkers.map((w, idx) => `<option value="${w}" ${w === activeWorker ? 'selected' : ''}>👷 ${w} (${idx + 1}/${availableWorkers.length})</option>`).join('');
             }
 
-            // 4. 달력 그리드 HTML 생성
+            // 8. 달력 그리드 HTML 생성
             let html = '';
             if (viewMode === 'all') {
                 availableMonths.forEach(ym => {
@@ -11256,7 +11309,169 @@ function onProjectSearchInput() {
             if (wrapper) wrapper.innerHTML = html;
         }
 
-        // 1개 월 단위 캘린더 생성 함수 (customMonthData 파라미터 완벽 지원)
+        // =========================================================================
+        // 🔄 업체(Client) & 프로젝트(Project) 네비게이션 및 마우스 휠 이벤트 핸들러
+        // =========================================================================
+        function navigateCalendarClient(delta) {
+            if (!window.pcState) return;
+            const { allClients, selectedClients } = window.pcState;
+            if (!allClients || allClients.length === 0) return;
+
+            // 전체('__ALL__') 포함 순환 리스트
+            const cycle = ['__ALL__', ...allClients];
+            const curClient = (selectedClients.size === allClients.length) ? '__ALL__' : Array.from(selectedClients)[0];
+            let idx = cycle.indexOf(curClient);
+            if (idx === -1) idx = 1;
+
+            let newIdx = idx + delta;
+            if (newIdx < 0) newIdx = cycle.length - 1;
+            if (newIdx >= cycle.length) newIdx = 0;
+
+            selectCalendarClient(cycle[newIdx]);
+        }
+
+        function selectCalendarClient(clientVal) {
+            if (!window.pcState) return;
+            const state = window.pcState;
+            const { allClients } = state;
+
+            if (clientVal === '__ALL__') {
+                state.selectedClients = new Set(allClients);
+            } else {
+                state.selectedClients = new Set([clientVal]);
+            }
+
+            // 가용 프로젝트 목록 갱신 및 기본 전체 선택
+            const clientRows = rawData.filter(d => state.selectedClients.has(d.client));
+            state.availableProjects = [...new Set(clientRows.map(d => (d.project || '').trim()))].filter(Boolean).sort();
+            state.selectedProjects = new Set(state.availableProjects);
+
+            // 가용 작업자 및 가용 월 갱신
+            updateCalendarWorkersAndMonths();
+            renderProjectCalendarContent();
+        }
+
+        function handlePcClientWheel(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const now = Date.now();
+            if (now - window._lastPcWheelTime < 150) return;
+            window._lastPcWheelTime = now;
+
+            if (e.deltaY < 0) {
+                navigateCalendarClient(-1); // 휠 위로 -> 이전 업체
+            } else if (e.deltaY > 0) {
+                navigateCalendarClient(1);  // 휠 아래로 -> 다음 업체
+            }
+        }
+
+        function navigateCalendarProject(delta) {
+            if (!window.pcState) return;
+            const state = window.pcState;
+            const { availableProjects, selectedProjects } = state;
+            if (!availableProjects || availableProjects.length === 0) return;
+
+            // 전체 통합('__ALL__') 포함 순환 리스트
+            const cycle = ['__ALL__', ...availableProjects];
+            const curProj = (selectedProjects.size === availableProjects.length) ? '__ALL__' : Array.from(selectedProjects)[0];
+            let idx = cycle.indexOf(curProj);
+            if (idx === -1) idx = 0;
+
+            let newIdx = idx + delta;
+            if (newIdx < 0) newIdx = cycle.length - 1;
+            if (newIdx >= cycle.length) newIdx = 0;
+
+            const targetProj = cycle[newIdx];
+            if (targetProj === '__ALL__') {
+                state.selectedProjects = new Set(availableProjects);
+            } else {
+                state.selectedProjects = new Set([targetProj]);
+            }
+
+            updateCalendarWorkersAndMonths();
+            renderProjectCalendarContent();
+        }
+
+        function toggleCalendarProject(pName) {
+            if (!window.pcState || !pName) return;
+            const state = window.pcState;
+            if (state.selectedProjects.has(pName)) {
+                state.selectedProjects.delete(pName);
+                if (state.selectedProjects.size === 0) {
+                    state.selectedProjects.add(pName); // 최소 1개는 유지
+                }
+            } else {
+                state.selectedProjects.add(pName);
+            }
+            updateCalendarWorkersAndMonths();
+            renderProjectCalendarContent();
+        }
+
+        function selectAllCalendarProjects(selectAll) {
+            if (!window.pcState) return;
+            const state = window.pcState;
+            if (selectAll) {
+                state.selectedProjects = new Set(state.availableProjects);
+            } else {
+                state.selectedProjects = new Set([state.availableProjects[0] || '']);
+            }
+            updateCalendarWorkersAndMonths();
+            renderProjectCalendarContent();
+        }
+
+        function handlePcProjectWheel(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const now = Date.now();
+            if (now - window._lastPcWheelTime < 150) return;
+            window._lastPcWheelTime = now;
+
+            if (e.deltaY < 0) {
+                navigateCalendarProject(-1); // 휠 위로 -> 이전 프로젝트
+            } else if (e.deltaY > 0) {
+                navigateCalendarProject(1);  // 휠 아래로 -> 다음 프로젝트
+            }
+        }
+
+        // 업체 및 프로젝트 변경 시 작업자 및 연월 목록 자동 재동기화 헬퍼
+        function updateCalendarWorkersAndMonths() {
+            if (!window.pcState) return;
+            const state = window.pcState;
+            const filteredRows = rawData.filter(d => {
+                if (state.selectedClients.size > 0 && !state.selectedClients.has(d.client)) return false;
+                if (state.selectedProjects.size > 0 && !state.selectedProjects.has(d.project)) return false;
+                return true;
+            });
+
+            // 가용 작업자 갱신
+            state.availableWorkers = [...new Set(filteredRows.map(d => (d.worker || '').trim()))].filter(Boolean).sort();
+            if (state.availableWorkers.length === 0) state.availableWorkers = ['강동균'];
+            if (state.activeWorker !== 'ALL' && !state.availableWorkers.includes(state.activeWorker)) {
+                state.activeWorker = state.availableWorkers[0] || 'ALL';
+            }
+
+            // 가용 연월 갱신
+            const ymSet = new Set();
+            filteredRows.forEach(d => {
+                if (d.date && d.date.length >= 7) ymSet.add(d.date.substring(0, 7));
+            });
+            state.availableMonths = Array.from(ymSet).sort();
+            if (state.availableMonths.length === 0) state.availableMonths = ['2026-10'];
+
+            const curYM = `${state.activeYear}-${String(state.activeMonth + 1).padStart(2, '0')}`;
+            if (!state.availableMonths.includes(curYM)) {
+                const latestYM = state.availableMonths[state.availableMonths.length - 1];
+                const [lY, lM] = latestYM.split('-').map(Number);
+                state.activeYear = lY;
+                state.activeMonth = lM - 1;
+            }
+        }
+
+        // 1개 월 단위 캘린더 생성 함수
         function generateProjectMonthCalendarHTML(year, month, customMonthData) {
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
@@ -11265,11 +11480,11 @@ function onProjectSearchInput() {
 
             const targetMonthStr = `${year}-${(month + 1).toString().padStart(2, '0')}`;
             const monthData = customMonthData || (currentProjectData || []).filter(d => (d.date || '').startsWith(targetMonthStr));
-            const uProjs = (window.pcState?.targetProjects && window.pcState.targetProjects.length > 0)
-                ? window.pcState.targetProjects
+            const uProjs = (window.pcState?.availableProjects && window.pcState.availableProjects.length > 0)
+                ? window.pcState.availableProjects
                 : [...new Set(monthData.map(d => d.project))].filter(Boolean);
-            const uClients = (window.pcState?.targetClients && window.pcState.targetClients.length > 0)
-                ? window.pcState.targetClients
+            const uClients = (window.pcState?.allClients && window.pcState.allClients.length > 0)
+                ? window.pcState.allClients
                 : [...new Set(monthData.map(d => d.client))].filter(Boolean);
 
             const activeWorkerName = window.pcState?.activeWorker || '해당 작업자';
@@ -11308,7 +11523,7 @@ function onProjectSearchInput() {
                 calHTML += `
                     <div class="p-3.5 bg-amber-50/80 border-b border-amber-200/70 text-center flex items-center justify-center gap-2">
                         <span class="text-xs font-bold text-amber-900">
-                            💡 <b>${year}년 ${month + 1}월</b>에는 <b>[${isAllWorker ? '전체 작업자' : activeWorkerName}]</b>의 투입 내역이 없습니다. (상단 또는 제목 위에서 <b>마우스 휠</b>을 굴려 다른 월이나 다른 작업자의 내역을 확인해보세요)
+                            💡 <b>${year}년 ${month + 1}월</b>에는 선택 조건에 해당하는 투입 내역이 없습니다. (상단에서 <b>업체/프로젝트/월/작업자 마우스 휠</b>을 굴려 확인해보세요)
                         </span>
                     </div>
                 `;

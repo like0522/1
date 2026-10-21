@@ -78,29 +78,29 @@
         }
 
         .wa-badge-highlight {
-            animation: waWiggle 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
             z-index: 40 !important;
-            box-shadow: 0 0 0 2.5px #ffffff, 0 8px 20px rgba(0, 0, 0, 0.45) !important;
-            filter: brightness(1.12) !important;
+            box-shadow: 0 0 0 2.5px #3b82f6, 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+            transform: none !important;
+            animation: none !important;
         }
 
         .wa-badge-dimmed {
-            opacity: 0.3 !important;
-            transform: scale(0.95) !important;
-            filter: grayscale(40%) !important;
+            opacity: 0.35 !important;
+            transform: none !important;
+            filter: none !important;
         }
 
         .wa-highlight-active {
-            animation: waCardPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
             z-index: 30 !important;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22), 0 0 0 2.5px #3b82f6 !important;
-            filter: brightness(1.08) !important;
+            box-shadow: 0 0 0 2.5px #3b82f6, 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+            transform: none !important;
+            animation: none !important;
         }
 
         .wa-dimmed {
-            opacity: 0.22 !important;
-            transform: scale(0.98) !important;
-            filter: grayscale(60%) !important;
+            opacity: 0.35 !important;
+            transform: none !important;
+            filter: none !important;
         }
 
         .matrix-table th,
@@ -204,18 +204,18 @@
         }
 
         .cal-wiggle-active {
-            animation: calWiggleBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) infinite !important;
-            z-index: 80 !important;
-            box-shadow: 0 0 0 3px #f59e0b, 0 12px 28px -4px rgba(0, 0, 0, 0.45) !important;
+            z-index: 40 !important;
+            box-shadow: 0 0 0 2.5px #3b82f6, 0 4px 12px rgba(0, 0, 0, 0.15) !important;
             position: relative !important;
-            transform-origin: center center !important;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.25)) !important;
+            transform: none !important;
+            animation: none !important;
         }
 
         .cal-wiggle-dimmed {
-            opacity: 0.3 !important;
-            filter: grayscale(40%) !important;
-            transition: opacity 0.2s ease, filter 0.2s ease !important;
+            opacity: 0.35 !important;
+            transition: opacity 0.15s ease !important;
+            filter: none !important;
+            transform: none !important;
         }
     </style>
     <!-- UI 탭 스위처 및 화면 줌 함수 조기 등록 (ReferenceError 원천 차단) -->
@@ -286,9 +286,9 @@
                     </svg>
                 </button>
                 <h1 class="text-lg md:text-xl font-black tracking-tight">생산 공정 및 인력 투입 분석기</h1>
-                <div class="bg-emerald-400 text-slate-950 px-2.5 py-1.5 rounded-xl font-black text-xs shadow-sm flex items-center gap-1.5" title="대시보드 배포 버전"><span class="w-2 h-2 rounded-full bg-emerald-700 animate-pulse"></span><span>V4.1</span></div>
+                <div class="bg-emerald-400 text-slate-950 px-2.5 py-1.5 rounded-xl font-black text-xs shadow-sm flex items-center gap-1.5" title="대시보드 배포 버전"><span class="w-2 h-2 rounded-full bg-emerald-700 animate-pulse"></span><span>V4.2</span></div>
                 <button onclick="openProjectCalendarModal()"
-                    class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white px-3 py-1.5 rounded-xl text-xs font-black transition-all shadow-md flex items-center gap-1.5 border border-purple-400/50 hover:scale-105 active:scale-95 ml-1"
+                    class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white px-3 py-1.5 rounded-xl text-xs font-black transition-all shadow-md flex items-center gap-1.5 border border-purple-400/50 hover:scale-105  ml-1"
                     title="상세 공정 달력 모달 열기">
                     <span>📅</span><span>상세 달력</span>
                 </button>
@@ -301,11 +301,11 @@
                 <!-- 🔍 메인 화면 확대/축소 및 모바일 화면맞춤 툴바 -->
                 <div class="flex items-center gap-1 bg-purple-950/70 p-1 rounded-xl border border-purple-700/60 shadow-inner">
                     <button type="button" onclick="changeMainZoom(-0.1)" title="화면 축소 (10% 축소)"
-                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800/80 hover:bg-purple-700 text-white rounded-lg text-sm font-black transition-all active:scale-95 shadow-sm">－</button>
+                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800/80 hover:bg-purple-700 text-white rounded-lg text-sm font-black transition-all  shadow-sm">－</button>
                     <span id="mainZoomIndicator" class="text-[11px] sm:text-xs font-black text-purple-200 px-1.5 sm:px-2 min-w-[42px] sm:min-w-[48px] text-center cursor-pointer hover:text-white transition-colors"
                         onclick="resetMainZoom()" title="100% 기본 크기 (클릭 시 100% 리셋)">100%</span>
                     <button type="button" onclick="changeMainZoom(0.1)" title="화면 확대 (10% 확대)"
-                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800/80 hover:bg-purple-700 text-white rounded-lg text-sm font-black transition-all active:scale-95 shadow-sm">＋</button>
+                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-800/80 hover:bg-purple-700 text-white rounded-lg text-sm font-black transition-all  shadow-sm">＋</button>
                     <button type="button" onclick="fitMainToMobile()" title="모바일/화면 폭 맞춤 축소"
                         class="px-2 sm:px-2.5 h-7 sm:h-8 flex items-center gap-1 bg-purple-800/80 hover:bg-white hover:text-purple-900 text-purple-200 rounded-lg text-[11px] sm:text-xs font-bold transition-all ml-0.5 shadow-sm">
                         <span>📱</span><span>화면맞춤</span>
@@ -742,7 +742,7 @@
                         <select id="tmSelPeriod" class="hidden"></select>
                         <div class="pt-1">
                             <button type="button" onclick="exportEnterpriseReportCSV()"
-                                class="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1.5 active:scale-95">
+                                class="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1.5 ">
                                 <span>📥</span> <span>전사 종합 리포트 (CSV)</span>
                             </button>
                         </div>
@@ -1007,7 +1007,7 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <button type="button" onclick="exportSeriesCSV()"
-                                class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-sm transition-all flex items-center gap-1.5 active:scale-95">
+                                class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-sm transition-all flex items-center gap-1.5 ">
                                 <span>📥</span> <span>기종 비교 엑셀 (CSV)</span>
                             </button>
                         </div>
@@ -1364,11 +1364,11 @@
                                 </button>
                             </div>
                             <button type="button" onclick="exportComparisonCSV()" title="CSV 엑셀 다운로드"
-                                class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-sm transition-all flex items-center gap-1.5 active:scale-95">
+                                class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-sm transition-all flex items-center gap-1.5 ">
                                 <span>📥</span> 엑셀 다운로드
                             </button>
                             <button type="button" onclick="copyComparisonSummary()" title="분석 결과 요약 복사"
-                                class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-black rounded-xl shadow-sm transition-all flex items-center gap-1.5 active:scale-95">
+                                class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-black rounded-xl shadow-sm transition-all flex items-center gap-1.5 ">
                                 <span>📋</span> 요약 복사
                             </button>
                         </div>
@@ -1425,7 +1425,7 @@
                             <!-- ⇄ 맞바꾸기(Swap) 버튼 -->
                             <div class="flex justify-center my-1 md:my-0">
                                 <button type="button" onclick="swapComparisonTargets()" title="A와 B 대상 맞바꾸기 (Swap)"
-                                    class="w-12 h-12 rounded-2xl bg-purple-100 hover:bg-purple-200 text-purple-700 font-black flex flex-col items-center justify-center transition-all border border-purple-200 shadow-sm active:scale-95 group">
+                                    class="w-12 h-12 rounded-2xl bg-purple-100 hover:bg-purple-200 text-purple-700 font-black flex flex-col items-center justify-center transition-all border border-purple-200 shadow-sm  group">
                                     <span class="text-base leading-none group-hover:rotate-180 transition-transform duration-300">⇄</span>
                                     <span class="text-[9px] font-black mt-0.5">교체</span>
                                 </button>
@@ -1726,14 +1726,14 @@
                         <div class="flex items-center gap-2">
                             <div class="flex items-center bg-slate-900 text-white rounded-xl p-0.5 sm:p-1 shadow-inner border border-slate-700/60 text-xs">
                                 <button type="button" onclick="changeKpiDrilldownZoom(-0.15)" title="차트 축소"
-                                    class="w-7 h-7 flex items-center justify-center hover:bg-white/20 active:scale-95 rounded-lg font-black transition-all">－</button>
+                                    class="w-7 h-7 flex items-center justify-center hover:bg-white/20  rounded-lg font-black transition-all">－</button>
                                 <span id="kpiDrilldownZoomLabel" class="px-2 font-mono font-black text-sky-400 min-w-[45px] text-center select-none text-[11px]">100%</span>
                                 <button type="button" onclick="changeKpiDrilldownZoom(0.15)" title="차트 확대"
-                                    class="w-7 h-7 flex items-center justify-center hover:bg-white/20 active:scale-95 rounded-lg font-black transition-all">＋</button>
+                                    class="w-7 h-7 flex items-center justify-center hover:bg-white/20  rounded-lg font-black transition-all">＋</button>
                                 <button type="button" onclick="resetKpiDrilldownZoom()" title="기본 배율 (100%)"
-                                    class="px-2 h-7 flex items-center justify-center hover:bg-white/20 active:scale-95 rounded-lg font-bold transition-all text-[11px] border-l border-slate-700 ml-0.5">100%</button>
+                                    class="px-2 h-7 flex items-center justify-center hover:bg-white/20  rounded-lg font-bold transition-all text-[11px] border-l border-slate-700 ml-0.5">100%</button>
                                 <button type="button" onclick="fitKpiDrilldownChart()" title="화면 너비 맞춤"
-                                    class="px-2 h-7 flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white rounded-lg font-bold transition-all text-[11px] ml-0.5 shadow-sm">📱 맞춤</button>
+                                    class="px-2 h-7 flex items-center justify-center bg-indigo-600 hover:bg-indigo-500  text-white rounded-lg font-bold transition-all text-[11px] ml-0.5 shadow-sm">📱 맞춤</button>
                             </div>
                             <span class="text-[10px] font-bold text-slate-400 hidden sm:inline">마우스 오버 시 세부 수치 표시</span>
                         </div>
@@ -10524,7 +10524,7 @@ function onProjectSearchInput() {
                         const safeP = (task.project || '').replace(/"/g, '&quot;');
                         const safeW = (worker || '').replace(/"/g, '&quot;');
                         html += `
-                            <div class="wa-worker-card min-h-[50px] flex flex-col justify-center px-2.5 py-1.5 rounded-xl border transition-all duration-200 overflow-hidden cursor-pointer active:scale-95 leading-tight shadow-sm relative gap-1 border-l-[4px]"
+                            <div class="wa-worker-card min-h-[50px] flex flex-col justify-center px-2.5 py-1.5 rounded-xl border transition-all duration-200 overflow-hidden cursor-pointer  leading-tight shadow-sm relative gap-1 border-l-[4px]"
                                  data-project="${safeP}"
                                  data-worker="${safeW}"
                                  style="background-color: ${pColor.bg}; border-color: ${pColor.border}; border-left-color: ${pColor.bar};"
@@ -10683,7 +10683,7 @@ function onProjectSearchInput() {
                                         const hue = [...t.project].reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360;
                                         return `
                                                         <button onclick="jumpToProjectAnalysis('${t.project.replace(/'/g, "\\'")}')" 
-                                                                class="text-left p-2.5 rounded-xl border border-transparent transition-all hover:scale-[1.03] active:scale-95 group relative overflow-hidden shadow-sm hover:shadow-md"
+                                                                class="text-left p-2.5 rounded-xl border border-transparent transition-all hover:scale-[1.03]  group relative overflow-hidden shadow-sm hover:shadow-md"
                                                                 style="background-color: hsla(${hue}, 75%, 96%, 1); border-color: hsla(${hue}, 70%, 85%, 1);">
                                                             <div class="flex justify-between items-start mb-1">
                                                                 <span class="text-[11px] font-black truncate max-w-[75%] leading-tight" style="color: hsla(${hue}, 80%, 25%, 1)">${t.project}</span>
@@ -11196,7 +11196,7 @@ function onProjectSearchInput() {
         window.pcState = null;
 
         function openProjectCalendarModal() {
-            if (!currentProjectData || currentProjectData.length === 0) return;
+            if (!rawData || rawData.length === 0) return;
 
             const modal = document.getElementById('projectCalendarModal');
 
@@ -11206,38 +11206,42 @@ function onProjectSearchInput() {
                 if (d.date && d.date.length >= 4) yearSet.add(d.date.substring(0, 4));
             });
             const allYears = Array.from(yearSet).sort((a, b) => b.localeCompare(a));
+            const latestYear = allYears[0] || '2026';
 
-            // 2. 🌟 메인 화면 필터 기준 100% 자동 계승
+            // 해당 최신 연도의 가장 최신 월 탐색
+            const monthsInLatestYear = [...new Set(
+                rawData.filter(d => (d.date || '').startsWith(latestYear)).map(d => (d.date || '').substring(5, 7))
+            )].filter(Boolean).sort((a, b) => b.localeCompare(a));
+            const latestMonth = monthsInLatestYear[0] || '10';
+
+            // 2. 🌟 메인 화면 필터 기준 100% 자동 계승 (선택이 없을 때는 최근년·최근월 기본 선택 및 업체/프로젝트/공정/작업자는 '전체'로 시작)
             let initYears = new Set();
             if (typeof selectedFilterYears !== 'undefined' && !selectedFilterYears.has('ALL') && selectedFilterYears.size > 0) {
                 selectedFilterYears.forEach(y => initYears.add(String(y)));
             } else {
-                const curY = (currentProjectData[0]?.date || '').substring(0, 4);
-                initYears.add(curY || allYears[0] || '2026');
+                initYears.add(latestYear);
             }
 
             let initMonths = new Set();
             if (typeof selectedFilterMonths !== 'undefined' && !selectedFilterMonths.has('ALL') && selectedFilterMonths.size > 0) {
                 selectedFilterMonths.forEach(m => initMonths.add(String(m).padStart(2, '0')));
             } else {
-                const curM = (currentProjectData[0]?.date || '').substring(5, 7);
-                if (curM) initMonths.add(curM);
+                const curY = Array.from(initYears)[0] || latestYear;
+                const monthsForY = [...new Set(
+                    rawData.filter(d => (d.date || '').startsWith(curY)).map(d => (d.date || '').substring(5, 7))
+                )].filter(Boolean).sort((a, b) => b.localeCompare(a));
+                initMonths.add(monthsForY[0] || latestMonth);
             }
 
+            // 업체, 프로젝트, 공정, 작업자: 메인 화면에서 명시적으로 선택한 경우만 계승, 아니면 '전체(ALL)'(빈 Set)으로 시작하여 해당 월의 모든 항목이 메인 화면처럼 나오게 함
             let initCompanies = new Set();
-            if (typeof selectedFilterCompanies !== 'undefined' && selectedFilterCompanies.size > 0) {
+            if (typeof selectedFilterCompanies !== 'undefined' && !selectedFilterCompanies.has('ALL') && selectedFilterCompanies.size > 0) {
                 selectedFilterCompanies.forEach(c => initCompanies.add(c));
-            } else {
-                const curC = currentProjectData[0]?.client;
-                if (curC) initCompanies.add(curC);
             }
 
             let initProjects = new Set();
-            if (typeof selectedFilterProjects !== 'undefined' && selectedFilterProjects.size > 0) {
+            if (typeof selectedFilterProjects !== 'undefined' && !selectedFilterProjects.has('ALL') && selectedFilterProjects.size > 0) {
                 selectedFilterProjects.forEach(p => initProjects.add(p));
-            } else {
-                const curP = currentProjectData[0]?.project;
-                if (curP) initProjects.add(curP);
             }
 
             let initProcesses = new Set();
@@ -11248,9 +11252,6 @@ function onProjectSearchInput() {
             let initWorkers = new Set();
             if (typeof selectedFilterWorkers !== 'undefined' && !selectedFilterWorkers.has('ALL') && selectedFilterWorkers.size > 0) {
                 selectedFilterWorkers.forEach(w => initWorkers.add(w));
-            } else {
-                const curW = currentProjectData[0]?.worker;
-                if (curW) initWorkers.add(curW);
             }
 
             // 3. 모달 전역 상태 객체 초기화
@@ -11348,30 +11349,14 @@ function onProjectSearchInput() {
             return CAL_WORKER_PALETTE[hash % CAL_WORKER_PALETTE.length];
         }
 
-        // 모달 헤더 및 본문 동적 렌더링 핵심 엔진
+        // 모달 헤더 및 본문 동적 렌더링 핵심 엔진 (전방위 연계 Cascading & 정제 Pruning)
         function renderProjectCalendarContent() {
             if (!window.pcState) return;
             const state = window.pcState;
             const { filters, allYears } = state;
 
-            // 1. 현재 6대 필터 조건을 모두 만족하는 최종 교집합 데이터 (달력 본문용)
-            const filteredData = rawData.filter(d => {
-                if (!d.date) return false;
-                const dYear = d.date.substring(0, 4);
-                const dMonth = d.date.substring(5, 7);
-
-                if (filters.years.size > 0 && !filters.years.has(dYear)) return false;
-                if (filters.months.size > 0 && !filters.months.has(dMonth)) return false;
-                if (filters.companies.size > 0 && !filters.companies.has(d.client)) return false;
-                if (filters.projects.size > 0 && !filters.projects.has(d.project)) return false;
-                if (filters.processes.size > 0 && !filters.processes.has(d.type)) return false;
-                if (filters.workers.size > 0 && !filters.workers.has((d.worker || '').trim())) return false;
-                return true;
-            });
-            state.currentScopeData = filteredData;
-
             // =================================================================
-            // 2. 🌟 메인 화면과 100% 동일한 전방위 상호 연계 필터 (Cascading) 도출
+            // 1. 🌟 메인 화면과 100% 동일한 전방위 상호 연계 필터 (Cascading) 도출
             // =================================================================
             // (1) 가용 업체: (연도, 월, 프로젝트, 공정, 작업자) 조건 만족 데이터에서 추출
             const scopeForComp = rawData.filter(d => {
@@ -11429,6 +11414,49 @@ function onProjectSearchInput() {
             });
             const availWorkers = [...new Set(scopeForWorker.map(d => (d.worker || '').trim()))].filter(Boolean).sort();
 
+            // 🌟 유효하지 않은 기존 선택 자동 정제 (Pruning)
+            // 상위 필터 변경으로 현재 가용 목록에 존재하지 않게 된 항목은 Set에서 자동 제거하여 빈 화면 방지
+            if (filters.companies.size > 0 && availCompanies.length > 0) {
+                const validCompSet = new Set(availCompanies);
+                for (const c of Array.from(filters.companies)) {
+                    if (!validCompSet.has(c)) filters.companies.delete(c);
+                }
+            }
+            if (filters.projects.size > 0 && availProjects.length > 0) {
+                const validProjSet = new Set(availProjects);
+                for (const p of Array.from(filters.projects)) {
+                    if (!validProjSet.has(p)) filters.projects.delete(p);
+                }
+            }
+            if (filters.workers.size > 0 && availWorkers.length > 0) {
+                const validWorkerSet = new Set(availWorkers);
+                for (const w of Array.from(filters.workers)) {
+                    if (!validWorkerSet.has(w)) filters.workers.delete(w);
+                }
+            }
+            if (filters.processes.size > 0 && availProcesses.length > 0) {
+                const validProcSet = new Set(availProcesses);
+                for (const proc of Array.from(filters.processes)) {
+                    if (!validProcSet.has(proc)) filters.processes.delete(proc);
+                }
+            }
+
+            // 2. 현재 정제된 6대 필터 조건을 모두 만족하는 최종 교집합 데이터 (달력 본문용)
+            const filteredData = rawData.filter(d => {
+                if (!d.date) return false;
+                const dYear = d.date.substring(0, 4);
+                const dMonth = d.date.substring(5, 7);
+
+                if (filters.years.size > 0 && !filters.years.has(dYear)) return false;
+                if (filters.months.size > 0 && !filters.months.has(dMonth)) return false;
+                if (filters.companies.size > 0 && !filters.companies.has(d.client)) return false;
+                if (filters.projects.size > 0 && !filters.projects.has(d.project)) return false;
+                if (filters.processes.size > 0 && !filters.processes.has(d.type)) return false;
+                if (filters.workers.size > 0 && !filters.workers.has((d.worker || '').trim())) return false;
+                return true;
+            });
+            state.currentScopeData = filteredData;
+
             // 3. 상단 헤더 요약 뱃지 갱신
             let totalH = 0; let totalC = 0;
             filteredData.forEach(d => {
@@ -11473,7 +11501,7 @@ function onProjectSearchInput() {
                     });
                     targetMonths = Array.from(monthsWithData).sort();
                     if (targetMonths.length === 0) {
-                        const curM = (currentProjectData[0]?.date || '').substring(5, 7);
+                        const curM = (rawData[0]?.date || '').substring(5, 7);
                         targetMonths = [curM || '10'];
                     }
                 }
@@ -11803,7 +11831,7 @@ function onProjectSearchInput() {
                                         const wColor = getCalWorkerColor(t.worker, uWorkers);
 
                                         return `
-                                            <div class="cal-task-card px-2.5 py-1.5 rounded-xl border shadow-2xs hover:scale-[1.02] hover:shadow-md transition-all cursor-pointer flex flex-col gap-1 border-l-[4px]"
+                                            <div class="cal-task-card px-2.5 py-1.5 rounded-xl border shadow-2xs hover:border-slate-400 hover:shadow-md transition-all cursor-pointer flex flex-col gap-1 border-l-[4px]"
                                                  style="background-color: ${pColor.bg}; border-color: ${pColor.border}; border-left-color: ${pColor.bar};"
                                                  title="[프로젝트] ${safeP}&#10;[업체] ${safeC}&#10;[작업자] ${safeW}&#10;[공정] ${safeT} (${totalH}h)&#10;[비용] ₩${(Number(t.cost) || 0).toLocaleString()}">
                                                 

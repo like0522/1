@@ -286,7 +286,7 @@
                     </svg>
                 </button>
                 <h1 class="text-lg md:text-xl font-black tracking-tight">생산 공정 및 인력 투입 분석기</h1>
-                <div class="bg-emerald-400 text-slate-950 px-2.5 py-1.5 rounded-xl font-black text-xs shadow-sm flex items-center gap-1.5" title="대시보드 배포 버전"><span class="w-2 h-2 rounded-full bg-emerald-700 animate-pulse"></span><span>V4.2</span></div>
+                <div class="bg-emerald-400 text-slate-950 px-2.5 py-1.5 rounded-xl font-black text-xs shadow-sm flex items-center gap-1.5" title="대시보드 배포 버전"><span class="w-2 h-2 rounded-full bg-emerald-700 animate-pulse"></span><span>V4.3</span></div>
                 <button onclick="openProjectCalendarModal()"
                     class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white px-3 py-1.5 rounded-xl text-xs font-black transition-all shadow-md flex items-center gap-1.5 border border-purple-400/50 hover:scale-105  ml-1"
                     title="상세 공정 달력 모달 열기">
@@ -461,11 +461,25 @@
                         </div>
                     </div>
 
-                    <!-- 🏢 업체 체크란 (클릭으로 간편 선택) -->
+                    <!-- 🏢 업체 체크란 (클릭으로 간편 선택 & 좌측 간편 검색창 탑재) -->
                     <div class="flex flex-col sm:flex-row sm:items-start gap-2 pt-2.5 border-t border-slate-100">
-                        <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0 pt-1">
-                            <span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
-                            <span class="text-xs font-black text-slate-700">업체 체크</span>
+                        <div class="flex flex-col gap-1 min-w-[105px] sm:w-[130px] flex-shrink-0 pt-0.5">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
+                                <span class="text-xs font-black text-slate-700">업체 체크</span>
+                            </div>
+                            <!-- 🔍 업체 간편 검색창 (빨간 원 표시 위치) -->
+                            <div class="relative mt-1">
+                                <input type="text" id="chipCompanySearchInput"
+                                    placeholder="업체 검색..."
+                                    oninput="onChipCompanySearchInput(this.value)"
+                                    onkeydown="onChipCompanySearchKeydown(event)"
+                                    class="w-full text-[11px] px-2 py-1 pl-6 pr-5 bg-white border border-purple-200 focus:border-purple-600 focus:ring-1 focus:ring-purple-400/30 rounded-lg outline-none font-bold placeholder:text-slate-400 shadow-2xs transition-all">
+                                <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-[10px] text-purple-400 pointer-events-none">🔍</span>
+                                <button type="button" id="btnClearChipCompanySearch" onclick="clearChipCompanySearch()"
+                                    class="hidden absolute right-1.5 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 hover:text-slate-700 font-black leading-none"
+                                    title="검색어 지우기">✕</button>
+                            </div>
                         </div>
                         <div class="flex-1 flex items-center gap-1.5 flex-wrap max-h-24 sm:max-h-28 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="companyCheckboxesArea">
                             <!-- JS 동적 생성 -->
@@ -4536,6 +4550,10 @@ function switchTmView(view) {
             if (typeof selectedFilterWorkers !== 'undefined') {
                 selectedFilterWorkers = new Set(['ALL']);
             }
+            const chipCompInp = document.getElementById('chipCompanySearchInput');
+            if (chipCompInp) chipCompInp.value = '';
+            const btnClearChipComp = document.getElementById('btnClearChipCompanySearch');
+            if (btnClearChipComp) btnClearChipComp.classList.add('hidden');
             const compSel = document.getElementById('selCompany');
             if (compSel) compSel.value = '';
             const projSel = document.getElementById('selProject');
@@ -4629,45 +4647,75 @@ function switchTmView(view) {
             const container = document.getElementById('companyCheckboxesArea');
             if (!container) return;
 
-            window._currentCompanies = companies || [];
+            // 원본 가용 업체 목록 캐싱
+            if (companies && Array.isArray(companies)) {
+                window._allAvailableCompanies = companies;
+            }
+            const allComps = window._allAvailableCompanies || companies || [];
+
+            const searchInput = document.getElementById('chipCompanySearchInput');
+            const searchKeyword = (searchInput?.value || '').trim().toLowerCase();
+            const btnClear = document.getElementById('btnClearChipCompanySearch');
+            if (btnClear) {
+                btnClear.classList.toggle('hidden', !searchKeyword);
+            }
+
+            // 검색어가 있을 경우 실시간 필터링
+            const displayCompanies = searchKeyword 
+                ? allComps.filter(c => (c || '').toLowerCase().includes(searchKeyword))
+                : allComps;
+
+            window._currentCompanies = displayCompanies;
             const isAllComp = (selectedFilterCompanies.size === 0);
+
+            const countLabel = searchKeyword 
+                ? `전체 업체 (${displayCompanies.length}/${allComps.length})`
+                : `전체 업체 (${allComps.length})`;
+
             let html = `
-                <button type="button" onclick="handleCompanyChipClickByIndex(-1)"
+                <button type="button" onclick="handleCompanyChipClickByName('__ALL__')"
                     class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAllComp ? 'bg-purple-600 text-white border-purple-600 shadow-sm ring-2 ring-purple-400/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-purple-50'}">
-                    <span>🌐</span> <span>전체 업체 (${companies.length})</span>
+                    <span>🌐</span> <span>${countLabel}</span>
                 </button>
             `;
 
-            companies.forEach((c, idx) => {
-                const isSelected = selectedFilterCompanies.has(c);
-                const safeName = (c || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            if (searchKeyword && displayCompanies.length === 0) {
                 html += `
-                    <button type="button" onclick="handleCompanyChipClickByIndex(${idx})"
-                        title="${safeName}"
-                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isSelected ? 'bg-purple-600 text-white border-purple-600 shadow-sm ring-2 ring-purple-400/40 scale-[1.02]' : 'bg-white text-slate-700 border-slate-200 hover:bg-purple-50 hover:border-purple-300'}">
-                        <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-purple-500'}"></span>
-                        <span>${safeName}</span>
-                        ${isSelected ? '<span class="text-[10px] font-black bg-purple-700/80 px-1 py-0.2 rounded text-white">선택</span>' : ''}
-                    </button>
+                    <div class="px-3 py-1 text-xs font-bold text-slate-400 italic">
+                        '${searchKeyword}' 검색 결과가 없습니다.
+                    </div>
                 `;
-            });
+            } else {
+                displayCompanies.forEach((c) => {
+                    const isSelected = selectedFilterCompanies.has(c);
+                    const safeName = (c || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                    const jsSafe = (c || '').replace(/'/g, "\'");
+                    html += `
+                        <button type="button" onclick="handleCompanyChipClickByName('${jsSafe}')"
+                            title="${safeName}"
+                            class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isSelected ? 'bg-purple-600 text-white border-purple-600 shadow-sm ring-2 ring-purple-400/40' : 'bg-white text-slate-700 border-slate-200 hover:bg-purple-50 hover:border-purple-300'}">
+                            <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-purple-500'}"></span>
+                            <span>${safeName}</span>
+                            ${isSelected ? '<span class="text-[10px] font-black bg-purple-700/80 px-1 py-0.2 rounded text-white">선택</span>' : ''}
+                        </button>
+                    `;
+                });
+            }
 
             container.innerHTML = html;
         }
 
-        function handleCompanyChipClickByIndex(idx) {
-            if (idx === -1) {
+        function handleCompanyChipClickByName(companyName) {
+            if (companyName === '__ALL__' || companyName === -1) {
                 // 🌐 전체 업체 클릭 -> 모든 업체 선택 해제!
                 selectedFilterCompanies.clear();
             } else {
-                const targetName = (window._currentCompanies && window._currentCompanies[idx]) ? window._currentCompanies[idx] : '';
-                if (!targetName) return;
-
+                if (!companyName) return;
                 // 🏢 중복 선택 토글: 이미 선택되어 있으면 제거(해제), 없으면 추가(중복선택)!
-                if (selectedFilterCompanies.has(targetName)) {
-                    selectedFilterCompanies.delete(targetName);
+                if (selectedFilterCompanies.has(companyName)) {
+                    selectedFilterCompanies.delete(companyName);
                 } else {
-                    selectedFilterCompanies.add(targetName);
+                    selectedFilterCompanies.add(companyName);
                 }
             }
 
@@ -4681,6 +4729,43 @@ function switchTmView(view) {
             if (projInp) projInp.value = '';
 
             updateProjectList();
+        }
+
+        // 호환성을 위해 기존 인덱스 기반 호출 유지
+        function handleCompanyChipClickByIndex(idx) {
+            if (idx === -1) {
+                handleCompanyChipClickByName('__ALL__');
+            } else {
+                const targetName = (window._currentCompanies && window._currentCompanies[idx]) ? window._currentCompanies[idx] : '';
+                handleCompanyChipClickByName(targetName);
+            }
+        }
+
+        // 🔍 업체 칩 간편 검색 입력 핸들러
+        function onChipCompanySearchInput(val) {
+            renderCompanyChips();
+        }
+
+        // ✕ 업체 칩 검색어 초기화 핸들러
+        function clearChipCompanySearch() {
+            const input = document.getElementById('chipCompanySearchInput');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+            renderCompanyChips();
+        }
+
+        // ⌨️ 업체 칩 검색창 키보드 핸들러 (ESC: 초기화, Enter: 1개 매칭 시 자동 선택)
+        function onChipCompanySearchKeydown(e) {
+            if (e.key === 'Escape') {
+                clearChipCompanySearch();
+            } else if (e.key === 'Enter') {
+                const comps = window._currentCompanies || [];
+                if (comps.length === 1) {
+                    handleCompanyChipClickByName(comps[0]);
+                }
+            }
         }
 
         function onSelectCompanyChange() {

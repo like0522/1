@@ -286,7 +286,7 @@
                     </svg>
                 </button>
                 <h1 class="text-lg md:text-xl font-black tracking-tight">생산 공정 및 인력 투입 분석기</h1>
-                <div class="bg-emerald-400 text-slate-950 px-2.5 py-1.5 rounded-xl font-black text-xs shadow-sm flex items-center gap-1.5" title="대시보드 배포 버전"><span class="w-2 h-2 rounded-full bg-emerald-700 animate-pulse"></span><span>V4.4</span></div>
+                <div class="bg-emerald-400 text-slate-950 px-2.5 py-1.5 rounded-xl font-black text-xs shadow-sm flex items-center gap-1.5" title="대시보드 배포 버전"><span class="w-2 h-2 rounded-full bg-emerald-700 animate-pulse"></span><span>V4.5</span></div>
                 <button onclick="openProjectCalendarModal()"
                     class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white px-3 py-1.5 rounded-xl text-xs font-black transition-all shadow-md flex items-center gap-1.5 border border-purple-400/50 hover:scale-105  ml-1"
                     title="상세 공정 달력 모달 열기">
@@ -5054,11 +5054,19 @@ function switchTmView(view) {
                 let targetH_over = 0;
                 let totalH = 0;
                 let cost = 0;
+                let minDate = '';
+                let maxDate = '';
                 const procMap = {};
                 const procBreakdown = {};
                 const workerMap = {};
 
                 scopedRecs.forEach(r => {
+                    // 📅 작업 일자 집계 (최초 작업일 ~ 최종 작업일)
+                    const d = (r.date || '').trim();
+                    if (d && d !== 'Unknown') {
+                        if (!minDate || d < minDate) minDate = d;
+                        if (!maxDate || d > maxDate) maxDate = d;
+                    }
                     const hReg = Number(r.h_reg) || 0;
                     const hOver = Number(r.h_over) || 0;
                     const h = hReg + hOver;
@@ -5114,6 +5122,28 @@ function switchTmView(view) {
 
                 const isSelected = selectedProjectsSet ? selectedProjectsSet.has(pName) : false;
 
+                // 📅 작업 기간 간결 포맷팅 함수 (A안 규격: 예 2024.11.02 ~ 12.28)
+                let periodStr = '';
+                if (minDate || maxDate) {
+                    const s = minDate || maxDate;
+                    const e = maxDate || minDate;
+                    if (s === e) {
+                        periodStr = s.replace(/-/g, '.');
+                    } else {
+                        const sParts = s.split('-');
+                        const eParts = e.split('-');
+                        if (sParts.length === 3 && eParts.length === 3) {
+                            if (sParts[0] === eParts[0]) {
+                                periodStr = `${sParts[0]}.${sParts[1]}.${sParts[2]} ~ ${eParts[1]}.${eParts[2]}`;
+                            } else {
+                                periodStr = `${sParts[0]}.${sParts[1]}.${sParts[2]} ~ ${eParts[0]}.${eParts[1]}.${eParts[2]}`;
+                            }
+                        } else {
+                            periodStr = `${s} ~ ${e}`;
+                        }
+                    }
+                }
+
                 return {
                     idx,
                     pair,
@@ -5131,7 +5161,10 @@ function switchTmView(view) {
                     procMap,
                     procBreakdown,
                     workerMap,
-                    isSelected
+                    isSelected,
+                    minDate,
+                    maxDate,
+                    periodStr
                 };
             });
 
@@ -5528,6 +5561,11 @@ function switchTmView(view) {
                                 <span class="truncate max-w-[210px]" title="${safeProj}">${safeProj}</span>
                                 ${isSel ? '<span class="text-[9px] font-black px-1.5 py-0.2 rounded bg-blue-600 text-white shrink-0">선택</span>' : '<span class="text-[9px] font-bold px-1 py-0.2 rounded bg-slate-100 text-slate-500 shrink-0">미선택</span>'}
                             </div>
+                            ${item.periodStr ? `
+                                <div class="text-[10px] text-emerald-700 font-bold flex items-center gap-1 mt-0.5 tracking-tight truncate max-w-[220px]" title="작업 기간: ${item.minDate} ~ ${item.maxDate}">
+                                    <span class="text-[9px]">📅</span> <span>${item.periodStr}</span>
+                                </div>
+                            ` : ''}
                         </td>
                         <td class="p-2 bg-amber-50/70 border-x border-amber-200 cursor-pointer" onclick="handleMatrixRowClickByIndex(${rowIdx}, false)" title="${weldTooltip}">
                             <div class="flex items-baseline justify-between gap-1">

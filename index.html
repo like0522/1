@@ -286,7 +286,7 @@
                     </svg>
                 </button>
                 <h1 class="text-lg md:text-xl font-black tracking-tight">생산 공정 및 인력 투입 분석기</h1>
-                <div class="bg-emerald-400 text-slate-950 px-2.5 py-1.5 rounded-xl font-black text-xs shadow-sm flex items-center gap-1.5" title="대시보드 배포 버전"><span class="w-2 h-2 rounded-full bg-emerald-700 animate-pulse"></span><span>V4.3</span></div>
+                <div class="bg-emerald-400 text-slate-950 px-2.5 py-1.5 rounded-xl font-black text-xs shadow-sm flex items-center gap-1.5" title="대시보드 배포 버전"><span class="w-2 h-2 rounded-full bg-emerald-700 animate-pulse"></span><span>V4.4</span></div>
                 <button onclick="openProjectCalendarModal()"
                     class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white px-3 py-1.5 rounded-xl text-xs font-black transition-all shadow-md flex items-center gap-1.5 border border-purple-400/50 hover:scale-105  ml-1"
                     title="상세 공정 달력 모달 열기">
@@ -450,13 +450,27 @@
                         </div>
                     </div>
 
-                    <!-- 월 체크란 (1월 ~ 12월) -->
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 pt-2.5 border-t border-slate-100">
-                        <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0">
-                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
-                            <span class="text-xs font-black text-slate-700">월 체크</span>
+                    <!-- 월 체크란 (1월 ~ 12월 & 간편 검색창) -->
+                    <div class="flex flex-col sm:flex-row sm:items-start gap-2 pt-2.5 border-t border-slate-100">
+                        <div class="flex flex-col gap-1 min-w-[105px] sm:w-[130px] flex-shrink-0 pt-0.5">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                                <span class="text-xs font-black text-slate-700">월 체크</span>
+                            </div>
+                            <!-- 🔍 월 간편 검색창 -->
+                            <div class="relative mt-1">
+                                <input type="text" id="chipMonthSearchInput"
+                                    placeholder="월 검색 (예: 5, 상반기)..."
+                                    oninput="onChipMonthSearchInput(this.value)"
+                                    onkeydown="onChipMonthSearchKeydown(event)"
+                                    class="w-full text-[11px] px-2 py-1 pl-6 pr-5 bg-white border border-indigo-200 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-400/30 rounded-lg outline-none font-bold placeholder:text-slate-400 shadow-2xs transition-all">
+                                <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-[10px] text-indigo-400 pointer-events-none">🔍</span>
+                                <button type="button" id="btnClearChipMonthSearch" onclick="clearChipMonthSearch()"
+                                    class="hidden absolute right-1.5 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 hover:text-slate-700 font-black leading-none"
+                                    title="검색어 지우기">✕</button>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-1 flex-wrap" id="monthCheckboxesArea">
+                        <div class="flex items-center gap-1 flex-wrap flex-1" id="monthCheckboxesArea">
                             <!-- JS 동적 생성 -->
                         </div>
                     </div>
@@ -486,11 +500,25 @@
                         </div>
                     </div>
 
-                    <!-- ⚙️ 프로젝트 체크란 (클릭으로 즉시 분석 실행) -->
+                    <!-- ⚙️ 프로젝트 체크란 (클릭으로 즉시 분석 실행 & 좌측 간편 검색창) -->
                     <div class="flex flex-col sm:flex-row sm:items-start gap-2 pt-2.5 border-t border-slate-100">
-                        <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0 pt-1">
-                            <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-                            <span class="text-xs font-black text-slate-700">프로젝트 체크</span>
+                        <div class="flex flex-col gap-1 min-w-[105px] sm:w-[130px] flex-shrink-0 pt-0.5">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                                <span class="text-xs font-black text-slate-700">프로젝트 체크</span>
+                            </div>
+                            <!-- 🔍 프로젝트 간편 검색창 -->
+                            <div class="relative mt-1">
+                                <input type="text" id="chipProjSearchInput"
+                                    placeholder="프로젝트 검색..."
+                                    oninput="onChipProjSearchInput(this.value)"
+                                    onkeydown="onChipProjSearchKeydown(event)"
+                                    class="w-full text-[11px] px-2 py-1 pl-6 pr-5 bg-white border border-blue-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-400/30 rounded-lg outline-none font-bold placeholder:text-slate-400 shadow-2xs transition-all">
+                                <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-[10px] text-blue-400 pointer-events-none">🔍</span>
+                                <button type="button" id="btnClearChipProjSearch" onclick="clearChipProjSearch()"
+                                    class="hidden absolute right-1.5 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 hover:text-slate-700 font-black leading-none"
+                                    title="검색어 지우기">✕</button>
+                            </div>
                         </div>
                         <div class="flex-1 flex flex-col gap-2 min-w-0 w-full">
                             <div class="flex items-center gap-1.5 flex-wrap max-h-28 sm:max-h-36 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="projectCheckboxesArea">
@@ -501,22 +529,50 @@
                         </div>
                     </div>
 
-                    <!-- 🔧 공정 체크란 (클릭으로 공정별 정밀 필터링 및 데이터 산출) -->
+                    <!-- 🔧 공정 체크란 (클릭으로 공정별 정밀 필터링 및 좌측 간편 검색창) -->
                     <div class="flex flex-col sm:flex-row sm:items-start gap-2 pt-2.5 border-t border-slate-100">
-                        <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0 pt-1">
-                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                            <span class="text-xs font-black text-slate-700">공정 체크</span>
+                        <div class="flex flex-col gap-1 min-w-[105px] sm:w-[130px] flex-shrink-0 pt-0.5">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                                <span class="text-xs font-black text-slate-700">공정 체크</span>
+                            </div>
+                            <!-- 🔍 공정 간편 검색창 -->
+                            <div class="relative mt-1">
+                                <input type="text" id="chipProcSearchInput"
+                                    placeholder="공정 검색..."
+                                    oninput="onChipProcSearchInput(this.value)"
+                                    onkeydown="onChipProcSearchKeydown(event)"
+                                    class="w-full text-[11px] px-2 py-1 pl-6 pr-5 bg-white border border-amber-200 focus:border-amber-600 focus:ring-1 focus:ring-amber-400/30 rounded-lg outline-none font-bold placeholder:text-slate-400 shadow-2xs transition-all">
+                                <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-[10px] text-amber-400 pointer-events-none">🔍</span>
+                                <button type="button" id="btnClearChipProcSearch" onclick="clearChipProcSearch()"
+                                    class="hidden absolute right-1.5 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 hover:text-slate-700 font-black leading-none"
+                                    title="검색어 지우기">✕</button>
+                            </div>
                         </div>
                         <div class="flex-1 flex items-center gap-1.5 flex-wrap max-h-24 sm:max-h-28 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="processCheckboxesArea">
                             <!-- JS 동적 생성 -->
                         </div>
                     </div>
 
-                    <!-- 👷 작업자 체크란 (클릭으로 작업자별 정밀 필터링 및 데이터 산출) -->
+                    <!-- 👷 작업자 체크란 (클릭으로 작업자별 정밀 필터링 및 좌측 간편 검색창) -->
                     <div class="flex flex-col sm:flex-row sm:items-start gap-2 pt-2.5 border-t border-slate-100">
-                        <div class="flex items-center gap-2 min-w-[85px] flex-shrink-0 pt-1">
-                            <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
-                            <span class="text-xs font-black text-slate-700">작업자 체크</span>
+                        <div class="flex flex-col gap-1 min-w-[105px] sm:w-[130px] flex-shrink-0 pt-0.5">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
+                                <span class="text-xs font-black text-slate-700">작업자 체크</span>
+                            </div>
+                            <!-- 🔍 작업자 간편 검색창 -->
+                            <div class="relative mt-1">
+                                <input type="text" id="chipWorkerSearchInput"
+                                    placeholder="작업자 검색..."
+                                    oninput="onChipWorkerSearchInput(this.value)"
+                                    onkeydown="onChipWorkerSearchKeydown(event)"
+                                    class="w-full text-[11px] px-2 py-1 pl-6 pr-5 bg-white border border-teal-200 focus:border-teal-600 focus:ring-1 focus:ring-teal-400/30 rounded-lg outline-none font-bold placeholder:text-slate-400 shadow-2xs transition-all">
+                                <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-[10px] text-teal-400 pointer-events-none">🔍</span>
+                                <button type="button" id="btnClearChipWorkerSearch" onclick="clearChipWorkerSearch()"
+                                    class="hidden absolute right-1.5 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 hover:text-slate-700 font-black leading-none"
+                                    title="검색어 지우기">✕</button>
+                            </div>
                         </div>
                         <div class="flex-1 flex items-center gap-1.5 flex-wrap max-h-24 sm:max-h-28 overflow-y-auto custom-scroll p-1.5 bg-slate-50/70 rounded-xl border border-slate-200" id="workerCheckboxesArea">
                             <!-- JS 동적 생성 -->
@@ -4410,38 +4466,119 @@ function switchTmView(view) {
                 yrContainer.innerHTML = yrHtml;
             }
 
-            // 2. 월 체크박스 생성
+            // 2. 월 체크박스 생성 (간편 검색 연동)
+            renderPeriodMonthChips();
+            updatePeriodSummaryText();
+        }
+
+        
+        // 📅 [TAB 1] 월 체크 칩 엔진 & 간편 검색 (Month Checkbox Engine)
+        function renderPeriodMonthChips() {
             const moContainer = document.getElementById('monthCheckboxesArea');
-            if (moContainer) {
-                let moHtml = `
+            if (!moContainer) return;
+
+            const searchInput = document.getElementById('chipMonthSearchInput');
+            const searchKeyword = (searchInput?.value || '').trim().toLowerCase();
+            const btnClear = document.getElementById('btnClearChipMonthSearch');
+            if (btnClear) {
+                btnClear.classList.toggle('hidden', !searchKeyword);
+            }
+
+            const isAllMo = (selectedFilterMonths.has('ALL') || selectedFilterMonths.size === 0);
+
+            // 검색어가 없을 때는 전체 월, 상반기, 하반기 버튼 노출
+            const matchAll = !searchKeyword || '전체 월'.includes(searchKeyword) || '전체'.includes(searchKeyword) || 'all'.includes(searchKeyword);
+            const matchH1 = !searchKeyword || '상반기'.includes(searchKeyword) || '1-6'.includes(searchKeyword) || '1~6'.includes(searchKeyword) || 'h1'.includes(searchKeyword);
+            const matchH2 = !searchKeyword || '하반기'.includes(searchKeyword) || '7-12'.includes(searchKeyword) || '7~12'.includes(searchKeyword) || 'h2'.includes(searchKeyword);
+
+            let moHtml = '';
+
+            if (matchAll) {
+                moHtml += `
                     <label class="cursor-pointer">
-                        <input type="checkbox" id="chkPeriodMo_ALL" onchange="handlePeriodMonthToggle('ALL')" class="hidden peer" checked>
+                        <input type="checkbox" id="chkPeriodMo_ALL" onchange="handlePeriodMonthToggle('ALL')" class="hidden peer" ${isAllMo ? 'checked' : ''}>
                         <span class="px-2.5 py-1.5 rounded-xl text-xs font-black border transition-all peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 shadow-xs inline-block">
                             전체 월
                         </span>
                     </label>
+                `;
+            }
+
+            if (matchH1) {
+                moHtml += `
                     <button type="button" onclick="applyPeriodMonthPreset('H1')" class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200 hover:bg-slate-100 text-slate-600 shadow-xs">
                         🌱 상반기 (1~6월)
                     </button>
+                `;
+            }
+            if (matchH2) {
+                moHtml += `
                     <button type="button" onclick="applyPeriodMonthPreset('H2')" class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200 hover:bg-slate-100 text-slate-600 shadow-xs">
                         🍂 하반기 (7~12월)
                     </button>
-                    <div class="w-px h-5 bg-slate-200 mx-1 hidden sm:block"></div>
                 `;
-                for (let m = 1; m <= 12; m++) {
+            }
+
+            if (!searchKeyword) {
+                moHtml += `<div class="w-px h-5 bg-slate-200 mx-1 hidden sm:block"></div>`;
+            }
+
+            let matchCount = 0;
+            for (let m = 1; m <= 12; m++) {
+                const mStr = String(m);
+                const labelStr = m + '월';
+                const matches = !searchKeyword || labelStr.includes(searchKeyword) || mStr === searchKeyword || (searchKeyword.endsWith('월') && mStr === searchKeyword.replace('월', ''));
+                if (matches) {
+                    matchCount++;
+                    const isChecked = !isAllMo && selectedFilterMonths.has(mStr);
                     moHtml += `
                         <label class="cursor-pointer">
-                            <input type="checkbox" name="chkPeriodMo" value="${m}" onchange="handlePeriodMonthToggle('${m}')" class="hidden peer">
+                            <input type="checkbox" name="chkPeriodMo" value="${m}" onchange="handlePeriodMonthToggle('${m}')" class="hidden peer" ${isChecked ? 'checked' : ''}>
                             <span class="w-9 h-8 rounded-xl text-xs font-black border transition-all peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 shadow-xs inline-flex items-center justify-center">
                                 ${m}월
                             </span>
                         </label>
                     `;
                 }
-                moContainer.innerHTML = moHtml;
             }
 
-            updatePeriodSummaryText();
+            if (searchKeyword && matchCount === 0 && !matchH1 && !matchH2 && !matchAll) {
+                moHtml += `
+                    <div class="px-3 py-1 text-xs font-bold text-slate-400 italic">
+                        '${searchKeyword}' 검색 결과가 없습니다.
+                    </div>
+                `;
+            }
+
+            moContainer.innerHTML = moHtml;
+        }
+
+        // 🔍 월 칩 간편 검색 입력 핸들러
+        function onChipMonthSearchInput(val) {
+            renderPeriodMonthChips();
+        }
+
+        // ✕ 월 칩 검색어 초기화 핸들러
+        function clearChipMonthSearch() {
+            const input = document.getElementById('chipMonthSearchInput');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+            renderPeriodMonthChips();
+        }
+
+        // ⌨️ 월 칩 검색창 키보드 핸들러 (ESC: 초기화, Enter: 숫자 매칭 시 자동 선택)
+        function onChipMonthSearchKeydown(e) {
+            if (e.key === 'Escape') {
+                clearChipMonthSearch();
+            } else if (e.key === 'Enter') {
+                const searchInput = document.getElementById('chipMonthSearchInput');
+                const kw = (searchInput?.value || '').trim().replace(/[^0-9]/g, '');
+                if (kw && parseInt(kw) >= 1 && parseInt(kw) <= 12) {
+                    handlePeriodMonthToggle(kw);
+                }
+            }
         }
 
         function handlePeriodYearToggle(yr) {
@@ -4513,6 +4650,7 @@ function switchTmView(view) {
             }
 
             updatePeriodSummaryText();
+            renderPeriodMonthChips();
             updateProjectList();
         }
 
@@ -4537,6 +4675,7 @@ function switchTmView(view) {
             });
 
             updatePeriodSummaryText();
+            renderPeriodMonthChips();
             updateProjectList();
         }
 
@@ -4550,10 +4689,14 @@ function switchTmView(view) {
             if (typeof selectedFilterWorkers !== 'undefined') {
                 selectedFilterWorkers = new Set(['ALL']);
             }
-            const chipCompInp = document.getElementById('chipCompanySearchInput');
-            if (chipCompInp) chipCompInp.value = '';
-            const btnClearChipComp = document.getElementById('btnClearChipCompanySearch');
-            if (btnClearChipComp) btnClearChipComp.classList.add('hidden');
+            ['chipCompanySearchInput', 'chipMonthSearchInput', 'chipProjSearchInput', 'chipProcSearchInput', 'chipWorkerSearchInput'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            ['btnClearChipCompanySearch', 'btnClearChipMonthSearch', 'btnClearChipProjSearch', 'btnClearChipProcSearch', 'btnClearChipWorkerSearch'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
             const compSel = document.getElementById('selCompany');
             if (compSel) compSel.value = '';
             const projSel = document.getElementById('selProject');
@@ -5058,13 +5201,35 @@ function switchTmView(view) {
             const container = document.getElementById('projectCheckboxesArea');
             if (!container) return;
 
-            window._currentProjectPairs = projectPairs || [];
-            if (pFilteredData) window._lastPFiltered = pFilteredData;
+            // 원본 가용 프로젝트 목록 캐싱
+            if (projectPairs && Array.isArray(projectPairs)) {
+                window._allAvailableProjectPairs = projectPairs;
+            }
+            const allPairs = window._allAvailableProjectPairs || projectPairs || [];
 
+            if (pFilteredData) window._lastPFiltered = pFilteredData;
             const baseData = pFilteredData || window._lastPFiltered || (typeof rawData !== 'undefined' ? rawData : []);
+
+            const searchInput = document.getElementById('chipProjSearchInput');
+            const searchKeyword = (searchInput?.value || '').trim().toLowerCase();
+            const btnClear = document.getElementById('btnClearChipProjSearch');
+            if (btnClear) {
+                btnClear.classList.toggle('hidden', !searchKeyword);
+            }
+
+            // 검색어가 있을 경우 실시간 필터링
+            const displayPairs = searchKeyword
+                ? allPairs.filter(pair => {
+                    const [cName, pName] = pair.split('|');
+                    return (pName || '').toLowerCase().includes(searchKeyword) || (cName || '').toLowerCase().includes(searchKeyword);
+                })
+                : allPairs;
+
+            window._currentProjectPairs = displayPairs;
+
             const metrics = computeProjectProcessMatrix(
                 baseData,
-                projectPairs,
+                displayPairs,
                 (typeof selectedFilterWorkers !== 'undefined' ? selectedFilterWorkers : null),
                 (typeof selectedFilterProcesses !== 'undefined' ? selectedFilterProcesses : null),
                 selectedFilterProjects
@@ -5073,8 +5238,16 @@ function switchTmView(view) {
             // 매트릭스 테이블 즉시 렌더링
             renderProjectTimeMatrix(metrics);
 
-            if (!projectPairs || projectPairs.length === 0) {
-                container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">일치하는 프로젝트가 없습니다.</span>';
+            if (!displayPairs || displayPairs.length === 0) {
+                if (searchKeyword) {
+                    container.innerHTML = `
+                        <div class="px-3 py-1 text-xs font-bold text-slate-400 italic">
+                            '${searchKeyword}' 검색 결과가 없습니다.
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">일치하는 프로젝트가 없습니다.</span>';
+                }
                 return;
             }
 
@@ -5082,25 +5255,30 @@ function switchTmView(view) {
             const isAllProj = (selectedFilterProjects.size === 0);
 
             const procLabel = metrics.targetLabel || '공정';
+            const countLabel = searchKeyword
+                ? `전체 프로젝트 (${displayPairs.length}/${allPairs.length})`
+                : `전체 프로젝트 (${allPairs.length})`;
+
             let html = `
-                <button type="button" onclick="handleProjectChipClickByIndex(-1)"
+                <button type="button" onclick="handleProjectChipClickByName('__ALL__')"
                     class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isAllProj ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/30' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50'}">
-                    <span>🌐</span> <span>전체 프로젝트 (${projectPairs.length})</span>
+                    <span>🌐</span> <span>${countLabel}</span>
                     ${metrics.sumTarget > 0 ? `<span class="text-[10px] font-mono font-black px-1.5 py-0.2 rounded ${isAllProj ? 'bg-blue-800 text-amber-200' : 'bg-amber-100 text-amber-800 border border-amber-300'}">${procLabel} 총 ${metrics.sumTarget.toFixed(1)}h</span>` : ''}
                 </button>
             `;
 
-            projectPairs.slice(0, 100).forEach((pair, idx) => {
+            displayPairs.slice(0, 100).forEach((pair, idx) => {
                 const [cName, pName] = pair.split('|');
                 const isSelected = selectedFilterProjects.has(pName);
                 const displayProj = currentComp ? pName : `[${cName}] ${pName}`;
                 const safeProj = displayProj.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const jsSafePName = (pName || '').replace(/'/g, "\\'");
                 const m = metrics.list ? metrics.list[idx] : null;
                 const targetH = m ? (m.targetTotal || 0) : 0;
                 const totH = m ? (m.totalH || 0) : 0;
 
                 html += `
-                    <button type="button" onclick="handleProjectChipClickByIndex(${idx})"
+                    <button type="button" onclick="handleProjectChipClickByName('${jsSafePName}')"
                         title="${safeProj} (${procLabel}: ${targetH.toFixed(1)}h / 총공수: ${totH.toFixed(1)}h)"
                         class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 max-w-[320px] truncate ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/40 scale-[1.02]' : 'bg-white text-slate-800 border-slate-200 hover:bg-blue-50 hover:border-blue-300'}">
                         <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-blue-500'}"></span>
@@ -5111,11 +5289,71 @@ function switchTmView(view) {
                 `;
             });
 
-            if (projectPairs.length > 100) {
-                html += `<span class="text-[11px] text-slate-400 font-bold self-center px-1">외 ${projectPairs.length - 100}개 프로젝트 (검색창으로 정밀 조회)</span>`;
+            if (displayPairs.length > 100) {
+                html += `<span class="text-[11px] text-slate-400 font-bold self-center px-1">외 ${displayPairs.length - 100}개 프로젝트 (검색창으로 정밀 조회)</span>`;
             }
 
             container.innerHTML = html;
+        }
+
+        // ⚙️ 프로젝트명 기반 클릭 토글 함수
+        function handleProjectChipClickByName(pName) {
+            if (pName === '__ALL__' || pName === -1) {
+                selectedFilterProjects.clear();
+            } else {
+                if (!pName) return;
+                if (selectedFilterProjects.has(pName)) {
+                    selectedFilterProjects.delete(pName);
+                } else {
+                    selectedFilterProjects.add(pName);
+                }
+            }
+            const projSel = document.getElementById('selProject');
+            if (projSel) {
+                projSel.value = selectedFilterProjects.size === 1 ? Array.from(selectedFilterProjects)[0] : '';
+            }
+            updateProjectList();
+        }
+
+        // 호환성을 위해 인덱스 기반 클릭 유지
+        function handleProjectChipClickByIndex(idx) {
+            if (idx === -1) {
+                handleProjectChipClickByName('__ALL__');
+            } else {
+                const pair = (window._currentProjectPairs && window._currentProjectPairs[idx]) ? window._currentProjectPairs[idx] : '';
+                if (pair) {
+                    const pName = pair.split('|')[1] || pair;
+                    handleProjectChipClickByName(pName);
+                }
+            }
+        }
+
+        // 🔍 프로젝트 칩 간편 검색 입력 핸들러
+        function onChipProjSearchInput(val) {
+            renderProjectChips(window._allAvailableProjectPairs);
+        }
+
+        // ✕ 프로젝트 칩 검색어 초기화 핸들러
+        function clearChipProjSearch() {
+            const input = document.getElementById('chipProjSearchInput');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+            renderProjectChips(window._allAvailableProjectPairs);
+        }
+
+        // ⌨️ 프로젝트 칩 검색창 키보드 핸들러 (ESC: 초기화, Enter: 1개 매칭 시 자동 선택)
+        function onChipProjSearchKeydown(e) {
+            if (e.key === 'Escape') {
+                clearChipProjSearch();
+            } else if (e.key === 'Enter') {
+                const pairs = window._currentProjectPairs || [];
+                if (pairs.length === 1) {
+                    const pName = pairs[0].split('|')[1] || pairs[0];
+                    handleProjectChipClickByName(pName);
+                }
+            }
         }
 
         function renderProjectTimeMatrix(metrics) {
@@ -5890,43 +6128,75 @@ function switchTmView(view) {
             const container = document.getElementById('processCheckboxesArea');
             if (!container) return;
 
-            window._currentProcesses = (processes || []).map(p => (p || '').trim()).filter(Boolean);
+            // 원본 가용 공정 목록 캐싱
+            if (processes && Array.isArray(processes)) {
+                window._allAvailableProcesses = (processes || []).map(p => (p || '').trim()).filter(Boolean);
+            }
+            const allProcs = window._allAvailableProcesses || (processes || []).map(p => (p || '').trim()).filter(Boolean);
 
-            if (!window._currentProcesses || window._currentProcesses.length === 0) {
+            const searchInput = document.getElementById('chipProcSearchInput');
+            const searchKeyword = (searchInput?.value || '').trim().toLowerCase();
+            const btnClear = document.getElementById('btnClearChipProcSearch');
+            if (btnClear) {
+                btnClear.classList.toggle('hidden', !searchKeyword);
+            }
+
+            // 검색어가 있을 경우 실시간 필터링
+            const displayProcs = searchKeyword
+                ? allProcs.filter(p => (p || '').toLowerCase().includes(searchKeyword))
+                : allProcs;
+
+            window._currentProcesses = displayProcs;
+
+            if (!allProcs || allProcs.length === 0) {
                 container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">해당 조건의 공정 데이터가 없습니다.</span>';
                 return;
             }
 
             const isAll = selectedFilterProcesses.has('ALL') || selectedFilterProcesses.size === 0;
+            const countLabel = searchKeyword
+                ? `전체 공정 (${displayProcs.length}/${allProcs.length})`
+                : `전체 공정 (${allProcs.length})`;
+
             let html = `
-                <button type="button" onclick="handleProcessChipClickByIndex(-1)"
+                <button type="button" onclick="handleProcessChipClickByName('__ALL__')"
                     class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-amber-600 text-white border-amber-600 shadow-sm ring-2 ring-amber-400/40' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}">
-                    <span>🔧</span> <span>전체 공정 (${window._currentProcesses.length})</span>
+                    <span>🔧</span> <span>${countLabel}</span>
                 </button>
             `;
 
-            window._currentProcesses.forEach((p, idx) => {
-                const isSelected = !isAll && selectedFilterProcesses.has(p);
-                const safeP = p.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            if (searchKeyword && displayProcs.length === 0) {
                 html += `
-                    <button type="button" onclick="handleProcessChipClickByIndex(${idx})"
-                        title="${safeP}"
-                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isSelected ? 'bg-amber-600 text-white border-amber-600 shadow-sm ring-2 ring-amber-400/50 scale-[1.02]' : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50 hover:border-amber-300'}">
-                        <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-amber-500'}"></span>
-                        <span>${safeP}</span>
-                        ${isSelected ? '<span class="text-[10px] font-black bg-amber-800/80 px-1.5 py-0.5 rounded text-white shadow-xs">선택</span>' : ''}
-                    </button>
+                    <div class="px-3 py-1 text-xs font-bold text-slate-400 italic">
+                        '${searchKeyword}' 검색 결과가 없습니다.
+                    </div>
                 `;
-            });
+            } else {
+                displayProcs.forEach((p) => {
+                    const isSelected = !isAll && selectedFilterProcesses.has(p);
+                    const safeP = p.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                    const jsSafeP = p.replace(/'/g, "\\'");
+                    html += `
+                        <button type="button" onclick="handleProcessChipClickByName('${jsSafeP}')"
+                            title="${safeP}"
+                            class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isSelected ? 'bg-amber-600 text-white border-amber-600 shadow-sm ring-2 ring-amber-400/50 scale-[1.02]' : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50 hover:border-amber-300'}">
+                            <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-amber-500'}"></span>
+                            <span>${safeP}</span>
+                            ${isSelected ? '<span class="text-[10px] font-black bg-amber-800/80 px-1.5 py-0.5 rounded text-white shadow-xs">선택</span>' : ''}
+                        </button>
+                    `;
+                });
+            }
 
             container.innerHTML = html;
         }
 
-        function handleProcessChipClickByIndex(idx) {
-            if (idx === -1) {
+        // 🔧 공정명 기반 클릭 토글 함수
+        function handleProcessChipClickByName(procName) {
+            if (procName === '__ALL__' || procName === -1) {
                 selectedFilterProcesses = new Set(['ALL']);
             } else {
-                const proc = (window._currentProcesses && window._currentProcesses[idx]) ? window._currentProcesses[idx].trim() : '';
+                const proc = (procName || '').trim();
                 if (!proc) return;
 
                 if (selectedFilterProcesses.has('ALL')) {
@@ -5947,6 +6217,43 @@ function switchTmView(view) {
             updateProjectList();
         }
 
+        // 호환성을 위해 인덱스 기반 클릭 유지
+        function handleProcessChipClickByIndex(idx) {
+            if (idx === -1) {
+                handleProcessChipClickByName('__ALL__');
+            } else {
+                const proc = (window._currentProcesses && window._currentProcesses[idx]) ? window._currentProcesses[idx] : '';
+                handleProcessChipClickByName(proc);
+            }
+        }
+
+        // 🔍 공정 칩 간편 검색 입력 핸들러
+        function onChipProcSearchInput(val) {
+            renderProcessChips();
+        }
+
+        // ✕ 공정 칩 검색어 초기화 핸들러
+        function clearChipProcSearch() {
+            const input = document.getElementById('chipProcSearchInput');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+            renderProcessChips();
+        }
+
+        // ⌨️ 공정 칩 검색창 키보드 핸들러 (ESC: 초기화, Enter: 1개 매칭 시 자동 선택)
+        function onChipProcSearchKeydown(e) {
+            if (e.key === 'Escape') {
+                clearChipProcSearch();
+            } else if (e.key === 'Enter') {
+                const procs = window._currentProcesses || [];
+                if (procs.length === 1) {
+                    handleProcessChipClickByName(procs[0]);
+                }
+            }
+        }
+
         // =====================================================================
         // 👷 [TAB 1] 작업자 체크 칩 엔진 (Worker Checkbox Engine)
         // =====================================================================
@@ -5957,43 +6264,75 @@ function switchTmView(view) {
             const container = document.getElementById('workerCheckboxesArea');
             if (!container) return;
 
-            window._currentWorkers = (workers || []).map(w => (w || '').trim()).filter(Boolean);
+            // 원본 가용 작업자 목록 캐싱
+            if (workers && Array.isArray(workers)) {
+                window._allAvailableWorkers = (workers || []).map(w => (w || '').trim()).filter(Boolean);
+            }
+            const allWorkers = window._allAvailableWorkers || (workers || []).map(w => (w || '').trim()).filter(Boolean);
 
-            if (!window._currentWorkers || window._currentWorkers.length === 0) {
+            const searchInput = document.getElementById('chipWorkerSearchInput');
+            const searchKeyword = (searchInput?.value || '').trim().toLowerCase();
+            const btnClear = document.getElementById('btnClearChipWorkerSearch');
+            if (btnClear) {
+                btnClear.classList.toggle('hidden', !searchKeyword);
+            }
+
+            // 검색어가 있을 경우 실시간 필터링
+            const displayWorkers = searchKeyword
+                ? allWorkers.filter(w => (w || '').toLowerCase().includes(searchKeyword))
+                : allWorkers;
+
+            window._currentWorkers = displayWorkers;
+
+            if (!allWorkers || allWorkers.length === 0) {
                 container.innerHTML = '<span class="text-xs text-slate-400 font-bold p-1">해당 조건의 작업자 데이터가 없습니다.</span>';
                 return;
             }
 
             const isAll = selectedFilterWorkers.has('ALL') || selectedFilterWorkers.size === 0;
+            const countLabel = searchKeyword
+                ? `전체 작업자 (${displayWorkers.length}/${allWorkers.length})`
+                : `전체 작업자 (${allWorkers.length})`;
+
             let html = `
-                <button type="button" onclick="handleWorkerChipClickByIndex(-1)"
+                <button type="button" onclick="handleWorkerChipClickByName('__ALL__')"
                     class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1 ${isAll ? 'bg-teal-600 text-white border-teal-600 shadow-sm ring-2 ring-teal-400/40' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}">
-                    <span>👷</span> <span>전체 작업자 (${window._currentWorkers.length})</span>
+                    <span>👷</span> <span>${countLabel}</span>
                 </button>
             `;
 
-            window._currentWorkers.forEach((w, idx) => {
-                const isSelected = !isAll && selectedFilterWorkers.has(w);
-                const safeW = w.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            if (searchKeyword && displayWorkers.length === 0) {
                 html += `
-                    <button type="button" onclick="handleWorkerChipClickByIndex(${idx})"
-                        title="${safeW}"
-                        class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isSelected ? 'bg-teal-600 text-white border-teal-600 shadow-sm ring-2 ring-teal-400/50 scale-[1.02]' : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50 hover:border-teal-300'}">
-                        <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-teal-500'}"></span>
-                        <span>${safeW}</span>
-                        ${isSelected ? '<span class="text-[10px] font-black bg-teal-800/80 px-1.5 py-0.5 rounded text-white shadow-xs">선택</span>' : ''}
-                    </button>
+                    <div class="px-3 py-1 text-xs font-bold text-slate-400 italic">
+                        '${searchKeyword}' 검색 결과가 없습니다.
+                    </div>
                 `;
-            });
+            } else {
+                displayWorkers.forEach((w) => {
+                    const isSelected = !isAll && selectedFilterWorkers.has(w);
+                    const safeW = w.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                    const jsSafeW = w.replace(/'/g, "\\'");
+                    html += `
+                        <button type="button" onclick="handleWorkerChipClickByName('${jsSafeW}')"
+                            title="${safeW}"
+                            class="px-2.5 py-1 rounded-xl text-xs font-black border transition-all shadow-2xs inline-flex items-center gap-1.5 ${isSelected ? 'bg-teal-600 text-white border-teal-600 shadow-sm ring-2 ring-teal-400/50 scale-[1.02]' : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50 hover:border-teal-300'}">
+                            <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white ring-2 ring-white/40' : 'bg-teal-500'}"></span>
+                            <span>${safeW}</span>
+                            ${isSelected ? '<span class="text-[10px] font-black bg-teal-800/80 px-1.5 py-0.5 rounded text-white shadow-xs">선택</span>' : ''}
+                        </button>
+                    `;
+                });
+            }
 
             container.innerHTML = html;
         }
 
-        function handleWorkerChipClickByIndex(idx) {
-            if (idx === -1) {
+        // 👷 작업자명 기반 클릭 토글 함수
+        function handleWorkerChipClickByName(wName) {
+            if (wName === '__ALL__' || wName === -1) {
                 selectedFilterWorkers = new Set(['ALL']);
             } else {
-                const worker = (window._currentWorkers && window._currentWorkers[idx]) ? window._currentWorkers[idx].trim() : '';
+                const worker = (wName || '').trim();
                 if (!worker) return;
 
                 if (selectedFilterWorkers.has('ALL')) {
@@ -6012,6 +6351,43 @@ function switchTmView(view) {
                 }
             }
             updateProjectList();
+        }
+
+        // 호환성을 위해 인덱스 기반 클릭 유지
+        function handleWorkerChipClickByIndex(idx) {
+            if (idx === -1) {
+                handleWorkerChipClickByName('__ALL__');
+            } else {
+                const worker = (window._currentWorkers && window._currentWorkers[idx]) ? window._currentWorkers[idx] : '';
+                handleWorkerChipClickByName(worker);
+            }
+        }
+
+        // 🔍 작업자 칩 간편 검색 입력 핸들러
+        function onChipWorkerSearchInput(val) {
+            renderWorkerChips();
+        }
+
+        // ✕ 작업자 칩 검색어 초기화 핸들러
+        function clearChipWorkerSearch() {
+            const input = document.getElementById('chipWorkerSearchInput');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+            renderWorkerChips();
+        }
+
+        // ⌨️ 작업자 칩 검색창 키보드 핸들러 (ESC: 초기화, Enter: 1개 매칭 시 자동 선택)
+        function onChipWorkerSearchKeydown(e) {
+            if (e.key === 'Escape') {
+                clearChipWorkerSearch();
+            } else if (e.key === 'Enter') {
+                const workers = window._currentWorkers || [];
+                if (workers.length === 1) {
+                    handleWorkerChipClickByName(workers[0]);
+                }
+            }
         }
 
         // =====================================================================

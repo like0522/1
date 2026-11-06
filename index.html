@@ -286,7 +286,7 @@
                     </svg>
                 </button>
                 <h1 class="text-lg md:text-xl font-black tracking-tight">생산 공정 및 인력 투입 분석기</h1>
-                <div class="bg-emerald-400 text-slate-950 px-2.5 py-1.5 rounded-xl font-black text-xs shadow-sm flex items-center gap-1.5" title="대시보드 배포 버전"><span class="w-2 h-2 rounded-full bg-emerald-700 animate-pulse"></span><span>V4.6</span></div>
+                <div class="bg-emerald-400 text-slate-950 px-2.5 py-1.5 rounded-xl font-black text-xs shadow-sm flex items-center gap-1.5" title="대시보드 배포 버전"><span class="w-2 h-2 rounded-full bg-emerald-700 animate-pulse"></span><span>V4.7</span></div>
                 <button onclick="openProjectCalendarModal()"
                     class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white px-3 py-1.5 rounded-xl text-xs font-black transition-all shadow-md flex items-center gap-1.5 border border-purple-400/50 hover:scale-105  ml-1"
                     title="상세 공정 달력 모달 열기">
@@ -11851,17 +11851,34 @@ function onProjectSearchInput() {
             )].filter(Boolean).sort((a, b) => b.localeCompare(a));
             const latestMonth = monthsInLatestYear[0] || '10';
 
-            // 2. 🌟 메인 화면 필터 기준 100% 자동 계승 (선택이 없을 때는 최근년·최근월 기본 선택 및 업체/프로젝트/공정/작업자는 '전체'로 시작)
+            // 2. 🌟 현재 메인 화면의 실제 선택/표시 데이터(currentProjectData) 기준 100% 자동 기간 동기화
+            // (사용자가 연도/월을 '전체'로 두고 프로젝트를 선택했더라도, 해당 프로젝트의 실제 작업 연도와 월을 즉시 1순위로 자동 선택!)
+            const curData = (typeof currentProjectData !== 'undefined' && Array.isArray(currentProjectData) && currentProjectData.length > 0)
+                ? currentProjectData
+                : [];
+
+            // 현재 표시 중인 데이터의 고유 연도 및 월 목록 추출
+            const curDataYears = [...new Set(curData.map(d => (d.date || '').substring(0, 4)).filter(y => y && y.length === 4))].sort((a, b) => b.localeCompare(a));
+            const curDataMonths = [...new Set(curData.map(d => (d.date || '').substring(5, 7)).filter(m => m && m.length === 2))].sort((a, b) => b.localeCompare(a));
+
             let initYears = new Set();
             if (typeof selectedFilterYears !== 'undefined' && !selectedFilterYears.has('ALL') && selectedFilterYears.size > 0) {
+                // 사용자가 상단 연도 체크에서 명시적으로 선택한 경우
                 selectedFilterYears.forEach(y => initYears.add(String(y)));
+            } else if (curDataYears.length > 0) {
+                // 🎯 [핵심 개선] 메인 화면에 로드된 프로젝트의 실제 작업 연도들을 자동 선택!
+                curDataYears.forEach(y => initYears.add(y));
             } else {
                 initYears.add(latestYear);
             }
 
             let initMonths = new Set();
             if (typeof selectedFilterMonths !== 'undefined' && !selectedFilterMonths.has('ALL') && selectedFilterMonths.size > 0) {
+                // 사용자가 상단 월 체크에서 명시적으로 선택한 경우
                 selectedFilterMonths.forEach(m => initMonths.add(String(m).padStart(2, '0')));
+            } else if (curDataMonths.length > 0) {
+                // 🎯 [핵심 개선] 메인 화면에 로드된 프로젝트의 실제 작업 월들을 자동 선택!
+                curDataMonths.forEach(m => initMonths.add(m));
             } else {
                 const curY = Array.from(initYears)[0] || latestYear;
                 const monthsForY = [...new Set(
@@ -11870,15 +11887,32 @@ function onProjectSearchInput() {
                 initMonths.add(monthsForY[0] || latestMonth);
             }
 
-            // 업체, 프로젝트, 공정, 작업자: 메인 화면에서 명시적으로 선택한 경우만 계승, 아니면 '전체(ALL)'(빈 Set)으로 시작하여 해당 월의 모든 항목이 메인 화면처럼 나오게 함
+            // 업체: 명시적 선택 또는 현재 데이터의 단일 업체 자동 계승
             let initCompanies = new Set();
             if (typeof selectedFilterCompanies !== 'undefined' && !selectedFilterCompanies.has('ALL') && selectedFilterCompanies.size > 0) {
                 selectedFilterCompanies.forEach(c => initCompanies.add(c));
+            } else {
+                const selC = document.getElementById('selCompany')?.value;
+                if (selC) {
+                    initCompanies.add(selC);
+                } else if (curData.length > 0) {
+                    const uniqueComps = [...new Set(curData.map(i => i.client))].filter(Boolean);
+                    if (uniqueComps.length === 1) initCompanies.add(uniqueComps[0]);
+                }
             }
 
+            // 프로젝트: 명시적 선택 또는 현재 데이터의 단일 프로젝트 자동 계승
             let initProjects = new Set();
             if (typeof selectedFilterProjects !== 'undefined' && !selectedFilterProjects.has('ALL') && selectedFilterProjects.size > 0) {
                 selectedFilterProjects.forEach(p => initProjects.add(p));
+            } else {
+                const selP = document.getElementById('selProject')?.value;
+                if (selP) {
+                    initProjects.add(selP);
+                } else if (curData.length > 0) {
+                    const uniqueProjs = [...new Set(curData.map(i => i.project))].filter(Boolean);
+                    if (uniqueProjs.length === 1) initProjects.add(uniqueProjs[0]);
+                }
             }
 
             let initProcesses = new Set();
